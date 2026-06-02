@@ -517,7 +517,170 @@ export class SnapDO {
     }
 }
 
+/**
+ * WindowLayoutPresetDO 可切换的窗口布局预设。
+ */
+export class WindowLayoutPresetDO {
+    "id": string;
+    "name": string;
+    "layout": WindowLayoutSnapshotDO;
+
+    /** Creates a new WindowLayoutPresetDO instance. */
+    constructor($$source: Partial<WindowLayoutPresetDO> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("layout" in $$source)) {
+            this["layout"] = (new WindowLayoutSnapshotDO());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WindowLayoutPresetDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WindowLayoutPresetDO {
+        const $$createField2_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("layout" in $$parsedSource) {
+            $$parsedSource["layout"] = $$createField2_0($$parsedSource["layout"]);
+        }
+        return new WindowLayoutPresetDO($$parsedSource as Partial<WindowLayoutPresetDO>);
+    }
+}
+
+/**
+ * WindowLayoutPresetSaveDO 新建或更新布局预设。
+ */
+export class WindowLayoutPresetSaveDO {
+    "id": string;
+    "name": string;
+    "fromCurrent": boolean;
+
+    /** Creates a new WindowLayoutPresetSaveDO instance. */
+    constructor($$source: Partial<WindowLayoutPresetSaveDO> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("fromCurrent" in $$source)) {
+            this["fromCurrent"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WindowLayoutPresetSaveDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WindowLayoutPresetSaveDO {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new WindowLayoutPresetSaveDO($$parsedSource as Partial<WindowLayoutPresetSaveDO>);
+    }
+}
+
+/**
+ * WindowLayoutPresetsDO 窗口布局预设集合与当前选中项。
+ */
+export class WindowLayoutPresetsDO {
+    "activeId": string;
+    "presets": WindowLayoutPresetDO[];
+
+    /** Creates a new WindowLayoutPresetsDO instance. */
+    constructor($$source: Partial<WindowLayoutPresetsDO> = {}) {
+        if (!("activeId" in $$source)) {
+            this["activeId"] = "";
+        }
+        if (!("presets" in $$source)) {
+            this["presets"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WindowLayoutPresetsDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WindowLayoutPresetsDO {
+        const $$createField1_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("presets" in $$parsedSource) {
+            $$parsedSource["presets"] = $$createField1_0($$parsedSource["presets"]);
+        }
+        return new WindowLayoutPresetsDO($$parsedSource as Partial<WindowLayoutPresetsDO>);
+    }
+}
+
+/**
+ * WindowLayoutSnapshotDO 窗口位置与内部分割快照。
+ */
+export class WindowLayoutSnapshotDO {
+    "x": number;
+    "y": number;
+    "h": number;
+    "scopeW": number;
+    "sidebarW": number;
+    "docked": boolean;
+    "notePlace": string;
+    "popoutX": number;
+    "popoutY": number;
+    "popoutH": number;
+
+    /** Creates a new WindowLayoutSnapshotDO instance. */
+    constructor($$source: Partial<WindowLayoutSnapshotDO> = {}) {
+        if (!("x" in $$source)) {
+            this["x"] = 0;
+        }
+        if (!("y" in $$source)) {
+            this["y"] = 0;
+        }
+        if (!("h" in $$source)) {
+            this["h"] = 0;
+        }
+        if (!("scopeW" in $$source)) {
+            this["scopeW"] = 0;
+        }
+        if (!("sidebarW" in $$source)) {
+            this["sidebarW"] = 0;
+        }
+        if (!("docked" in $$source)) {
+            this["docked"] = false;
+        }
+        if (!("notePlace" in $$source)) {
+            this["notePlace"] = "";
+        }
+        if (!("popoutX" in $$source)) {
+            this["popoutX"] = 0;
+        }
+        if (!("popoutY" in $$source)) {
+            this["popoutY"] = 0;
+        }
+        if (!("popoutH" in $$source)) {
+            this["popoutH"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WindowLayoutSnapshotDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WindowLayoutSnapshotDO {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new WindowLayoutSnapshotDO($$parsedSource as Partial<WindowLayoutSnapshotDO>);
+    }
+}
+
 // Private type creation functions
 const $$createType0 = PromptTemplateDO.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = $Create.Array($Create.Any);
+const $$createType3 = WindowLayoutSnapshotDO.createFrom;
+const $$createType4 = WindowLayoutPresetDO.createFrom;
+const $$createType5 = $Create.Array($$createType4);

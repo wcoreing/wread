@@ -1762,3 +1762,68 @@ button:disabled {
 .confirm-btn.ok.danger:hover {
   background: rgba(220, 38, 38, 0.4);
 }
+
+.layout-manager .template-list-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.layout-manager .template-list-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.layout-manager .template-list-item.active-preset {
+  border-color: rgba(129, 140, 248, 0.55);
+}
+
+.layout-preset-active-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #a5b4fc;
+}
+
+.layout-preset-apply-btn {
+  flex: 0 0 auto;
+  padding: 0 8px;
+  font-size: 11px;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 6px;
+  background: rgba(15, 15, 22, 0.6);
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.layout-preset-apply-btn:hover {
+  border-color: rgba(129, 140, 248, 0.45);
+  color: #e2e8f0;
+}
+
+.layout-create-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.layout-preset-editor label,
+.layout-preset-editor input {
+  display: block;
+  width: 100%;
+}
+
+.layout-preset-summary {
+  padding: 10px 12px;
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  border-radius: 8px;
+  background: rgba(15, 15, 22, 0.55);
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.layout-preset-empty {
+  color: #64748b;
+  font-size: 13px;
+  padding: 12px 4px;
+}

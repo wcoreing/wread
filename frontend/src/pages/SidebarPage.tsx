@@ -1,5 +1,6 @@
 import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import AiSettings from '../components/AiSettings'
+import LayoutManager from '../components/LayoutManager'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
 import NotebookPane from '../components/NotebookPane'
 import TemplateManager from '../components/TemplateManager'
@@ -9,6 +10,7 @@ import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
 import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
+import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { readerStyleVars } from '../lib/readerStyle'
 import '../components/edgeRail.css'
 import './overlay.css'
@@ -24,6 +26,7 @@ export default function SidebarPage() {
   const [catalogCollapsed, setCatalogCollapsed] = useCatalogCollapsed()
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
   const frameDrag = useWorkspaceFrameDrag(true)
+  const layoutPresets = useWindowLayoutPresets()
 
   useEffect(() => {
     if (noteMenu !== 'note') setListOpen(false)
@@ -110,6 +113,9 @@ export default function SidebarPage() {
         />
         {noteMenu === 'templates' && (
           <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />
+        )}
+        {noteMenu === 'layout' && (
+          <LayoutManager presets={layoutPresets} className="sidebar-body interpret-settings" />
         )}
         {noteMenu === 'ai' && (
           <AiSettings settings={interpretSettings} className="sidebar-body interpret-settings" />

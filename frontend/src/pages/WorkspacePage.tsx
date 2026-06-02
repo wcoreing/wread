@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEve
 import { Events, Window as WailsWindow } from '@wailsio/runtime'
 import { Service } from '../../bindings/wread/internal/app'
 import AiSettings from '../components/AiSettings'
+import LayoutManager from '../components/LayoutManager'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
 import NotebookPane from '../components/NotebookPane'
 import TemplateManager from '../components/TemplateManager'
@@ -11,6 +12,7 @@ import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
 import { useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
+import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { ReaderEdgeRail } from '../components/PaneEdgeRail'
 import { readerStyleVars } from '../lib/readerStyle'
 import { sidebarDragLimits, workspaceFrameMinSize } from '../lib/layoutLimits'
@@ -22,6 +24,7 @@ export default function WorkspacePage() {
   const nb = useActiveNotebook()
   const layout = useNoteLayout()
   const interpretSettings = useInterpretSettings()
+  const layoutPresets = useWindowLayoutPresets()
   const { listOpen, setListOpen } = useNotebookListOverlay()
   const [catalogCollapsed, setCatalogCollapsed] = useCatalogCollapsed()
 
@@ -359,6 +362,9 @@ export default function WorkspacePage() {
             />
             {noteMenu === 'templates' && (
               <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />
+            )}
+            {noteMenu === 'layout' && (
+              <LayoutManager presets={layoutPresets} className="sidebar-body interpret-settings" />
             )}
             {noteMenu === 'ai' && (
               <AiSettings settings={interpretSettings} className="sidebar-body interpret-settings" />

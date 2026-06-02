@@ -15,5 +15,9 @@ export {
     ReaderSettingsDO,
     RegionDO,
     SessionDO,
-    SnapDO
+    SnapDO,
+    WindowLayoutPresetDO,
+    WindowLayoutPresetSaveDO,
+    WindowLayoutPresetsDO,
+    WindowLayoutSnapshotDO
 } from "./models.js";

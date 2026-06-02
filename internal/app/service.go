@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"wread/internal/agent"
 	"wread/internal/model"
@@ -82,9 +83,51 @@ func (s *Service) RestoreDefaultWindowLayout() error {
 	if s.ws == nil {
 		return fmt.Errorf("layout 未就绪")
 	}
+	return s.ApplyWindowLayoutPreset(store.BuiltinDefaultLayoutPresetID())
+}
+
+// GetWindowLayoutPresets 读取窗口布局预设列表。
+func (s *Service) GetWindowLayoutPresets() model.WindowLayoutPresetsDO {
+	return s.store.GetWindowLayoutPresets()
+}
+
+// SaveWindowLayoutPreset 新建或更新窗口布局预设。
+func (s *Service) SaveWindowLayoutPreset(in model.WindowLayoutPresetSaveDO) (model.WindowLayoutPresetDO, error) {
+	if s.ws == nil {
+		return model.WindowLayoutPresetDO{}, fmt.Errorf("layout 未就绪")
+	}
+	snap := s.ws.LayoutSnapshot()
+	if !in.FromCurrent && strings.TrimSpace(in.ID) != "" {
+		cur, err := s.store.GetWindowLayoutPreset(in.ID)
+		if err != nil {
+			return model.WindowLayoutPresetDO{}, err
+		}
+		snap = cur.Layout
+	}
+	return s.store.SaveWindowLayoutPreset(in, snap)
+}
+
+// DeleteWindowLayoutPreset 删除窗口布局预设。
+func (s *Service) DeleteWindowLayoutPreset(id string) error {
+	return s.store.DeleteWindowLayoutPreset(id)
+}
+
+// ApplyWindowLayoutPreset 切换并应用窗口布局预设。
+func (s *Service) ApplyWindowLayoutPreset(id string) error {
+	if s.ws == nil {
+		return fmt.Errorf("layout 未就绪")
+	}
+	preset, err := s.store.GetWindowLayoutPreset(id)
+	if err != nil {
+		return err
+	}
 	application.InvokeSync(func() {
-		s.ws.RestoreDefaultLayout()
+		s.ws.ApplyLayoutSnapshot(preset.Layout)
 	})
+	if err := s.store.SetActiveWindowLayoutPreset(id); err != nil {
+		return err
+	}
+	s.emit("layout:preset", id)
 	return nil
 }
 

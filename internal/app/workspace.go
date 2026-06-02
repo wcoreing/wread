@@ -119,6 +119,104 @@ func (w *Workspace) RestoreDefaultLayout() {
 		w.state.Docked, w.state.ScopeW, w.state.SidebarW, w.windowWidth(), w.state.H)
 }
 
+// LayoutSnapshot 读取当前窗口位置与内部分割（含弹出笔记窗）。
+func (w *Workspace) LayoutSnapshot() model.WindowLayoutSnapshotDO {
+	if w.svc.workspace != nil {
+		b := w.svc.workspace.Bounds()
+		w.state.X, w.state.Y, w.state.H = b.X, b.Y, b.Height
+		if w.state.Docked {
+			if w.isVertical() {
+				w.state.ScopeW = b.Width
+			} else {
+				sw := b.Width - w.state.SidebarW
+				if sw < 0 {
+					sw = 0
+				}
+				w.state.ScopeW = sw
+			}
+		} else {
+			w.state.ScopeW = b.Width
+		}
+		w.lastW, w.lastH = b.Width, b.Height
+	}
+	if !w.state.Docked && w.svc.popout != nil {
+		pb := w.svc.popout.Bounds()
+		w.state.PopoutX, w.state.PopoutY = pb.X, pb.Y
+		w.state.PopoutH = pb.Height
+		w.state.SidebarW = pb.Width
+	}
+	return model.WindowLayoutSnapshotDO{
+		X: w.state.X, Y: w.state.Y, H: w.state.H,
+		ScopeW: w.state.ScopeW, SidebarW: w.state.SidebarW,
+		Docked: w.state.Docked, NotePlace: w.state.NotePlace,
+		PopoutX: w.state.PopoutX, PopoutY: w.state.PopoutY, PopoutH: w.state.PopoutH,
+	}
+}
+
+// ApplyLayoutSnapshot 应用窗口布局快照。
+func (w *Workspace) ApplyLayoutSnapshot(snap model.WindowLayoutSnapshotDO) {
+	if w.svc.workspace == nil {
+		return
+	}
+	snap = normalizeLayoutSnapshot(snap)
+	w.state.X = snap.X
+	w.state.Y = snap.Y
+	w.state.H = snap.H
+	w.state.ScopeW = snap.ScopeW
+	w.state.SidebarW = snap.SidebarW
+	w.state.Docked = snap.Docked
+	w.state.NotePlace = snap.NotePlace
+	w.state.PopoutX = snap.PopoutX
+	w.state.PopoutY = snap.PopoutY
+	w.state.PopoutH = snap.PopoutH
+
+	winW := layoutSnapshotWindowWidth(snap)
+	w.withSync(func() {
+		w.svc.workspace.SetBounds(application.Rect{
+			X: snap.X, Y: snap.Y, Width: winW, Height: snap.H,
+		})
+		if w.state.Docked {
+			if w.svc.popout != nil {
+				w.svc.popout.Hide()
+			}
+			return
+		}
+		if w.svc.popout != nil {
+			h := snap.PopoutH
+			if h < minNoteHeight {
+				h = snap.H
+			}
+			if h < minNoteHeight {
+				h = defaultWorkspaceHeight
+			}
+			x, y := snap.PopoutX, snap.PopoutY
+			if x == 0 && y == 0 {
+				def := w.defaultPopoutBounds()
+				x, y = def.X, def.Y
+				w.state.PopoutX, w.state.PopoutY = x, y
+			}
+			w.svc.popout.SetBounds(application.Rect{
+				X: x, Y: y, Width: snap.SidebarW, Height: h,
+			})
+			w.svc.popout.Show()
+		}
+	})
+	w.lastW, w.lastH = winW, snap.H
+	w.saveMu.Lock()
+	if w.saveTimer != nil {
+		w.saveTimer.Stop()
+		w.saveTimer = nil
+	}
+	w.saveMu.Unlock()
+	if err := w.svc.store.SaveWorkspaceState(w.state); err != nil {
+		log.Printf("[wread] apply layout save: %v", err)
+	}
+	w.syncPassThroughLayout()
+	w.emitLayout()
+	log.Printf("[wread] apply layout preset docked=%v place=%s %dx%d @ (%d,%d)",
+		w.state.Docked, w.effectivePlace(), winW, snap.H, snap.X, snap.Y)
+}
+
 // ApplyLayout 启动完成后应用布局与穿透区域。
 func (w *Workspace) ApplyLayout() {
 	if w.svc.workspace == nil {
@@ -471,4 +569,31 @@ func normalizeWorkspace(st model.WorkspaceStateDO) model.WorkspaceStateDO {
 		st.NotePlace = "popout"
 	}
 	return st
+}
+
+func normalizeLayoutSnapshot(snap model.WindowLayoutSnapshotDO) model.WindowLayoutSnapshotDO {
+	if snap.ScopeW < minScopeWidth {
+		snap.ScopeW = defaultScopeWidth
+	}
+	if snap.SidebarW < minSidebarWidth {
+		snap.SidebarW = defaultSidebarWidth
+	}
+	if snap.H < 180 {
+		snap.H = defaultWorkspaceHeight
+	}
+	snap.NotePlace = normalizePlace(snap.NotePlace)
+	if snap.Docked && snap.NotePlace == "popout" {
+		snap.NotePlace = "right"
+	}
+	if !snap.Docked {
+		snap.NotePlace = "popout"
+	}
+	return snap
+}
+
+func layoutSnapshotWindowWidth(snap model.WindowLayoutSnapshotDO) int {
+	if snap.Docked && snap.NotePlace != "top" && snap.NotePlace != "bottom" {
+		return snap.ScopeW + snap.SidebarW
+	}
+	return snap.ScopeW
 }

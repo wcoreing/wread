@@ -89,6 +89,40 @@ type LayoutSettingsDO struct {
 	NotePlace string `json:"notePlace"`
 }
 
+// WindowLayoutSnapshotDO 窗口位置与内部分割快照。
+type WindowLayoutSnapshotDO struct {
+	X         int    `json:"x"`
+	Y         int    `json:"y"`
+	H         int    `json:"h"`
+	ScopeW    int    `json:"scopeW"`
+	SidebarW  int    `json:"sidebarW"`
+	Docked    bool   `json:"docked"`
+	NotePlace string `json:"notePlace"`
+	PopoutX   int    `json:"popoutX"`
+	PopoutY   int    `json:"popoutY"`
+	PopoutH   int    `json:"popoutH"`
+}
+
+// WindowLayoutPresetDO 可切换的窗口布局预设。
+type WindowLayoutPresetDO struct {
+	ID     string                 `json:"id"`
+	Name   string                 `json:"name"`
+	Layout WindowLayoutSnapshotDO `json:"layout"`
+}
+
+// WindowLayoutPresetsDO 窗口布局预设集合与当前选中项。
+type WindowLayoutPresetsDO struct {
+	ActiveID string                 `json:"activeId"`
+	Presets  []WindowLayoutPresetDO `json:"presets"`
+}
+
+// WindowLayoutPresetSaveDO 新建或更新布局预设。
+type WindowLayoutPresetSaveDO struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	FromCurrent bool   `json:"fromCurrent"`
+}
+
 // AppInfoDO 应用信息。
 type AppInfoDO struct {
 	Version string `json:"version"`

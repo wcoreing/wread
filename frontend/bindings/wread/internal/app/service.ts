@@ -24,6 +24,13 @@ export function AddToCatalog(chapterID: string, snapID: string, title: string): 
 }
 
 /**
+ * ApplyWindowLayoutPreset 切换并应用窗口布局预设。
+ */
+export function ApplyWindowLayoutPreset(id: string): $CancellablePromise<void> {
+    return $Call.ByID(2400591192, id);
+}
+
+/**
  * AskFollowUp 追问。
  */
 export function AskFollowUp(question: string): $CancellablePromise<string> {
@@ -85,6 +92,13 @@ export function DeleteNotebook(id: string): $CancellablePromise<model$0.SessionD
  */
 export function DeletePromptTemplate(id: string): $CancellablePromise<void> {
     return $Call.ByID(390305792, id);
+}
+
+/**
+ * DeleteWindowLayoutPreset 删除窗口布局预设。
+ */
+export function DeleteWindowLayoutPreset(id: string): $CancellablePromise<void> {
+    return $Call.ByID(4178751745, id);
 }
 
 /**
@@ -200,6 +214,15 @@ export function GetReadingMode(): $CancellablePromise<boolean> {
 }
 
 /**
+ * GetWindowLayoutPresets 读取窗口布局预设列表。
+ */
+export function GetWindowLayoutPresets(): $CancellablePromise<model$0.WindowLayoutPresetsDO> {
+    return $Call.ByID(158967705).then(($result: any) => {
+        return $$createType9($result);
+    });
+}
+
+/**
  * HideOverlay 隐藏工作区。
  */
 export function HideOverlay(): $CancellablePromise<void> {
@@ -225,7 +248,7 @@ export function InterpretNow(region: model$0.RegionDO): $CancellablePromise<void
  */
 export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
     return $Call.ByID(1689678366).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType10($result);
     });
 }
 
@@ -234,7 +257,7 @@ export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
  */
 export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1945990983).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType11($result);
     });
 }
 
@@ -243,7 +266,7 @@ export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1975139466).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType11($result);
     });
 }
 
@@ -252,7 +275,7 @@ export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSnaps(): $CancellablePromise<model$0.SnapDO[]> {
     return $Call.ByID(2592071840).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType13($result);
     });
 }
 
@@ -307,7 +330,7 @@ export function SaveAISettings($in: model$0.AISettingsSaveDO): $CancellablePromi
  */
 export function SavePromptTemplate($in: model$0.PromptTemplateSaveDO): $CancellablePromise<model$0.PromptTemplateDO> {
     return $Call.ByID(2547522166, $in).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType14($result);
     });
 }
 
@@ -319,11 +342,20 @@ export function SaveReaderSettings($in: model$0.ReaderSettingsDO): $CancellableP
 }
 
 /**
+ * SaveWindowLayoutPreset 新建或更新窗口布局预设。
+ */
+export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $CancellablePromise<model$0.WindowLayoutPresetDO> {
+    return $Call.ByID(3058634027, $in).then(($result: any) => {
+        return $$createType15($result);
+    });
+}
+
+/**
  * SelectSnap 选中目录页并设为追问上下文。
  */
 export function SelectSnap(snapID: string): $CancellablePromise<model$0.SnapDO> {
     return $Call.ByID(1907960539, snapID).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType12($result);
     });
 }
 
@@ -430,8 +462,10 @@ const $$createType5 = model$0.CatalogSettingsDO.createFrom;
 const $$createType6 = model$0.LayoutSettingsDO.createFrom;
 const $$createType7 = model$0.PromptSettingsDO.createFrom;
 const $$createType8 = model$0.ReaderSettingsDO.createFrom;
-const $$createType9 = $Create.Array($$createType0);
-const $$createType10 = $Create.Array($$createType1);
-const $$createType11 = model$0.SnapDO.createFrom;
-const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = model$0.PromptTemplateDO.createFrom;
+const $$createType9 = model$0.WindowLayoutPresetsDO.createFrom;
+const $$createType10 = $Create.Array($$createType0);
+const $$createType11 = $Create.Array($$createType1);
+const $$createType12 = model$0.SnapDO.createFrom;
+const $$createType13 = $Create.Array($$createType12);
+const $$createType14 = model$0.PromptTemplateDO.createFrom;
+const $$createType15 = model$0.WindowLayoutPresetDO.createFrom;
