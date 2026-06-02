@@ -92,6 +92,7 @@ html, body, #root {
   color: #e5e7eb;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
 .workspace.place-right.docked .note-pane,
@@ -161,6 +162,47 @@ html, body, #root {
   border-radius: 0 8px 0 0;
 }
 
+/* 独立笔记窗 = 内嵌 place-right 笔记区，占满整窗 */
+.workspace.note-only {
+  width: 100vw;
+  height: 100vh;
+  border: 1px solid rgba(129, 140, 248, 0.55);
+  border-radius: 10px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.workspace.note-only .overlay-edge,
+.workspace.note-only .overlay-corner {
+  z-index: 18;
+}
+
+.workspace.note-only .overlay-corner {
+  z-index: 19;
+}
+
+.workspace.note-only .overlay-edge-top {
+  top: 36px;
+  left: 8px;
+  right: 8px;
+}
+
+.workspace.note-only .overlay-corner-nw,
+.workspace.note-only .overlay-corner-ne {
+  top: 36px;
+}
+
+.workspace.note-only .note-pane {
+  width: 100% !important;
+  height: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.workspace.note-only .note-toolbar {
+  border-radius: 10px 10px 0 0;
+}
+
 .note-body {
   flex: 1;
   min-height: 0;
@@ -185,29 +227,51 @@ html, body, #root {
   position: relative;
 }
 
-/* 内嵌时贴笔记侧的开卷边仅做内部分割，禁用 Wails 窗口缩放 */
-.workspace.docked.place-right .overlay-edge-right,
-.workspace.docked.place-right .overlay-corner-ne,
-.workspace.docked.place-right .overlay-corner-se {
+/* 内嵌时贴笔记侧的开卷边仅做内部分割，禁用窗口缩放（笔记侧单独挂外边框） */
+.workspace.docked.place-right .scope-pane .overlay-edge-right,
+.workspace.docked.place-right .scope-pane .overlay-corner-ne,
+.workspace.docked.place-right .scope-pane .overlay-corner-se {
   display: none;
 }
 
-.workspace.docked.place-left .overlay-edge-left,
-.workspace.docked.place-left .overlay-corner-nw,
-.workspace.docked.place-left .overlay-corner-sw {
+.workspace.docked.place-left .scope-pane .overlay-edge-left,
+.workspace.docked.place-left .scope-pane .overlay-corner-nw,
+.workspace.docked.place-left .scope-pane .overlay-corner-sw {
   display: none;
 }
 
-.workspace.docked.place-top .overlay-edge-top,
-.workspace.docked.place-top .overlay-corner-nw,
-.workspace.docked.place-top .overlay-corner-ne {
+.workspace.docked.place-top .scope-pane .overlay-edge-top,
+.workspace.docked.place-top .scope-pane .overlay-corner-nw,
+.workspace.docked.place-top .scope-pane .overlay-corner-ne {
   display: none;
 }
 
-.workspace.docked.place-bottom .overlay-edge-bottom,
-.workspace.docked.place-bottom .overlay-corner-sw,
-.workspace.docked.place-bottom .overlay-corner-se {
+.workspace.docked.place-bottom .scope-pane .overlay-edge-bottom,
+.workspace.docked.place-bottom .scope-pane .overlay-corner-sw,
+.workspace.docked.place-bottom .scope-pane .overlay-corner-se {
   display: none;
+}
+
+/* 笔记区外边框缩放（内嵌时窗口右/左/上/下边在笔记侧） */
+.note-pane .overlay-edge-top {
+  top: 36px;
+  z-index: 18;
+}
+
+.note-pane .overlay-corner-ne,
+.note-pane .overlay-corner-nw {
+  top: 36px;
+  z-index: 19;
+}
+
+.note-pane .overlay-edge-right,
+.note-pane .overlay-edge-left {
+  z-index: 18;
+}
+
+.note-pane .overlay-corner-se,
+.note-pane .overlay-corner-sw {
+  z-index: 19;
 }
 
 .workspace.place-right .workspace-splitter,

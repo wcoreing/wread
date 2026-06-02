@@ -154,12 +154,13 @@ func (w *Workspace) ResizeWorkspace(x, y, width, height int) {
 
 // FinishWorkspaceResize 边框拖拽结束，同步穿透带并持久化。
 func (w *Workspace) FinishWorkspaceResize() {
+	w.frameLive = false
+	overlay.SetFrameDragging(false)
 	if w.svc.workspace == nil {
 		return
 	}
-	w.frameLive = false
-	overlay.SetFrameDragging(false)
 	w.SyncBounds()
+	w.syncPassThroughLayout()
 }
 
 // SyncBounds 窗口移动或缩放后持久化。
@@ -174,10 +175,11 @@ func (w *Workspace) SyncBounds() {
 		if w.isVertical() {
 			w.state.ScopeW = b.Width
 		} else {
-			w.state.ScopeW = b.Width - w.state.SidebarW
-			if w.state.ScopeW < minScopeWidth {
-				w.state.ScopeW = minScopeWidth
+			sw := b.Width - w.state.SidebarW
+			if sw < 0 {
+				sw = 0
 			}
+			w.state.ScopeW = sw
 		}
 	} else {
 		w.state.ScopeW = b.Width
@@ -295,9 +297,10 @@ func (w *Workspace) ScopeWidth() int {
 	}
 	if w.state.Docked {
 		sw := b.Width - w.state.SidebarW
-		if sw >= minScopeWidth {
-			return sw
+		if sw < 0 {
+			sw = 0
 		}
+		return sw
 	}
 	return b.Width
 }

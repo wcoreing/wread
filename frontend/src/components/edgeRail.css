@@ -128,6 +128,20 @@
   border-right-color: transparent;
 }
 
+/* 独立阅读器单窗：解读竖条贴右内缘（与 place-right 内嵌一致） */
+.workspace.undocked .scope-pane .pane-edge-rail-reader {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.workspace.undocked .scope-pane .edge-rail-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-color: transparent;
+}
+
 .workspace.docked.place-left .scope-pane .pane-edge-rail-reader {
   top: 50%;
   left: 0;

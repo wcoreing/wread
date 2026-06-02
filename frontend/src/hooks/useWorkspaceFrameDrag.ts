@@ -7,31 +7,43 @@ export type FrameEdge = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 type DragMode = FrameEdge | 'move'
 
-const MIN_W = 560
-const MIN_H = 180
-
 type FrameRect = { x: number; y: number; w: number; h: number }
 
+type FrameMinSize = { minW: number; minH: number }
+
+const defaultMin: FrameMinSize = { minW: 560, minH: 180 }
+
 /** clampFrameRect 按最小尺寸约束窗口 bounds，上/左缩放时同步修正原点。 */
-function clampFrameRect(edge: FrameEdge, start: FrameRect, next: FrameRect): FrameRect {
+function clampFrameRect(
+  edge: FrameEdge,
+  start: FrameRect,
+  next: FrameRect,
+  min: FrameMinSize,
+): FrameRect {
   let { x, y, w, h } = next
-  if (w < MIN_W) {
+  if (w < min.minW) {
     if (edge.includes('w')) {
-      x = start.x + start.w - MIN_W
+      x = start.x + start.w - min.minW
     }
-    w = MIN_W
+    w = min.minW
   }
-  if (h < MIN_H) {
+  if (h < min.minH) {
     if (edge.includes('n')) {
-      y = start.y + start.h - MIN_H
+      y = start.y + start.h - min.minH
     }
-    h = MIN_H
+    h = min.minH
   }
   return { x, y, w, h }
 }
 
 /** calcFrameRect 根据屏幕位移计算缩放后的窗口 bounds。 */
-function calcFrameRect(edge: FrameEdge, start: FrameRect, dx: number, dy: number): FrameRect {
+function calcFrameRect(
+  edge: FrameEdge,
+  start: FrameRect,
+  dx: number,
+  dy: number,
+  min: FrameMinSize,
+): FrameRect {
   let { x, y, w, h } = start
   if (edge.includes('n')) {
     y = start.y + dy
@@ -47,7 +59,7 @@ function calcFrameRect(edge: FrameEdge, start: FrameRect, dx: number, dy: number
   if (edge.includes('e')) {
     w = start.w + dx
   }
-  return clampFrameRect(edge, start, { x, y, w, h })
+  return clampFrameRect(edge, start, { x, y, w, h }, min)
 }
 
 /** calcMoveRect 顶栏拖动时的平移 bounds。 */
@@ -72,8 +84,10 @@ async function applyWindowBounds(rect: FrameRect, mode: DragMode): Promise<void>
 }
 
 /** useWorkspaceFrameDrag 顶栏移动 + 边框缩放；Runtime 改窗，松手后 Go 持久化。 */
-export function useWorkspaceFrameDrag(resizeEnabled: boolean) {
+export function useWorkspaceFrameDrag(resizeEnabled: boolean, limits?: FrameMinSize) {
   const sessionRef = useRef(0)
+  const minRef = useRef(limits ?? defaultMin)
+  minRef.current = limits ?? defaultMin
 
   /** beginSession 启动一次拖拽会话（move 或 resize）。 */
   const beginSession = useCallback((mode: DragMode, e: ReactMouseEvent) => {
@@ -120,7 +134,9 @@ export function useWorkspaceFrameDrag(resizeEnabled: boolean) {
           const dx = ev.screenX - startScreenX
           const dy = ev.screenY - startScreenY
           const rect =
-            mode === 'move' ? calcMoveRect(startFrame, dx, dy) : calcFrameRect(mode, startFrame, dx, dy)
+            mode === 'move'
+              ? calcMoveRect(startFrame, dx, dy)
+              : calcFrameRect(mode, startFrame, dx, dy, minRef.current)
           void applyWindowBounds(rect, mode).catch(console.error)
         })
       })

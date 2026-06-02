@@ -85,7 +85,7 @@ func main() {
 		Y:                wb.Y,
 		Width:            wb.Width,
 		Height:           wb.Height,
-		MinWidth:         560,
+		MinWidth:         661,
 		MinHeight:        180,
 		Frameless:        true,
 		AlwaysOnTop:      true,

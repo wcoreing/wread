@@ -1,3 +1,4 @@
+import { type MouseEvent as ReactMouseEvent } from 'react'
 import { Service } from '../../bindings/wread/internal/app'
 import NotePlaceBar, { type NotePlaceId } from './NotePlaceBar'
 import '../pages/overlay.css'
@@ -12,6 +13,7 @@ type Props = {
   onPickPlace: (place: NotePlaceId) => void
   showWake?: boolean
   className?: string
+  onMouseDown?: (e: ReactMouseEvent<HTMLDivElement>) => void
 }
 
 /** NoteToolbar 笔记顶栏：笔记、模板、配置。 */
@@ -23,9 +25,10 @@ export default function NoteToolbar({
   onPickPlace,
   showWake,
   className = 'sidebar-toolbar note-toolbar',
+  onMouseDown,
 }: Props) {
   return (
-    <div className={className}>
+    <div className={className} onMouseDown={onMouseDown}>
       <button
         type="button"
         className={`sidebar-brand note-brand-btn${activeMenu === 'note' ? ' active' : ''}`}

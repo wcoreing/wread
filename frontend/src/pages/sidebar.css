@@ -32,7 +32,7 @@ html, body, #root {
   padding: 0 10px;
   background: rgba(15, 15, 22, 0.92);
   border-bottom: 1px solid rgba(129, 140, 248, 0.35);
-  --wails-draggable: drag;
+  --wails-draggable: no-drag;
   cursor: grab;
   user-select: none;
 }

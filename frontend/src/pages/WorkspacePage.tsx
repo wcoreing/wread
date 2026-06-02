@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
 import { Events, Window as WailsWindow } from '@wailsio/runtime'
 import { Service } from '../../bindings/wread/internal/app'
 import AiSettings from '../components/AiSettings'
@@ -10,10 +10,10 @@ import { useNotebookListOverlay } from '../hooks/useNotebookListOverlay'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
-import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
+import { useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
 import { ReaderEdgeRail } from '../components/PaneEdgeRail'
 import { readerStyleVars } from '../lib/readerStyle'
-import { sidebarDragLimits } from '../lib/layoutLimits'
+import { sidebarDragLimits, workspaceFrameMinSize } from '../lib/layoutLimits'
 import '../pages/overlay.css'
 import '../pages/sidebar.css'
 import './workspace.css'
@@ -31,7 +31,11 @@ export default function WorkspacePage() {
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
 
   const notePaneRef = useRef<HTMLElement>(null)
-  const frameDrag = useWorkspaceFrameDrag(readingMode || editable)
+  const frameMin = useMemo(
+    () => workspaceFrameMinSize(layout.docked, layout.layoutPlace, layout.sidebarW),
+    [layout.docked, layout.layoutPlace, layout.sidebarW],
+  )
+  const frameDrag = useWorkspaceFrameDrag(readingMode || editable, frameMin)
 
   useEffect(() => {
     Service.GetReadingMode().then(setReadingMode).catch(console.error)
@@ -135,8 +139,71 @@ export default function WorkspacePage() {
     frameDrag.startMove(e)
   }
 
-  const showEdgeRails = layout.docked && layout.layoutPlace !== 'center'
-  const showNoteEdgeRail = showEdgeRails && noteMenu === 'note'
+  /** onNoteToolbarMouseDown 笔记顶栏空白区拖动移动窗口。 */
+  const onNoteToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const t = e.target as HTMLElement
+    if (t.closest('button, .note-layout-select, .note-toolbar-spacer')) {
+      return
+    }
+    frameDrag.startMove(e)
+  }
+
+  const showFrameResize = readingMode || editable
+
+  /** renderNoteOuterFrame 内嵌时笔记侧窗口外边框（place-right 等为右/左/上/下边）。 */
+  const renderNoteOuterFrame = () => {
+    if (!layout.docked || !showFrameResize) {
+      return null
+    }
+    const onEdge = (edge: FrameEdge) => (e: ReactMouseEvent) => frameDrag.start(edge, e)
+    switch (layout.layoutPlace) {
+      case 'right':
+        return (
+          <>
+            <div className="overlay-edge overlay-edge-top" onMouseDown={onEdge('n')} />
+            <div className="overlay-edge overlay-edge-bottom" onMouseDown={onEdge('s')} />
+            <div className="overlay-edge overlay-edge-right" onMouseDown={onEdge('e')} />
+            <div className="overlay-corner overlay-corner-ne" onMouseDown={onEdge('ne')} />
+            <div className="overlay-corner overlay-corner-se" onMouseDown={onEdge('se')} />
+          </>
+        )
+      case 'left':
+        return (
+          <>
+            <div className="overlay-edge overlay-edge-top" onMouseDown={onEdge('n')} />
+            <div className="overlay-edge overlay-edge-bottom" onMouseDown={onEdge('s')} />
+            <div className="overlay-edge overlay-edge-left" onMouseDown={onEdge('w')} />
+            <div className="overlay-corner overlay-corner-nw" onMouseDown={onEdge('nw')} />
+            <div className="overlay-corner overlay-corner-sw" onMouseDown={onEdge('sw')} />
+          </>
+        )
+      case 'top':
+        return (
+          <>
+            <div className="overlay-edge overlay-edge-top" onMouseDown={onEdge('n')} />
+            <div className="overlay-edge overlay-edge-left" onMouseDown={onEdge('w')} />
+            <div className="overlay-edge overlay-edge-right" onMouseDown={onEdge('e')} />
+            <div className="overlay-corner overlay-corner-nw" onMouseDown={onEdge('nw')} />
+            <div className="overlay-corner overlay-corner-ne" onMouseDown={onEdge('ne')} />
+          </>
+        )
+      case 'bottom':
+        return (
+          <>
+            <div className="overlay-edge overlay-edge-bottom" onMouseDown={onEdge('s')} />
+            <div className="overlay-edge overlay-edge-left" onMouseDown={onEdge('w')} />
+            <div className="overlay-edge overlay-edge-right" onMouseDown={onEdge('e')} />
+            <div className="overlay-corner overlay-corner-sw" onMouseDown={onEdge('sw')} />
+            <div className="overlay-corner overlay-corner-se" onMouseDown={onEdge('se')} />
+          </>
+        )
+      default:
+        return null
+    }
+  }
+
+  const showReaderEdgeRail = layout.layoutPlace !== 'center'
+  const showNoteEdgeRail = layout.docked && layout.layoutPlace !== 'center' && noteMenu === 'note'
 
   const scopeModeClass = editable ? 'edit-mode' : readingMode ? 'read-mode' : 'op-mode'
   const overlayTip = editable
@@ -229,7 +296,7 @@ export default function WorkspacePage() {
           >
             恢复窗口
           </button>
-          {!showEdgeRails && (
+          {!showReaderEdgeRail && (
             <div className="overlay-interpret-group">
               <button
                 type="button"
@@ -260,7 +327,7 @@ export default function WorkspacePage() {
           <span className="overlay-hint">{overlayHint}</span>
         </div>
 
-        {showEdgeRails && (
+        {showReaderEdgeRail && (
           <ReaderEdgeRail interpreting={nb.interpreting} onInterpret={() => void interpret()} />
         )}
       </section>
@@ -280,6 +347,7 @@ export default function WorkspacePage() {
             </div>
           )}
           <aside ref={notePaneRef} className="note-pane" style={readerStyleVars(nb.readerSettings)}>
+            {renderNoteOuterFrame()}
             <NoteToolbar
               className="sidebar-toolbar note-toolbar"
               version={nb.appInfo?.version}
@@ -287,6 +355,7 @@ export default function WorkspacePage() {
               activeMenu={noteMenu}
               onPickMenu={setNoteMenu}
               onPickPlace={(place) => pickNotePlace(place).catch(console.error)}
+              onMouseDown={onNoteToolbarMouseDown}
             />
             {noteMenu === 'templates' && (
               <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />

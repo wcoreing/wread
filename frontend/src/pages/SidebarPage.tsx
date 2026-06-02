@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import AiSettings from '../components/AiSettings'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
 import NotebookPane from '../components/NotebookPane'
@@ -8,17 +8,22 @@ import { useNotebookListOverlay } from '../hooks/useNotebookListOverlay'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
+import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
 import { readerStyleVars } from '../lib/readerStyle'
+import '../components/edgeRail.css'
+import './overlay.css'
+import './workspace.css'
 import './sidebar.css'
 
-/** SidebarPage 内嵌或弹出的笔记窗。 */
-export default function SidebarPage({ popout = false }: { popout?: boolean }) {
+/** SidebarPage 独立弹出笔记窗（结构与内嵌 place-right 笔记区一致）。 */
+export default function SidebarPage() {
   const nb = useActiveNotebook()
   const layout = useNoteLayout()
   const interpretSettings = useInterpretSettings()
   const { listOpen, setListOpen } = useNotebookListOverlay()
   const [catalogCollapsed, setCatalogCollapsed] = useCatalogCollapsed()
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
+  const frameDrag = useWorkspaceFrameDrag(true)
 
   useEffect(() => {
     if (noteMenu !== 'note') setListOpen(false)
@@ -30,6 +35,17 @@ export default function SidebarPage({ popout = false }: { popout?: boolean }) {
     } catch (e: unknown) {
       nb.setStatus(String(e))
     }
+  }
+
+  const showNoteEdgeRail = noteMenu === 'note' && layout.layoutPlace !== 'center'
+
+  /** onNoteToolbarMouseDown 顶栏空白区拖动移动独立笔记窗。 */
+  const onNoteToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const t = e.target as HTMLElement
+    if (t.closest('button, .note-layout-select, .note-toolbar-spacer')) {
+      return
+    }
+    frameDrag.startMove(e)
   }
 
   const notePaneProps = {
@@ -72,38 +88,47 @@ export default function SidebarPage({ popout = false }: { popout?: boolean }) {
   }
 
   return (
-    <div
-      className={`sidebar-root ${popout ? 'popout' : layout.docked ? 'docked' : 'undocked'}`}
-      style={readerStyleVars(nb.readerSettings)}
-    >
-      <NoteToolbar
-        version={nb.appInfo?.version}
-        layoutPlace={layout.layoutPlace}
-        activeMenu={noteMenu}
-        onPickMenu={setNoteMenu}
-        onPickPlace={(place) => pickNotePlace(place).catch(console.error)}
-        showWake={popout}
-      />
-      {noteMenu === 'templates' && (
-        <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />
-      )}
-      {noteMenu === 'ai' && (
-        <AiSettings settings={interpretSettings} className="sidebar-body interpret-settings" />
-      )}
-      {noteMenu === 'note' && (
-        <NotebookPane
-          showEdgeRail={noteMenu === 'note'}
-          onToggleListOpen={() => setListOpen(!listOpen)}
-          notebooks={nb.notebooks}
-          activeNotebookId={nb.activeNotebookId}
-          listOpen={listOpen}
-          onOpenNotebook={(id) => nb.openNotebook(id).catch(console.error)}
-          onCreateNotebook={() => nb.createNotebook().catch(console.error)}
-          onDeleteNotebook={(id) => nb.deleteNotebook(id).catch(console.error)}
-          onBatchDeleteNotebooks={(ids) => nb.deleteNotebooks(ids).catch(console.error)}
-          {...notePaneProps}
+    <div className="workspace docked place-right note-only" style={readerStyleVars(nb.readerSettings)}>
+      <div className="overlay-edge overlay-edge-top" onMouseDown={(e) => frameDrag.start('n', e)} />
+      <div className="overlay-edge overlay-edge-bottom" onMouseDown={(e) => frameDrag.start('s', e)} />
+      <div className="overlay-edge overlay-edge-left" onMouseDown={(e) => frameDrag.start('w', e)} />
+      <div className="overlay-edge overlay-edge-right" onMouseDown={(e) => frameDrag.start('e', e)} />
+      <div className="overlay-corner overlay-corner-nw" onMouseDown={(e) => frameDrag.start('nw', e)} />
+      <div className="overlay-corner overlay-corner-ne" onMouseDown={(e) => frameDrag.start('ne', e)} />
+      <div className="overlay-corner overlay-corner-sw" onMouseDown={(e) => frameDrag.start('sw', e)} />
+      <div className="overlay-corner overlay-corner-se" onMouseDown={(e) => frameDrag.start('se', e)} />
+      <aside className="note-pane">
+        <NoteToolbar
+          className="sidebar-toolbar note-toolbar"
+          version={nb.appInfo?.version}
+          layoutPlace={layout.layoutPlace}
+          activeMenu={noteMenu}
+          onPickMenu={setNoteMenu}
+          onPickPlace={(place) => pickNotePlace(place).catch(console.error)}
+          onMouseDown={onNoteToolbarMouseDown}
+          showWake
         />
-      )}
+        {noteMenu === 'templates' && (
+          <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />
+        )}
+        {noteMenu === 'ai' && (
+          <AiSettings settings={interpretSettings} className="sidebar-body interpret-settings" />
+        )}
+        {noteMenu === 'note' && (
+          <NotebookPane
+            showEdgeRail={showNoteEdgeRail}
+            onToggleListOpen={() => setListOpen(!listOpen)}
+            notebooks={nb.notebooks}
+            activeNotebookId={nb.activeNotebookId}
+            listOpen={listOpen}
+            onOpenNotebook={(id) => nb.openNotebook(id).catch(console.error)}
+            onCreateNotebook={() => nb.createNotebook().catch(console.error)}
+            onDeleteNotebook={(id) => nb.deleteNotebook(id).catch(console.error)}
+            onBatchDeleteNotebooks={(ids) => nb.deleteNotebooks(ids).catch(console.error)}
+            {...notePaneProps}
+          />
+        )}
+      </aside>
     </div>
   )
 }
