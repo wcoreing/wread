@@ -41,6 +41,7 @@ static void *g_window = NULL;
 static CFAbsoluteTime g_lastForwardClick = 0;
 static id g_mouseMonitor = NULL;
 static id g_localMouseMonitor = NULL;
+static NSView *g_hitOverlay = NULL;
 static CGFloat g_scopeWidth = 640.0;
 static CGFloat g_noteSize = 0.0;
 static char g_place[16] = "right";
@@ -365,6 +366,71 @@ static NSRect wreadPassthroughRect(NSWindow *window) {
 	return r;
 }
 
+// wreadIgnoresAtScreenPoint 该屏幕坐标是否应穿透（与 wreadUpdatePartialPassThrough 一致）。
+static BOOL wreadIgnoresAtScreenPoint(NSWindow *window, NSPoint mouse) {
+	if (!g_readMode || window == NULL || g_mouseDragging) {
+		return NO;
+	}
+	if (wreadIsChromeUIPoint(window, mouse)) {
+		return NO;
+	}
+	NSRect scopeFrame = wreadScopeFrameRect(window);
+	if (wreadPointInRect(mouse, scopeFrame)) {
+		NSRect passthrough = wreadPassthroughRect(window);
+		return passthrough.size.width > 0 && passthrough.size.height > 0 &&
+		       wreadPointInRect(mouse, passthrough);
+	}
+	return YES;
+}
+
+@interface WreadPassHitView : NSView
+@end
+@implementation WreadPassHitView
+- (BOOL)isOpaque {
+	return NO;
+}
+- (BOOL)acceptsFirstResponder {
+	return NO;
+}
+- (NSView *)hitTest:(NSPoint)point {
+	NSWindow *win = [self window];
+	if (win == NULL || !g_readMode || g_window == NULL || (__bridge void *)win != g_window) {
+		return [super hitTest:point];
+	}
+	NSPoint inWin = [self convertPoint:point toView:nil];
+	NSPoint screen = [win convertPointToScreen:inWin];
+	BOOL ignore = wreadIgnoresAtScreenPoint(win, screen);
+	wreadApplyPassThrough(win, ignore, ignore);
+	return nil;
+}
+@end
+
+static void wreadInstallHitOverlay(NSWindow *window) {
+	if (window == NULL) {
+		return;
+	}
+	NSView *cv = [window contentView];
+	if (cv == NULL) {
+		return;
+	}
+	if (g_hitOverlay == NULL) {
+		g_hitOverlay = [[WreadPassHitView alloc] initWithFrame:cv.bounds];
+		[g_hitOverlay setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+		[g_hitOverlay setHidden:NO];
+	}
+	[g_hitOverlay setFrame:cv.bounds];
+	if ([g_hitOverlay superview] != cv) {
+		[cv addSubview:g_hitOverlay positioned:NSWindowAbove relativeTo:nil];
+	}
+}
+
+static void wreadRemoveHitOverlay(void) {
+	if (g_hitOverlay != NULL) {
+		[g_hitOverlay removeFromSuperview];
+		g_hitOverlay = NULL;
+	}
+}
+
 // wreadIsInPassthroughZone 鼠标是否在阅读穿透带内。
 static BOOL wreadIsInPassthroughZone(NSWindow *window, NSPoint mouse) {
 	if (!g_readMode || window == NULL) {
@@ -418,7 +484,31 @@ static BOOL wreadWindowIgnoresMouse(NSWindow *window) {
 	return [window ignoresMouseEvents];
 }
 
-// wreadTryPassthroughForward 阅读穿透带内点击：激活下层并补发左键（source 仅用于日志）。
+// wreadRefocusWread 穿透点击后把前台夺回 Wread（下一 runloop，便于下层先处理点击）。
+static void wreadRefocusWread(NSWindow *wreadWindow) {
+	if (wreadWindow == NULL) {
+		return;
+	}
+	pid_t selfPID = [[NSProcessInfo processInfo] processIdentifier];
+	NSRunningApplication *selfApp =
+	    [NSRunningApplication runningApplicationWithProcessIdentifier:selfPID];
+	if (selfApp != nil) {
+		[selfApp activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+	}
+	[wreadWindow makeKeyAndOrderFront:nil];
+	wreadLog("refocus wread wn=%ld", (long)[wreadWindow windowNumber]);
+}
+
+static void wreadScheduleRefocusWread(NSWindow *wreadWindow) {
+	if (wreadWindow == NULL) {
+		return;
+	}
+	dispatch_async(dispatch_get_main_queue(), ^{
+		wreadRefocusWread(wreadWindow);
+	});
+}
+
+// wreadTryPassthroughForward 阅读穿透带内点击：补发左键到下层，再夺回 Wread 焦点。
 static BOOL wreadTryPassthroughForward(NSWindow *wreadWindow, NSPoint mouse, NSEvent *event,
                                      const char *source) {
 	if (wreadWindow == NULL || event == NULL || source == NULL) {
@@ -482,12 +572,8 @@ static BOOL wreadTryPassthroughForward(NSWindow *wreadWindow, NSPoint mouse, NSE
 	}
 
 	NSString *appName = [app localizedName] ?: @"?";
-	wreadLog("%s activate pid=%d app=%s belowWN=%ld", source, (int)pid, [appName UTF8String],
-	         (long)belowWN);
-	[app activateWithOptions:NSApplicationActivateAllWindows];
-	if (isKey) {
-		[wreadWindow resignKeyWindow];
-	}
+	wreadLog("%s post to pid=%d app=%s belowWN=%ld key=%d ignores=%d", source, (int)pid,
+	         [appName UTF8String], (long)belowWN, isKey, ignores);
 
 	CGPoint quartz = wreadCocoaToQuartz(mouse);
 	CGEventRef down = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, quartz, kCGMouseButtonLeft);
@@ -514,6 +600,7 @@ static BOOL wreadTryPassthroughForward(NSWindow *wreadWindow, NSPoint mouse, NSE
 	g_lastForwardClick = now;
 	wreadLog("%s ok: posted click quartz=(%.1f,%.1f) flags=0x%llx", source, quartz.x, quartz.y,
 	         (unsigned long long)flags);
+	wreadScheduleRefocusWread(wreadWindow);
 	return YES;
 }
 
@@ -533,31 +620,9 @@ static void wreadUpdatePartialPassThrough(void) {
 	if (![window isVisible]) {
 		return;
 	}
-
-	if (g_mouseDragging) {
-		wreadApplyPassThrough(window, NO, NO);
-		return;
-	}
-
 	NSPoint mouse = [NSEvent mouseLocation];
-	NSRect scopeFrame = wreadScopeFrameRect(window);
-
-	if (wreadIsChromeUIPoint(window, mouse)) {
-		wreadApplyPassThrough(window, NO, NO);
-		return;
-	}
-	if (wreadPointInRect(mouse, scopeFrame)) {
-		NSRect passthrough = wreadPassthroughRect(window);
-		if (passthrough.size.width > 0 && passthrough.size.height > 0 &&
-		    wreadPointInRect(mouse, passthrough)) {
-			wreadApplyPassThrough(window, YES, YES);
-		} else {
-			wreadApplyPassThrough(window, NO, NO);
-		}
-		return;
-	}
-
-	wreadApplyPassThrough(window, YES, YES);
+	BOOL ignore = wreadIgnoresAtScreenPoint(window, mouse);
+	wreadApplyPassThrough(window, ignore, ignore);
 }
 
 static void wreadRemoveMouseMonitor(void) {
@@ -598,7 +663,12 @@ static void wreadInstallMouseMonitor(void) {
 			if (g_readMode && g_window != NULL && [event type] == NSEventTypeLeftMouseDown) {
 				NSWindow *window = (__bridge NSWindow *)g_window;
 				NSPoint mouse = [NSEvent mouseLocation];
-				(void)wreadTryPassthroughForward(window, mouse, event, "global");
+				BOOL posted =
+				    wreadTryPassthroughForward(window, mouse, event, "global");
+				// ignores 自然穿透时可能未走 Post，仍夺回焦点。
+				if (!posted && wreadIgnoresAtScreenPoint(window, mouse)) {
+					wreadScheduleRefocusWread(window);
+				}
 			}
 		});
 	}];
@@ -655,15 +725,17 @@ void wreadSetPassThrough(void *nsWindow, bool enable) {
 
 		if (!enable) {
 			wreadRemoveMouseMonitor();
+			wreadRemoveHitOverlay();
 			g_mouseDragging = NO;
 			g_window = NULL;
 			wreadApplyPassThrough(window, NO, NO);
 			return;
 		}
 
+		wreadInstallHitOverlay(window);
 		wreadInstallMouseMonitor();
 		wreadUpdatePartialPassThrough();
-		wreadLog("read mode on wn=%ld ax=%d", (long)[window windowNumber],
+		wreadLog("read mode on overlay+pass wn=%ld ax=%d", (long)[window windowNumber],
 		         AXIsProcessTrusted() ? 1 : 0);
 	});
 }

@@ -1,5 +1,6 @@
 import { Service } from '../../bindings/wread/internal/app'
 import NotePlaceBar, { type NotePlaceId } from './NotePlaceBar'
+import '../pages/overlay.css'
 
 export type NoteMenu = 'note' | 'templates' | 'ai'
 
@@ -51,6 +52,14 @@ export default function NoteToolbar({
         配置
       </button>
       <NotePlaceBar active={layoutPlace} onPick={onPickPlace} />
+      <button
+        type="button"
+        className="overlay-restore-btn"
+        title="恢复默认窗口：阅读区 640、笔记 480、高 780"
+        onClick={() => Service.RestoreDefaultWindowLayout().catch(console.error)}
+      >
+        恢复窗口
+      </button>
       {showWake && (
         <button type="button" className="sidebar-wake-btn" onClick={() => Service.FocusOverlay().catch(console.error)}>
           阅读器

@@ -268,6 +268,13 @@ export function ResetPromptTemplates(): $CancellablePromise<model$0.PromptSettin
 }
 
 /**
+ * RestoreDefaultWindowLayout 恢复工作区与弹出笔记窗的默认尺寸。
+ */
+export function RestoreDefaultWindowLayout(): $CancellablePromise<void> {
+    return $Call.ByID(994624662);
+}
+
+/**
  * SaveAISettings 保存 AI 配置。
  */
 export function SaveAISettings($in: model$0.AISettingsSaveDO): $CancellablePromise<void> {

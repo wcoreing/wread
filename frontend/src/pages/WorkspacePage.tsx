@@ -118,6 +118,10 @@ export default function WorkspacePage() {
     void WailsWindow.Focus().catch(console.error)
   }
 
+  const onRestoreWindow = () => {
+    void Service.RestoreDefaultWindowLayout().catch(console.error)
+  }
+
   const showEdgeRails = layout.docked && layout.layoutPlace !== 'center'
   const showNoteEdgeRail = showEdgeRails && noteMenu === 'note'
 
@@ -202,6 +206,14 @@ export default function WorkspacePage() {
             </button>
           </div>
           <span className="overlay-tip">{overlayTip}</span>
+          <button
+            type="button"
+            className="overlay-restore-btn"
+            title="恢复默认窗口：阅读区 640、笔记 480、高 780"
+            onClick={onRestoreWindow}
+          >
+            恢复窗口
+          </button>
           {!showEdgeRails && (
             <div className="overlay-interpret-group">
               <button

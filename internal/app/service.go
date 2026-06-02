@@ -77,6 +77,17 @@ func (s *Service) SetSidebarWidth(width int) error {
 	return nil
 }
 
+// RestoreDefaultWindowLayout 恢复工作区与弹出笔记窗的默认尺寸。
+func (s *Service) RestoreDefaultWindowLayout() error {
+	if s.ws == nil {
+		return fmt.Errorf("layout 未就绪")
+	}
+	application.InvokeSync(func() {
+		s.ws.RestoreDefaultLayout()
+	})
+	return nil
+}
+
 // SetNotePlace 设置笔记停靠方位：right left top bottom center popout。
 func (s *Service) SetNotePlace(place string) error {
 	if s.ws == nil {

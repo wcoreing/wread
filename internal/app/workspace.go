@@ -13,11 +13,14 @@ import (
 )
 
 const (
-	defaultScopeWidth   = 640
-	defaultSidebarWidth = 480
-	minScopeWidth       = 240
-	minSidebarWidth     = 420
-	minNoteHeight       = 200
+	defaultScopeWidth      = 640
+	defaultSidebarWidth    = 480
+	defaultWorkspaceHeight = 780
+	defaultWindowX         = 120
+	defaultWindowY         = 120
+	minScopeWidth          = 240
+	minSidebarWidth        = 420
+	minNoteHeight          = 200
 )
 
 // Workspace 单窗口开卷+笔记布局与弹出笔记窗管理。
@@ -68,6 +71,49 @@ func (w *Workspace) InitialPopoutBounds() application.Rect {
 		}
 	}
 	return w.defaultPopoutBounds()
+}
+
+// RestoreDefaultLayout 恢复默认窗口尺寸与内部分割（阅读器 640 + 笔记 480，高 780）。
+func (w *Workspace) RestoreDefaultLayout() {
+	if w.svc.workspace == nil {
+		return
+	}
+	w.withSync(func() {
+		w.state.ScopeW = defaultScopeWidth
+		w.state.SidebarW = defaultSidebarWidth
+		w.state.H = defaultWorkspaceHeight
+		w.state.X = defaultWindowX
+		w.state.Y = defaultWindowY
+		w.state.PopoutX = 0
+		w.state.PopoutY = 0
+		w.state.PopoutH = 0
+
+		w.svc.workspace.SetBounds(application.Rect{
+			X: w.state.X, Y: w.state.Y,
+			Width:  w.windowWidth(),
+			Height: w.state.H,
+		})
+
+		if !w.state.Docked && w.svc.popout != nil {
+			def := w.defaultPopoutBounds()
+			w.svc.popout.SetBounds(def)
+			w.state.PopoutX, w.state.PopoutY = def.X, def.Y
+			w.state.PopoutH = def.Height
+		}
+	})
+	w.saveMu.Lock()
+	if w.saveTimer != nil {
+		w.saveTimer.Stop()
+		w.saveTimer = nil
+	}
+	w.saveMu.Unlock()
+	if err := w.svc.store.SaveWorkspaceState(w.state); err != nil {
+		log.Printf("[wread] restore layout save: %v", err)
+	}
+	w.syncPassThroughLayout()
+	w.emitLayout()
+	log.Printf("[wread] restore default layout docked=%v scope=%d sidebar=%d %dx%d",
+		w.state.Docked, w.state.ScopeW, w.state.SidebarW, w.windowWidth(), w.state.H)
 }
 
 // ApplyLayout 启动完成后应用布局与穿透区域。
@@ -365,7 +411,7 @@ func normalizeWorkspace(st model.WorkspaceStateDO) model.WorkspaceStateDO {
 		st.SidebarW = defaultSidebarWidth
 	}
 	if st.H < 180 {
-		st.H = 480
+		st.H = defaultWorkspaceHeight
 	}
 	if st.X == 0 && st.Y == 0 {
 		st.X, st.Y = 120, 120
