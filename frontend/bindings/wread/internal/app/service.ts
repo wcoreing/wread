@@ -88,6 +88,13 @@ export function EnsureOverlayReadMode(): $CancellablePromise<void> {
 }
 
 /**
+ * FinishWorkspaceResize 边框拖拽结束，同步穿透带并持久化。
+ */
+export function FinishWorkspaceResize(): $CancellablePromise<void> {
+    return $Call.ByID(3907718045);
+}
+
+/**
  * FocusOverlay 聚焦工作区并进入开卷调整模式。
  */
 export function FocusOverlay(): $CancellablePromise<void> {
@@ -265,6 +272,13 @@ export function ResetPromptTemplates(): $CancellablePromise<model$0.PromptSettin
     return $Call.ByID(3283912883).then(($result: any) => {
         return $$createType7($result);
     });
+}
+
+/**
+ * ResizeWorkspace 拖拽边框缩放工作区窗口（单次 SetBounds，避免 IPC 风暴）。
+ */
+export function ResizeWorkspace(x: number, y: number, width: number, height: number): $CancellablePromise<void> {
+    return $Call.ByID(1428347912, x, y, width, height);
 }
 
 /**

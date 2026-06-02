@@ -26,6 +26,7 @@ export default function WorkspacePage() {
 
   const [editable, setEditable] = useState(false)
   const [readingMode, setReadingMode] = useState(false)
+  const [passAX, setPassAX] = useState(true)
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
 
   const notePaneRef = useRef<HTMLElement>(null)
@@ -34,6 +35,7 @@ export default function WorkspacePage() {
     Service.GetReadingMode().then(setReadingMode).catch(console.error)
     Events.On('overlay:editable', (ev: { data: boolean }) => setEditable(ev.data))
     Events.On('overlay:readingMode', (ev: { data: boolean }) => setReadingMode(ev.data))
+    Events.On('overlay:passAX', (ev: { data: boolean }) => setPassAX(ev.data))
     Events.On('focus:note', () => notePaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
     Events.On('read:status', () => setNoteMenu('note'))
   }, [])
@@ -129,7 +131,9 @@ export default function WorkspacePage() {
   const overlayTip = editable
     ? '拖此栏或四边调整'
     : readingMode
-      ? '中间穿透翻页 · 边框可拖'
+      ? passAX
+        ? '中间穿透翻页 · 边框可拖'
+        : '中间穿透翻页 · 请在系统设置开启辅助功能'
       : '操作模式 · 点击不穿透'
 
   const overlayHint = editable

@@ -105,6 +105,24 @@ func (s *Service) SyncWorkspaceBounds() {
 	s.ws.SyncBounds()
 }
 
+// ResizeWorkspace 拖拽边框缩放工作区窗口（单次 SetBounds，避免 IPC 风暴）。
+func (s *Service) ResizeWorkspace(x, y, width, height int) error {
+	if s.ws == nil {
+		return nil
+	}
+	s.ws.ResizeWorkspace(x, y, width, height)
+	return nil
+}
+
+// FinishWorkspaceResize 边框拖拽结束，同步穿透带并持久化。
+func (s *Service) FinishWorkspaceResize() error {
+	if s.ws == nil {
+		return nil
+	}
+	s.ws.FinishWorkspaceResize()
+	return nil
+}
+
 // SyncPopoutBounds 将弹出笔记窗 bounds 写入持久化。
 func (s *Service) SyncPopoutBounds() {
 	if s.ws == nil {
@@ -145,6 +163,7 @@ func (s *Service) applyOverlayMouseMode() {
 	overlay.ApplyPassThrough(s.workspace, passThrough)
 	s.emit("overlay:editable", s.overlayEditMode)
 	s.emit("overlay:readingMode", s.store.GetReadingMode())
+	s.emit("overlay:passAX", overlay.AccessibilityTrusted())
 }
 
 // setOverlayEditable 开卷区可拖动调整。

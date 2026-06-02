@@ -125,6 +125,24 @@ func (w *Workspace) ApplyLayout() {
 	w.syncPassThroughLayout()
 }
 
+// ResizeWorkspace 拖拽边框缩放工作区窗口（单次 SetBounds，避免 IPC 风暴）。
+func (w *Workspace) ResizeWorkspace(x, y, width, height int) {
+	if w.svc.workspace == nil {
+		return
+	}
+	w.withSync(func() {
+		w.svc.workspace.SetBounds(application.Rect{
+			X: x, Y: y, Width: width, Height: height,
+		})
+	})
+	w.syncPassThroughLayout()
+}
+
+// FinishWorkspaceResize 边框拖拽结束，同步穿透带并持久化。
+func (w *Workspace) FinishWorkspaceResize() {
+	w.SyncBounds()
+}
+
 // SyncBounds 窗口移动或缩放后持久化。
 func (w *Workspace) SyncBounds() {
 	if w.syncing || w.svc.workspace == nil {
@@ -330,7 +348,7 @@ func (w *Workspace) syncPassThroughLayout() {
 	if w.state.Docked {
 		noteSz = w.state.SidebarW
 	}
-	overlay.SetLayout(w.ScopeWidth(), noteSz, place, w.state.Docked)
+	overlay.SetLayout(w.ScopeWidth(), noteSz, place)
 }
 
 func (w *Workspace) effectivePlace() string {

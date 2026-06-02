@@ -3,10 +3,8 @@
 package overlay
 
 /*
-void wreadSetPassMetrics(
-    double toolbarH, double edgeInset, double splitterHit, double splitterPad,
-    double readerRailW, double readerRailH, double readerRailPad,
-    double noteRailW, double noteRailBtnH, double noteRailGap, double railSideExtra);
+void wreadSetPassMetrics(double toolbarH, double edgeInset, double readerRailW,
+                         double readerRailPad, double railSideExtra);
 */
 import "C"
 
@@ -15,14 +13,8 @@ func syncNativePassMetrics() {
 	C.wreadSetPassMetrics(
 		C.double(ToolbarHeight),
 		C.double(ScopeEdgeInset),
-		C.double(SplitterHit),
-		C.double(SplitterPad),
 		C.double(EdgeRailNativeW),
-		C.double(EdgeRailNativeH),
 		C.double(EdgeRailHitPad),
-		C.double(EdgeRailNativeW),
-		C.double(EdgeRailNoteBtnH),
-		C.double(EdgeRailGap),
 		C.double(RailSideExtra),
 	)
 }
