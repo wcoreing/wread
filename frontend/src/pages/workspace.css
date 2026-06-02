@@ -1,0 +1,264 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.workspace {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.workspace.docked {
+  border: 1px solid rgba(129, 140, 248, 0.55);
+  border-radius: 10px;
+}
+
+.workspace.undocked .scope-pane .overlay-toolbar {
+  border-radius: 10px 10px 0 0;
+  border: none;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.workspace.undocked .scope-pane .overlay-frame,
+.workspace.undocked .scope-pane.read-mode .overlay-frame,
+.workspace.undocked .scope-pane .overlay-templates {
+  border-radius: 0 0 10px 10px;
+}
+
+.workspace.place-right,
+.workspace.place-left,
+.workspace.place-center {
+  flex-direction: row;
+}
+
+.workspace.place-left {
+  flex-direction: row-reverse;
+}
+
+.workspace.place-top {
+  flex-direction: column-reverse;
+}
+
+.workspace.place-bottom {
+  flex-direction: column;
+}
+
+.workspace.undocked .scope-pane {
+  min-width: 240px;
+}
+
+.scope-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.workspace.docked .scope-pane .overlay-toolbar {
+  border: none;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
+  border-radius: 0;
+}
+
+.workspace.docked .scope-pane .overlay-frame,
+.workspace.docked .scope-pane.read-mode .overlay-frame,
+.workspace.docked .scope-pane .overlay-templates {
+  border-radius: 0;
+  border-top: none;
+  border-left: none;
+  border-bottom: none;
+}
+
+.workspace.place-top.docked .scope-pane .overlay-toolbar,
+.workspace.place-bottom.docked .scope-pane .overlay-toolbar {
+  border-top: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.note-pane {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #12121a 0%, #0d0d12 100%);
+  color: #e5e7eb;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.workspace.place-right.docked .note-pane,
+.workspace.place-left.docked .note-pane {
+  width: var(--sidebar-w, 380px);
+}
+
+.workspace.place-center.docked .note-pane {
+  width: var(--sidebar-w, 380px);
+  align-self: center;
+  height: 72%;
+  max-height: 72%;
+  border-radius: 0 8px 8px 0;
+}
+
+.workspace.place-top.docked .note-pane,
+.workspace.place-bottom.docked .note-pane {
+  width: 100%;
+  height: var(--sidebar-w, 380px);
+}
+
+.workspace.docked .note-pane {
+  border: none;
+  border-radius: 0;
+}
+
+.workspace.docked.place-right .note-pane,
+.workspace.docked.place-center .note-pane {
+  border-left: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.workspace.docked.place-left .note-pane {
+  border-right: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.workspace.docked.place-top .note-pane {
+  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.workspace.docked.place-bottom .note-pane {
+  border-top: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.note-toolbar {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.25);
+}
+
+.workspace.docked.place-right .note-toolbar {
+  border-radius: 0 10px 0 0;
+}
+
+.workspace.docked.place-left .note-toolbar {
+  border-radius: 10px 0 0 0;
+}
+
+.workspace.docked.place-top .note-toolbar {
+  border-radius: 10px 10px 0 0;
+}
+
+.workspace.docked.place-bottom .note-toolbar {
+  border-radius: 0 0 10px 10px;
+}
+
+.workspace.docked.place-center .note-toolbar {
+  border-radius: 0 8px 0 0;
+}
+
+.note-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.workspace-splitter {
+  flex-shrink: 0;
+  background: transparent;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: stretch;
+  --wails-draggable: no-drag;
+}
+
+.workspace-splitter-drag {
+  flex: 1;
+  align-self: stretch;
+  min-height: 0;
+  position: relative;
+}
+
+/* 内嵌时贴笔记侧的开卷边仅做内部分割，禁用 Wails 窗口缩放 */
+.workspace.docked.place-right .overlay-edge-right,
+.workspace.docked.place-right .overlay-corner-ne,
+.workspace.docked.place-right .overlay-corner-se {
+  display: none;
+}
+
+.workspace.docked.place-left .overlay-edge-left,
+.workspace.docked.place-left .overlay-corner-nw,
+.workspace.docked.place-left .overlay-corner-sw {
+  display: none;
+}
+
+.workspace.docked.place-top .overlay-edge-top,
+.workspace.docked.place-top .overlay-corner-nw,
+.workspace.docked.place-top .overlay-corner-ne {
+  display: none;
+}
+
+.workspace.docked.place-bottom .overlay-edge-bottom,
+.workspace.docked.place-bottom .overlay-corner-sw,
+.workspace.docked.place-bottom .overlay-corner-se {
+  display: none;
+}
+
+.workspace.place-right .workspace-splitter,
+.workspace.place-left .workspace-splitter,
+.workspace.place-center .workspace-splitter {
+  width: 1px;
+  margin: 0;
+  padding: 0;
+}
+
+.workspace.place-right .workspace-splitter-drag,
+.workspace.place-left .workspace-splitter-drag,
+.workspace.place-center .workspace-splitter-drag {
+  cursor: col-resize;
+}
+
+.workspace.place-right .workspace-splitter-drag::after,
+.workspace.place-left .workspace-splitter-drag::after,
+.workspace.place-center .workspace-splitter-drag::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 7px;
+  cursor: col-resize;
+  --wails-draggable: no-drag;
+}
+
+.workspace.place-top .workspace-splitter,
+.workspace.place-bottom .workspace-splitter {
+  height: 1px;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace.place-top .workspace-splitter-drag,
+.workspace.place-bottom .workspace-splitter-drag {
+  cursor: row-resize;
+}
+
+.workspace.place-top .workspace-splitter-drag::after,
+.workspace.place-bottom .workspace-splitter-drag::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -3px;
+  height: 7px;
+  cursor: row-resize;
+  --wails-draggable: no-drag;
+}

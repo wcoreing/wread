@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "0.1.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "0.1.0",
+			"CompanyName": "My Company",
+			"FileDescription": "AI 桌面伴读助手",
+			"LegalCopyright": "© 2026, My Company",
+			"ProductName": "Wread",
+			"Comments": "This is a comment"
+		}
+	}
+}

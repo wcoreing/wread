@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Wread
+Comment=AI 桌面伴读助手
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/wread %u
+Terminal=false
+Type=Application
+Icon=wread
+Categories=Utility;
+StartupWMClass=wread
+
+ 
