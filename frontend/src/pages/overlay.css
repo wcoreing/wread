@@ -34,7 +34,7 @@ html, body, #root {
   border: 1px solid rgba(129, 140, 248, 0.55);
   border-right: none;
   border-radius: 10px 0 0 0;
-  --wails-draggable: drag;
+  --wails-draggable: no-drag;
   cursor: grab;
   user-select: none;
 }
@@ -179,11 +179,11 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* 可拖动/缩放边框（Wails v3 使用 --wails-draggable） */
+/* 边框/角点缩放（前端 ResizeWorkspace；禁用 wails:drag 避免 macOS 整窗移动抖动） */
 .overlay-edge {
   position: absolute;
   z-index: 15;
-  --wails-draggable: drag;
+  --wails-draggable: no-drag;
 }
 
 .overlay-edge-top {
@@ -191,7 +191,7 @@ html, body, #root {
   left: 8px;
   right: 8px;
   height: 8px;
-  cursor: grab;
+  cursor: ns-resize;
 }
 
 .overlay-edge-bottom {
@@ -199,7 +199,7 @@ html, body, #root {
   left: 8px;
   right: 8px;
   height: 8px;
-  cursor: grab;
+  cursor: ns-resize;
 }
 
 .overlay-edge-left {
@@ -207,7 +207,7 @@ html, body, #root {
   bottom: 8px;
   left: 0;
   width: 8px;
-  cursor: grab;
+  cursor: ew-resize;
 }
 
 .overlay-edge-right {
@@ -215,7 +215,7 @@ html, body, #root {
   bottom: 8px;
   right: 0;
   width: 8px;
-  cursor: grab;
+  cursor: ew-resize;
 }
 
 .overlay-corner {
@@ -223,7 +223,7 @@ html, body, #root {
   z-index: 16;
   width: 14px;
   height: 14px;
-  --wails-draggable: drag;
+  --wails-draggable: no-drag;
 }
 
 .overlay-corner-nw {

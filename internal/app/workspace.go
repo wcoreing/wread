@@ -28,6 +28,9 @@ type Workspace struct {
 	svc       *Service
 	state     model.WorkspaceStateDO
 	syncing   bool
+	frameLive bool
+	lastW     int
+	lastH     int
 	saveMu    sync.Mutex
 	saveTimer *time.Timer
 }
@@ -125,30 +128,47 @@ func (w *Workspace) ApplyLayout() {
 	w.syncPassThroughLayout()
 }
 
+// BeginFrameDrag 窗口框/顶栏拖拽开始，暂停 SyncBounds 与穿透带刷新。
+func (w *Workspace) BeginFrameDrag() {
+	if w.svc.workspace == nil || w.frameLive {
+		return
+	}
+	w.frameLive = true
+	overlay.SetFrameDragging(true)
+}
+
 // ResizeWorkspace 拖拽边框缩放工作区窗口（单次 SetBounds，避免 IPC 风暴）。
 func (w *Workspace) ResizeWorkspace(x, y, width, height int) {
 	if w.svc.workspace == nil {
 		return
+	}
+	if !w.frameLive {
+		w.BeginFrameDrag()
 	}
 	w.withSync(func() {
 		w.svc.workspace.SetBounds(application.Rect{
 			X: x, Y: y, Width: width, Height: height,
 		})
 	})
-	w.syncPassThroughLayout()
 }
 
 // FinishWorkspaceResize 边框拖拽结束，同步穿透带并持久化。
 func (w *Workspace) FinishWorkspaceResize() {
+	if w.svc.workspace == nil {
+		return
+	}
+	w.frameLive = false
+	overlay.SetFrameDragging(false)
 	w.SyncBounds()
 }
 
 // SyncBounds 窗口移动或缩放后持久化。
 func (w *Workspace) SyncBounds() {
-	if w.syncing || w.svc.workspace == nil {
+	if w.syncing || w.frameLive || w.svc.workspace == nil {
 		return
 	}
 	b := w.svc.workspace.Bounds()
+	resized := b.Width != w.lastW || b.Height != w.lastH
 	w.state.X, w.state.Y, w.state.H = b.X, b.Y, b.Height
 	if w.state.Docked {
 		if w.isVertical() {
@@ -162,8 +182,11 @@ func (w *Workspace) SyncBounds() {
 	} else {
 		w.state.ScopeW = b.Width
 	}
+	w.lastW, w.lastH = b.Width, b.Height
 	w.save()
-	w.syncPassThroughLayout()
+	if resized {
+		w.syncPassThroughLayout()
+	}
 }
 
 // SyncPopoutBounds 弹出笔记窗移动/缩放后持久化。

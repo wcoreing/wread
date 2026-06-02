@@ -31,6 +31,7 @@ static CGFloat g_railSideExtra = 4.0;
 
 static bool g_readMode = false;
 static bool g_mouseDragging = false;
+static bool g_frameDragging = false;
 static void *g_window = NULL;
 static CFAbsoluteTime g_lastForwardClick = 0;
 static CFAbsoluteTime g_lastIgnoreUpdate = 0;
@@ -54,6 +55,13 @@ static BOOL wreadPlaceIs(const char *name) {
 }
 
 static void wreadApplyPassThrough(NSWindow *window, BOOL ignore, BOOL forward) {
+	static BOOL g_lastIgnore = NO;
+	static BOOL g_lastForward = NO;
+	if (ignore == g_lastIgnore && forward == g_lastForward) {
+		return;
+	}
+	g_lastIgnore = ignore;
+	g_lastForward = forward;
 	if (ignore) {
 		SEL sel = @selector(setIgnoresMouseEvents:forward:);
 		if ([NSWindow instancesRespondToSelector:sel]) {
@@ -151,7 +159,7 @@ static BOOL wreadPointInPassthroughBand(NSWindow *window, NSPoint mouse) {
 
 // wreadShouldIgnoreMouse 是否对该点开启 ignores（拖拽分割条/边框时不穿透）。
 static BOOL wreadShouldIgnoreMouse(NSWindow *window, NSPoint mouse) {
-	if (g_mouseDragging) {
+	if (g_mouseDragging || g_frameDragging) {
 		return NO;
 	}
 	return wreadPointInPassthroughBand(window, mouse);
@@ -281,7 +289,7 @@ static void wreadRunOnMain(void (^block)(void)) {
 }
 
 static void wreadUpdateIgnoresFromMouse(void) {
-	if (!g_readMode || g_window == NULL) {
+	if (!g_readMode || g_window == NULL || g_frameDragging) {
 		return;
 	}
 	CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
@@ -360,6 +368,10 @@ static void wreadInstallMouseMonitor(void) {
 }
 
 void wreadSetPassThroughLayout(CGFloat scopeWidth, CGFloat noteSize, const char *place) {
+	if (scopeWidth == g_scopeWidth && noteSize == g_noteSize && place != NULL &&
+	    strncmp(g_place, place, sizeof(g_place)) == 0) {
+		return;
+	}
 	g_scopeWidth = scopeWidth;
 	g_noteSize = noteSize;
 	if (place != NULL) {
@@ -367,6 +379,24 @@ void wreadSetPassThroughLayout(CGFloat scopeWidth, CGFloat noteSize, const char 
 		g_place[sizeof(g_place) - 1] = '\0';
 	}
 	wreadRunOnMain(^{
+		wreadUpdateIgnoresFromMouse();
+	});
+}
+
+void wreadSetFrameDragging(bool dragging) {
+	g_frameDragging = dragging ? true : false;
+	if (dragging) {
+		g_mouseDragging = true;
+	}
+	wreadRunOnMain(^{
+		if (!g_readMode || g_window == NULL) {
+			return;
+		}
+		NSWindow *window = (__bridge NSWindow *)g_window;
+		if (dragging) {
+			wreadApplyPassThrough(window, NO, NO);
+			return;
+		}
 		wreadUpdateIgnoresFromMouse();
 	});
 }
@@ -404,4 +434,8 @@ func setNativePassThroughLayout(scopeW, noteSz int, place string) {
 	cPlace := C.CString(place)
 	defer C.free(unsafe.Pointer(cPlace))
 	C.wreadSetPassThroughLayout(C.double(scopeW), C.double(noteSz), cPlace)
+}
+
+func setNativeFrameDragging(dragging bool) {
+	C.wreadSetFrameDragging(C.bool(dragging))
 }

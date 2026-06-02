@@ -105,6 +105,15 @@ func (s *Service) SyncWorkspaceBounds() {
 	s.ws.SyncBounds()
 }
 
+// BeginWorkspaceFrameDrag 边框/顶栏拖拽开始，暂停穿透同步直至 Finish。
+func (s *Service) BeginWorkspaceFrameDrag() error {
+	if s.ws == nil {
+		return nil
+	}
+	s.ws.BeginFrameDrag()
+	return nil
+}
+
 // ResizeWorkspace 拖拽边框缩放工作区窗口（单次 SetBounds，避免 IPC 风暴）。
 func (s *Service) ResizeWorkspace(x, y, width, height int) error {
 	if s.ws == nil {

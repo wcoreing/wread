@@ -17,6 +17,10 @@ var (
 // SetLayout 更新开卷/笔记区域与停靠方位，供穿透带几何使用。
 func SetLayout(scopeW, noteSize int, place string) {
 	layoutMu.Lock()
+	if layoutScopeW == scopeW && layoutNoteSz == noteSize && layoutPlace == place {
+		layoutMu.Unlock()
+		return
+	}
 	layoutScopeW = scopeW
 	layoutNoteSz = noteSize
 	layoutPlace = place
@@ -24,6 +28,13 @@ func SetLayout(scopeW, noteSize int, place string) {
 	application.InvokeSync(func() {
 		syncNativePassMetrics()
 		setNativePassThroughLayout(scopeW, noteSize, place)
+	})
+}
+
+// SetFrameDragging 边框缩放过程中暂停穿透带刷新，避免抖动。
+func SetFrameDragging(dragging bool) {
+	application.InvokeSync(func() {
+		setNativeFrameDragging(dragging)
 	})
 }
 

@@ -10,6 +10,7 @@ import { useNotebookListOverlay } from '../hooks/useNotebookListOverlay'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
+import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
 import { ReaderEdgeRail } from '../components/PaneEdgeRail'
 import { readerStyleVars } from '../lib/readerStyle'
 import { sidebarDragLimits } from '../lib/layoutLimits'
@@ -30,6 +31,7 @@ export default function WorkspacePage() {
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
 
   const notePaneRef = useRef<HTMLElement>(null)
+  const frameDrag = useWorkspaceFrameDrag(readingMode || editable)
 
   useEffect(() => {
     Service.GetReadingMode().then(setReadingMode).catch(console.error)
@@ -124,6 +126,15 @@ export default function WorkspacePage() {
     void Service.RestoreDefaultWindowLayout().catch(console.error)
   }
 
+  /** onToolbarMouseDown 顶栏空白区拖动移动窗口（不走 wails:drag）。 */
+  const onToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const t = e.target as HTMLElement
+    if (t.closest('button, .overlay-mode-radio, .overlay-restore-btn, .overlay-interpret-group')) {
+      return
+    }
+    frameDrag.startMove(e)
+  }
+
   const showEdgeRails = layout.docked && layout.layoutPlace !== 'center'
   const showNoteEdgeRail = showEdgeRails && noteMenu === 'note'
 
@@ -187,7 +198,7 @@ export default function WorkspacePage() {
       style={{ '--sidebar-w': `${layout.sidebarW}px` } as CSSProperties}
     >
       <section className={`scope-pane reader-pane ${scopeModeClass}`}>
-        <div className="overlay-toolbar scope-toolbar">
+        <div className="overlay-toolbar scope-toolbar" onMouseDown={onToolbarMouseDown}>
           <span className="overlay-brand">阅读器</span>
           <div className="overlay-mode-radio" role="radiogroup" aria-label="阅读器模式">
             <button
@@ -234,14 +245,14 @@ export default function WorkspacePage() {
 
         {(readingMode || editable) && (
           <>
-            <div className="overlay-edge overlay-edge-top" />
-            <div className="overlay-edge overlay-edge-bottom" />
-            <div className="overlay-edge overlay-edge-left" />
-            <div className="overlay-edge overlay-edge-right" />
-            <div className="overlay-corner overlay-corner-nw" />
-            <div className="overlay-corner overlay-corner-ne" />
-            <div className="overlay-corner overlay-corner-sw" />
-            <div className="overlay-corner overlay-corner-se" />
+            <div className="overlay-edge overlay-edge-top" onMouseDown={(e) => frameDrag.start('n', e)} />
+            <div className="overlay-edge overlay-edge-bottom" onMouseDown={(e) => frameDrag.start('s', e)} />
+            <div className="overlay-edge overlay-edge-left" onMouseDown={(e) => frameDrag.start('w', e)} />
+            <div className="overlay-edge overlay-edge-right" onMouseDown={(e) => frameDrag.start('e', e)} />
+            <div className="overlay-corner overlay-corner-nw" onMouseDown={(e) => frameDrag.start('nw', e)} />
+            <div className="overlay-corner overlay-corner-ne" onMouseDown={(e) => frameDrag.start('ne', e)} />
+            <div className="overlay-corner overlay-corner-sw" onMouseDown={(e) => frameDrag.start('sw', e)} />
+            <div className="overlay-corner overlay-corner-se" onMouseDown={(e) => frameDrag.start('se', e)} />
           </>
         )}
 

@@ -31,6 +31,13 @@ export function AskFollowUp(question: string): $CancellablePromise<string> {
 }
 
 /**
+ * BeginWorkspaceFrameDrag 边框/顶栏拖拽开始，暂停穿透同步直至 Finish。
+ */
+export function BeginWorkspaceFrameDrag(): $CancellablePromise<void> {
+    return $Call.ByID(1215643748);
+}
+
+/**
  * CreateChapter 新建章节。
  */
 export function CreateChapter(parentID: string, title: string): $CancellablePromise<model$0.CatalogNodeDO> {

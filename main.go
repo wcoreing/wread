@@ -95,7 +95,7 @@ func main() {
 		Mac: application.MacWindow{
 			Backdrop:                application.MacBackdropTransparent,
 			TitleBar:                application.MacTitleBarHidden,
-			InvisibleTitleBarHeight: 36,
+			InvisibleTitleBarHeight: 0,
 		},
 		Windows: application.WindowsWindow{
 			HiddenOnTaskbar: true,
