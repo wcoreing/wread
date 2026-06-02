@@ -27,11 +27,12 @@ export function onEdgeRailFocus(e: MouseEvent<HTMLButtonElement>) {
   void WailsWindow.Focus().catch(console.error)
 }
 
-/** onEdgeRailClick 内缘按钮点击。 */
+/** onEdgeRailClick 内缘按钮点击；完成后 blur，避免 focus 样式像常亮。 */
 export function onEdgeRailClick(action: () => void) {
   return (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     action()
+    e.currentTarget.blur()
   }
 }
 

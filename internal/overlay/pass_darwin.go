@@ -29,10 +29,10 @@ static void wreadLog(const char *fmt, ...) {
 static const CGFloat kWreadToolbarHeight = 36.0;
 static const CGFloat kWreadEdgeInset = 14.0;
 // 与 Web .edge-rail-btn 对齐：宽 48 + 余量，高约 72 + 余量。
-static const CGFloat kWreadReaderRailW = 56.0;
+static const CGFloat kWreadReaderRailW = 38.0;
 static const CGFloat kWreadReaderRailH = 92.0;
-static const CGFloat kWreadReaderRailPad = 10.0;
-static const CGFloat kWreadNoteRailW = 56.0;
+static const CGFloat kWreadReaderRailPad = 8.0;
+static const CGFloat kWreadNoteRailW = 38.0;
 static const CGFloat kWreadNoteRailBtnH = 82.0;
 static const CGFloat kWreadNoteRailGap = 10.0;
 static bool g_readMode = false;
