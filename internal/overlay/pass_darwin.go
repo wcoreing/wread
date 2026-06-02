@@ -13,9 +13,6 @@ package overlay
 #import <stdlib.h>
 
 extern void wreadPassLog(const char *msg);
-extern void wreadReaderRailActivated(void);
-extern void wreadNoteRailNotebookActivated(void);
-extern void wreadNoteRailCatalogActivated(void);
 
 static void wreadLog(const char *fmt, ...) {
 	char buf[768];
@@ -26,25 +23,44 @@ static void wreadLog(const char *fmt, ...) {
 	wreadPassLog(buf);
 }
 
-static const CGFloat kWreadToolbarHeight = 36.0;
-static const CGFloat kWreadEdgeInset = 14.0;
-// 与 Web .edge-rail-btn 对齐：宽 48 + 余量，高约 72 + 余量。
-static const CGFloat kWreadReaderRailW = 38.0;
-static const CGFloat kWreadReaderRailH = 92.0;
-static const CGFloat kWreadReaderRailPad = 8.0;
-static const CGFloat kWreadNoteRailW = 38.0;
-static const CGFloat kWreadNoteRailBtnH = 82.0;
-static const CGFloat kWreadNoteRailGap = 10.0;
+static CGFloat g_toolbarH = 36.0;
+static CGFloat g_edgeInset = 14.0;
+static CGFloat g_splitterHit = 7.0;
+static CGFloat g_splitterPad = 3.0;
+static CGFloat g_readerRailW = 38.0;
+static CGFloat g_readerRailH = 92.0;
+static CGFloat g_readerRailPad = 8.0;
+static CGFloat g_noteRailW = 38.0;
+static CGFloat g_noteRailBtnH = 82.0;
+static CGFloat g_noteRailGap = 10.0;
+static CGFloat g_railSideExtra = 4.0;
+
 static bool g_readMode = false;
 static bool g_mouseDragging = false;
 static void *g_window = NULL;
 static CFAbsoluteTime g_lastForwardClick = 0;
 static id g_mouseMonitor = NULL;
 static id g_localMouseMonitor = NULL;
-static NSView *g_hitOverlay = NULL;
 static CGFloat g_scopeWidth = 640.0;
 static CGFloat g_noteSize = 0.0;
 static char g_place[16] = "right";
+
+void wreadSetPassMetrics(double toolbarH, double edgeInset, double splitterHit, double splitterPad,
+                        double readerRailW, double readerRailH, double readerRailPad,
+                        double noteRailW, double noteRailBtnH, double noteRailGap,
+                        double railSideExtra) {
+	g_toolbarH = toolbarH;
+	g_edgeInset = edgeInset;
+	g_splitterHit = splitterHit;
+	g_splitterPad = splitterPad;
+	g_readerRailW = readerRailW;
+	g_readerRailH = readerRailH;
+	g_readerRailPad = readerRailPad;
+	g_noteRailW = noteRailW;
+	g_noteRailBtnH = noteRailBtnH;
+	g_noteRailGap = noteRailGap;
+	g_railSideExtra = railSideExtra;
+}
 
 static BOOL wreadPlaceIs(const char *name) {
 	return strncmp(g_place, name, 15) == 0;
@@ -99,15 +115,15 @@ static NSRect wreadScopeToolbarRect(NSWindow *window) {
 	NSRect frame = wreadWindowFrame(window);
 	if (wreadPlaceIs("top")) {
 		return NSMakeRect(frame.origin.x,
-		                  frame.origin.y + frame.size.height - g_noteSize - kWreadToolbarHeight,
+		                  frame.origin.y + frame.size.height - g_noteSize - g_toolbarH,
 		                  frame.size.width,
-		                  kWreadToolbarHeight);
+		                  g_toolbarH);
 	}
 	if (wreadPlaceIs("bottom")) {
 		return NSMakeRect(frame.origin.x,
 		                  frame.origin.y + g_noteSize,
 		                  frame.size.width,
-		                  kWreadToolbarHeight);
+		                  g_toolbarH);
 	}
 	CGFloat x = frame.origin.x;
 	CGFloat w = frame.size.width;
@@ -118,9 +134,9 @@ static NSRect wreadScopeToolbarRect(NSWindow *window) {
 		w = g_scopeWidth;
 	}
 	return NSMakeRect(x,
-	                  frame.origin.y + frame.size.height - kWreadToolbarHeight,
+	                  frame.origin.y + frame.size.height - g_toolbarH,
 	                  w,
-	                  kWreadToolbarHeight);
+	                  g_toolbarH);
 }
 
 static NSRect wreadScopeFrameRect(NSWindow *window) {
@@ -129,13 +145,13 @@ static NSRect wreadScopeFrameRect(NSWindow *window) {
 		return NSMakeRect(frame.origin.x,
 		                  frame.origin.y,
 		                  frame.size.width,
-		                  frame.size.height - g_noteSize - kWreadToolbarHeight);
+		                  frame.size.height - g_noteSize - g_toolbarH);
 	}
 	if (wreadPlaceIs("bottom")) {
 		return NSMakeRect(frame.origin.x,
-		                  frame.origin.y + g_noteSize + kWreadToolbarHeight,
+		                  frame.origin.y + g_noteSize + g_toolbarH,
 		                  frame.size.width,
-		                  frame.size.height - g_noteSize - kWreadToolbarHeight);
+		                  frame.size.height - g_noteSize - g_toolbarH);
 	}
 	CGFloat x = frame.origin.x;
 	CGFloat w = frame.size.width;
@@ -148,42 +164,36 @@ static NSRect wreadScopeFrameRect(NSWindow *window) {
 	return NSMakeRect(x,
 	                  frame.origin.y,
 	                  w,
-	                  frame.size.height - kWreadToolbarHeight);
+	                  frame.size.height - g_toolbarH);
 }
 
 static BOOL wreadPointInRect(NSPoint p, NSRect r) {
 	return r.size.width > 0 && r.size.height > 0 && NSPointInRect(p, r);
 }
 
-// wreadSplitterRect 开卷与笔记之间的分割条热区（仅调整内部分配，非窗口缩放）。
 static NSRect wreadSplitterRect(NSWindow *window) {
 	if (g_noteSize <= 0.0) {
 		return NSMakeRect(0, 0, 0, 0);
 	}
 	NSRect frame = wreadWindowFrame(window);
-	const CGFloat hit = 7.0;
-	const CGFloat pad = 3.0;
 	if (wreadPlaceIs("left")) {
-		return NSMakeRect(frame.origin.x + g_noteSize - pad, frame.origin.y, hit, frame.size.height);
+		return NSMakeRect(frame.origin.x + g_noteSize - g_splitterPad, frame.origin.y, g_splitterHit,
+		                  frame.size.height);
 	}
 	if (wreadPlaceIs("top")) {
 		return NSMakeRect(frame.origin.x,
-		                  frame.origin.y + frame.size.height - g_noteSize - pad,
+		                  frame.origin.y + frame.size.height - g_noteSize - g_splitterPad,
 		                  frame.size.width,
-		                  hit);
+		                  g_splitterHit);
 	}
 	if (wreadPlaceIs("bottom")) {
-		return NSMakeRect(frame.origin.x, frame.origin.y + g_noteSize - pad, frame.size.width, hit);
+		return NSMakeRect(frame.origin.x, frame.origin.y + g_noteSize - g_splitterPad,
+		                  frame.size.width, g_splitterHit);
 	}
-	return NSMakeRect(frame.origin.x + g_scopeWidth - pad, frame.origin.y, hit, frame.size.height);
+	return NSMakeRect(frame.origin.x + g_scopeWidth - g_splitterPad, frame.origin.y, g_splitterHit,
+	                  frame.size.height);
 }
 
-// wreadIsSplitterDragPoint 是否点在分割条拖宽热区。
-static BOOL wreadIsSplitterDragPoint(NSWindow *window, NSPoint mouse) {
-	return wreadPointInRect(mouse, wreadSplitterRect(window));
-}
-
-// wreadReaderRailRect 阅读器内缘「解读」竖条（屏幕坐标），须与 PaneEdgeRail 布局一致。
 static NSRect wreadReaderRailRect(NSWindow *window) {
 	if (g_noteSize <= 0.0) {
 		return NSMakeRect(0, 0, 0, 0);
@@ -192,8 +202,8 @@ static NSRect wreadReaderRailRect(NSWindow *window) {
 	if (scope.size.width <= 0.0 || scope.size.height <= 0.0) {
 		return NSMakeRect(0, 0, 0, 0);
 	}
-	CGFloat railW = kWreadReaderRailW;
-	CGFloat railH = kWreadReaderRailH;
+	CGFloat railW = g_readerRailW;
+	CGFloat railH = g_readerRailH;
 	if (railH > scope.size.height) {
 		railH = scope.size.height;
 	}
@@ -201,29 +211,21 @@ static NSRect wreadReaderRailRect(NSWindow *window) {
 	if (wreadPlaceIs("top")) {
 		CGFloat x = scope.origin.x + (scope.size.width - railW) * 0.5;
 		CGFloat bottomY = scope.origin.y + scope.size.height - railH;
-		NSRect rail = NSMakeRect(x, bottomY, railW, railH);
-		return NSInsetRect(rail, -kWreadReaderRailPad, -kWreadReaderRailPad);
+		return NSInsetRect(NSMakeRect(x, bottomY, railW, railH), -g_readerRailPad, -g_readerRailPad);
 	}
 	if (wreadPlaceIs("bottom")) {
 		CGFloat x = scope.origin.x + (scope.size.width - railW) * 0.5;
-		NSRect rail = NSMakeRect(x, scope.origin.y, railW, railH);
-		return NSInsetRect(rail, -kWreadReaderRailPad, -kWreadReaderRailPad);
+		return NSInsetRect(NSMakeRect(x, scope.origin.y, railW, railH), -g_readerRailPad,
+		                  -g_readerRailPad);
 	}
 	if (wreadPlaceIs("left")) {
-		NSRect rail = NSMakeRect(scope.origin.x, y, railW, railH);
-		return NSInsetRect(rail, -kWreadReaderRailPad, -kWreadReaderRailPad);
+		return NSInsetRect(NSMakeRect(scope.origin.x, y, railW, railH), -g_readerRailPad,
+		                  -g_readerRailPad);
 	}
 	CGFloat rightX = scope.origin.x + scope.size.width - railW;
-	NSRect rail = NSMakeRect(rightX, y, railW, railH);
-	return NSInsetRect(rail, -kWreadReaderRailPad, -kWreadReaderRailPad);
+	return NSInsetRect(NSMakeRect(rightX, y, railW, railH), -g_readerRailPad, -g_readerRailPad);
 }
 
-// wreadIsReaderRailPoint 是否点在解读内缘条上（不穿透、不补发 Chrome）。
-static BOOL wreadIsReaderRailPoint(NSWindow *window, NSPoint mouse) {
-	return wreadPointInRect(mouse, wreadReaderRailRect(window));
-}
-
-// wreadNoteRailStackRect 笔记内缘竖条组（笔记本 + 目录，屏幕坐标）。
 static NSRect wreadNoteRailStackRect(NSWindow *window) {
 	if (g_noteSize <= 0.0) {
 		return NSMakeRect(0, 0, 0, 0);
@@ -232,8 +234,8 @@ static NSRect wreadNoteRailStackRect(NSWindow *window) {
 	if (note.size.width <= 0.0 || note.size.height <= 0.0) {
 		return NSMakeRect(0, 0, 0, 0);
 	}
-	CGFloat stackH = kWreadNoteRailBtnH * 2.0 + kWreadNoteRailGap;
-	CGFloat railW = kWreadNoteRailW;
+	CGFloat stackH = g_noteRailBtnH * 2.0 + g_noteRailGap;
+	CGFloat railW = g_noteRailW;
 	CGFloat y = note.origin.y + (note.size.height - stackH) * 0.5;
 	CGFloat x = note.origin.x;
 	if (wreadPlaceIs("left")) {
@@ -242,37 +244,17 @@ static NSRect wreadNoteRailStackRect(NSWindow *window) {
 	if (wreadPlaceIs("top")) {
 		x = note.origin.x + (note.size.width - stackH) * 0.5;
 		y = note.origin.y;
-		return NSInsetRect(NSMakeRect(x, y, stackH, railW), -kWreadReaderRailPad, -kWreadReaderRailPad);
+		return NSInsetRect(NSMakeRect(x, y, stackH, railW), -g_readerRailPad, -g_readerRailPad);
 	}
 	if (wreadPlaceIs("bottom")) {
 		x = note.origin.x + (note.size.width - stackH) * 0.5;
 		y = note.origin.y + note.size.height - railW;
-		return NSInsetRect(NSMakeRect(x, y, stackH, railW), -kWreadReaderRailPad, -kWreadReaderRailPad);
+		return NSInsetRect(NSMakeRect(x, y, stackH, railW), -g_readerRailPad, -g_readerRailPad);
 	}
-	NSRect stack = NSMakeRect(x, y, railW, stackH);
-	return NSInsetRect(stack, -kWreadReaderRailPad, -kWreadReaderRailPad);
+	return NSInsetRect(NSMakeRect(x, y, railW, stackH), -g_readerRailPad, -g_readerRailPad);
 }
 
-// wreadNoteRailHit 0=无，1=笔记本，2=目录。
-static int wreadNoteRailHit(NSWindow *window, NSPoint mouse) {
-	NSRect stack = wreadNoteRailStackRect(window);
-	if (!wreadPointInRect(mouse, stack)) {
-		return 0;
-	}
-	if (wreadPlaceIs("top") || wreadPlaceIs("bottom")) {
-		CGFloat mid = stack.origin.x + kWreadNoteRailBtnH + kWreadNoteRailGap * 0.5;
-		return mouse.x >= mid ? 1 : 2;
-	}
-	CGFloat mid = stack.origin.y + kWreadNoteRailBtnH + kWreadNoteRailGap * 0.5;
-	return mouse.y >= mid ? 1 : 2;
-}
-
-// wreadIsNoteRailPoint 是否点在笔记内缘条上。
-static BOOL wreadIsNoteRailPoint(NSWindow *window, NSPoint mouse) {
-	return wreadNoteRailHit(window, mouse) != 0;
-}
-
-// wreadIsChromeUIPoint 笔记区 / 顶栏 / 分割条 / 内缘竖条（不穿透、不转发 Chrome）。
+// wreadIsChromeUIPoint 笔记/顶栏/分割条/内缘竖条（不穿透、不 Post）；竖条由 Web onClick 处理。
 static BOOL wreadIsChromeUIPoint(NSWindow *window, NSPoint mouse) {
 	if (window == NULL) {
 		return NO;
@@ -283,62 +265,28 @@ static BOOL wreadIsChromeUIPoint(NSWindow *window, NSPoint mouse) {
 	if (wreadPointInRect(mouse, wreadScopeToolbarRect(window))) {
 		return YES;
 	}
-	if (wreadIsSplitterDragPoint(window, mouse) || wreadIsReaderRailPoint(window, mouse) ||
-	    wreadIsNoteRailPoint(window, mouse)) {
+	if (wreadPointInRect(mouse, wreadSplitterRect(window))) {
+		return YES;
+	}
+	if (wreadPointInRect(mouse, wreadReaderRailRect(window))) {
+		return YES;
+	}
+	if (wreadPointInRect(mouse, wreadNoteRailStackRect(window))) {
 		return YES;
 	}
 	return NO;
 }
 
-// wreadFocusWindow 确保开卷窗为 key，便于 Web 或原生竖条响应。
-static void wreadFocusWindow(NSWindow *window) {
-	if (window != NULL && ![window isKeyWindow]) {
-		[window makeKeyAndOrderFront:nil];
-	}
-}
-
-// wreadPrepareInteractiveMouseDown 内缘竖条点击：聚焦并走 Go 回调，吞掉 Web 事件。
-static BOOL wreadPrepareInteractiveMouseDown(NSWindow *window, NSPoint mouse) {
-	if (window == NULL) {
-		return NO;
-	}
-	wreadApplyPassThrough(window, NO, NO);
-	int noteHit = wreadNoteRailHit(window, mouse);
-	if (noteHit == 1) {
-		wreadFocusWindow(window);
-		wreadLog("note rail notebook cocoa=(%.1f,%.1f)", mouse.x, mouse.y);
-		wreadNoteRailNotebookActivated();
-		return YES;
-	}
-	if (noteHit == 2) {
-		wreadFocusWindow(window);
-		wreadLog("note rail catalog cocoa=(%.1f,%.1f)", mouse.x, mouse.y);
-		wreadNoteRailCatalogActivated();
-		return YES;
-	}
-	if (!wreadIsReaderRailPoint(window, mouse)) {
-		wreadFocusWindow(window);
-		return NO;
-	}
-	wreadFocusWindow(window);
-	wreadLog("reader rail click cocoa=(%.1f,%.1f)", mouse.x, mouse.y);
-	wreadReaderRailActivated();
-	return YES;
-}
-
-static void wreadUpdatePartialPassThrough(void);
-
-// wreadPassthroughRect 阅读区中间可穿透带（屏幕坐标）；靠翻页侧多内缩，避开解读竖条。
 static NSRect wreadPassthroughRect(NSWindow *window) {
 	NSRect scopeFrame = wreadScopeFrameRect(window);
 	if (scopeFrame.size.width <= 0 || scopeFrame.size.height <= 0) {
 		return NSMakeRect(0, 0, 0, 0);
 	}
-	CGFloat top = kWreadEdgeInset;
-	CGFloat bottom = kWreadEdgeInset;
-	CGFloat left = kWreadEdgeInset;
-	CGFloat right = kWreadEdgeInset;
-	CGFloat railSide = kWreadReaderRailW + kWreadReaderRailPad + 4.0;
+	CGFloat top = g_edgeInset;
+	CGFloat bottom = g_edgeInset;
+	CGFloat left = g_edgeInset;
+	CGFloat right = g_edgeInset;
+	CGFloat railSide = g_readerRailW + g_readerRailPad + g_railSideExtra;
 	if (g_noteSize > 0.0) {
 		if (wreadPlaceIs("left")) {
 			left = railSide;
@@ -366,7 +314,6 @@ static NSRect wreadPassthroughRect(NSWindow *window) {
 	return r;
 }
 
-// wreadIgnoresAtScreenPoint 该屏幕坐标是否应穿透（与 wreadUpdatePartialPassThrough 一致）。
 static BOOL wreadIgnoresAtScreenPoint(NSWindow *window, NSPoint mouse) {
 	if (!g_readMode || window == NULL || g_mouseDragging) {
 		return NO;
@@ -383,67 +330,13 @@ static BOOL wreadIgnoresAtScreenPoint(NSWindow *window, NSPoint mouse) {
 	return YES;
 }
 
-@interface WreadPassHitView : NSView
-@end
-@implementation WreadPassHitView
-- (BOOL)isOpaque {
-	return NO;
-}
-- (BOOL)acceptsFirstResponder {
-	return NO;
-}
-- (NSView *)hitTest:(NSPoint)point {
-	NSWindow *win = [self window];
-	if (win == NULL || !g_readMode || g_window == NULL || (__bridge void *)win != g_window) {
-		return [super hitTest:point];
-	}
-	NSPoint inWin = [self convertPoint:point toView:nil];
-	NSPoint screen = [win convertPointToScreen:inWin];
-	BOOL ignore = wreadIgnoresAtScreenPoint(win, screen);
-	wreadApplyPassThrough(win, ignore, ignore);
-	return nil;
-}
-@end
-
-static void wreadInstallHitOverlay(NSWindow *window) {
-	if (window == NULL) {
-		return;
-	}
-	NSView *cv = [window contentView];
-	if (cv == NULL) {
-		return;
-	}
-	if (g_hitOverlay == NULL) {
-		g_hitOverlay = [[WreadPassHitView alloc] initWithFrame:cv.bounds];
-		[g_hitOverlay setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-		[g_hitOverlay setHidden:NO];
-	}
-	[g_hitOverlay setFrame:cv.bounds];
-	if ([g_hitOverlay superview] != cv) {
-		[cv addSubview:g_hitOverlay positioned:NSWindowAbove relativeTo:nil];
-	}
-}
-
-static void wreadRemoveHitOverlay(void) {
-	if (g_hitOverlay != NULL) {
-		[g_hitOverlay removeFromSuperview];
-		g_hitOverlay = NULL;
-	}
-}
-
-// wreadIsInPassthroughZone 鼠标是否在阅读穿透带内。
-static BOOL wreadIsInPassthroughZone(NSWindow *window, NSPoint mouse) {
-	if (!g_readMode || window == NULL) {
+static BOOL wreadInPassthroughBand(NSWindow *window, NSPoint mouse) {
+	if (!g_readMode || window == NULL || wreadIsChromeUIPoint(window, mouse)) {
 		return NO;
 	}
-	if (wreadIsChromeUIPoint(window, mouse)) {
-		return NO;
-	}
-	NSRect passthrough = wreadPassthroughRect(window);
-	return wreadPointInRect(mouse, passthrough);
+	return wreadPointInRect(mouse, wreadPassthroughRect(window));
 }
 
-// wreadCocoaToQuartz 将 NSEvent 屏幕坐标转为 CGEvent / CGWindow 使用的坐标。
 static CGPoint wreadCocoaToQuartz(NSPoint cocoa) {
 	for (NSScreen *screen in [NSScreen screens]) {
 		NSRect frame = [screen frame];
@@ -456,7 +349,6 @@ static CGPoint wreadCocoaToQuartz(NSPoint cocoa) {
 	return CGPointMake(cocoa.x, NSMaxY(frame) - cocoa.y);
 }
 
-// wreadPIDForWindowNumber 由窗口号取所属进程 PID。
 static BOOL wreadPIDForWindowNumber(CGWindowID windowNumber, pid_t *outPID) {
 	if (outPID == NULL) {
 		return NO;
@@ -476,15 +368,6 @@ static BOOL wreadPIDForWindowNumber(CGWindowID windowNumber, pid_t *outPID) {
 	return ok && *outPID > 0;
 }
 
-// wreadWindowIgnoresMouse 当前窗口是否处于穿透忽略鼠标状态。
-static BOOL wreadWindowIgnoresMouse(NSWindow *window) {
-	if (window == NULL) {
-		return NO;
-	}
-	return [window ignoresMouseEvents];
-}
-
-// wreadRefocusWread 穿透点击后把前台夺回 Wread（下一 runloop，便于下层先处理点击）。
 static void wreadRefocusWread(NSWindow *wreadWindow) {
 	if (wreadWindow == NULL) {
 		return;
@@ -496,7 +379,6 @@ static void wreadRefocusWread(NSWindow *wreadWindow) {
 		[selfApp activateWithOptions:NSApplicationActivateIgnoringOtherApps];
 	}
 	[wreadWindow makeKeyAndOrderFront:nil];
-	wreadLog("refocus wread wn=%ld", (long)[wreadWindow windowNumber]);
 }
 
 static void wreadScheduleRefocusWread(NSWindow *wreadWindow) {
@@ -508,78 +390,38 @@ static void wreadScheduleRefocusWread(NSWindow *wreadWindow) {
 	});
 }
 
-// wreadTryPassthroughForward 阅读穿透带内点击：补发左键到下层，再夺回 Wread 焦点。
+// wreadTryPassthroughForward 穿透带内 Post 左键到下层，再夺回 Wread 焦点。
 static BOOL wreadTryPassthroughForward(NSWindow *wreadWindow, NSPoint mouse, NSEvent *event,
                                      const char *source) {
 	if (wreadWindow == NULL || event == NULL || source == NULL) {
-		wreadLog("%s skip: null window/event", source ? source : "?");
 		return NO;
 	}
-	if (!g_readMode) {
-		wreadLog("%s skip: not read mode", source);
-		return NO;
-	}
-	if (wreadIsChromeUIPoint(wreadWindow, mouse)) {
-		wreadLog("%s skip: chrome ui", source);
+	if (!g_readMode || !wreadInPassthroughBand(wreadWindow, mouse)) {
 		return NO;
 	}
 	CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
 	if (now - g_lastForwardClick < 0.2) {
-		wreadLog("%s skip: debounce %.0fms", source, (now - g_lastForwardClick) * 1000.0);
 		return NO;
 	}
 
-	BOOL isKey = [wreadWindow isKeyWindow];
-	BOOL inZone = wreadIsInPassthroughZone(wreadWindow, mouse);
-	BOOL ignores = wreadWindowIgnoresMouse(wreadWindow);
 	NSInteger wn = [wreadWindow windowNumber];
-
-	if (!inZone) {
-		wreadLog("%s skip: outside passthrough zone", source);
-		return NO;
-	}
-	if (!isKey) {
-		wreadLog("%s forward while not key ignores=%d", source, ignores);
-	} else if (ignores) {
-		wreadLog("%s forward while key+ignores", source);
-	} else {
-		wreadLog("%s forward while key", source);
-	}
-
 	NSInteger belowWN =
 	    [NSWindow windowNumberAtPoint:mouse belowWindowWithWindowNumber:wn];
 	if (belowWN <= 0) {
-		wreadLog("%s fail: no window below wn=%ld at (%.1f,%.1f)", source, (long)wn, mouse.x,
-		         mouse.y);
+		wreadLog("%s fail: no window below at (%.1f,%.1f)", source, mouse.x, mouse.y);
 		return NO;
 	}
 	pid_t pid = 0;
 	if (!wreadPIDForWindowNumber((CGWindowID)belowWN, &pid)) {
-		wreadLog("%s fail: pid lookup belowWN=%ld", source, (long)belowWN);
 		return NO;
 	}
-	pid_t selfPID = [[NSProcessInfo processInfo] processIdentifier];
-	if (pid == selfPID) {
-		wreadLog("%s fail: below window is self pid=%d belowWN=%ld", source, (int)pid,
-		         (long)belowWN);
+	if (pid == [[NSProcessInfo processInfo] processIdentifier]) {
 		return NO;
 	}
-
-	NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
-	if (app == nil) {
-		wreadLog("%s fail: no NSRunningApplication pid=%d", source, (int)pid);
-		return NO;
-	}
-
-	NSString *appName = [app localizedName] ?: @"?";
-	wreadLog("%s post to pid=%d app=%s belowWN=%ld key=%d ignores=%d", source, (int)pid,
-	         [appName UTF8String], (long)belowWN, isKey, ignores);
 
 	CGPoint quartz = wreadCocoaToQuartz(mouse);
 	CGEventRef down = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, quartz, kCGMouseButtonLeft);
 	if (down == NULL) {
-		wreadLog("%s fail: CGEventCreateMouseEvent down null quartz=(%.1f,%.1f)", source,
-		         quartz.x, quartz.y);
 		return NO;
 	}
 	CGEventRef up = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, quartz, kCGMouseButtonLeft);
@@ -598,8 +440,7 @@ static BOOL wreadTryPassthroughForward(NSWindow *wreadWindow, NSPoint mouse, NSE
 	}
 	CFRelease(down);
 	g_lastForwardClick = now;
-	wreadLog("%s ok: posted click quartz=(%.1f,%.1f) flags=0x%llx", source, quartz.x, quartz.y,
-	         (unsigned long long)flags);
+	wreadLog("%s ok post+refocus quartz=(%.1f,%.1f)", source, quartz.x, quartz.y);
 	wreadScheduleRefocusWread(wreadWindow);
 	return YES;
 }
@@ -612,7 +453,7 @@ static void wreadRunOnMain(void (^block)(void)) {
 	dispatch_async(dispatch_get_main_queue(), block);
 }
 
-static void wreadUpdatePartialPassThrough(void) {
+static void wreadUpdateIgnoresFromMouse(void) {
 	if (!g_readMode || g_window == NULL) {
 		return;
 	}
@@ -620,8 +461,7 @@ static void wreadUpdatePartialPassThrough(void) {
 	if (![window isVisible]) {
 		return;
 	}
-	NSPoint mouse = [NSEvent mouseLocation];
-	BOOL ignore = wreadIgnoresAtScreenPoint(window, mouse);
+	BOOL ignore = wreadIgnoresAtScreenPoint(window, [NSEvent mouseLocation]);
 	wreadApplyPassThrough(window, ignore, ignore);
 }
 
@@ -653,19 +493,16 @@ static void wreadInstallMouseMonitor(void) {
 	wreadRemoveMouseMonitor();
 	g_mouseDragging = NO;
 	NSEventMask mask = NSEventMaskMouseMoved | NSEventMaskLeftMouseDown | NSEventMaskLeftMouseUp |
-	                   NSEventMaskRightMouseDown | NSEventMaskLeftMouseDragged | NSEventMaskScrollWheel;
+	                   NSEventMaskLeftMouseDragged | NSEventMaskScrollWheel;
 	g_mouseMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:mask
 	                                                         handler:^(NSEvent *event) {
 		wreadRunOnMain(^{
 			wreadTrackMouseButton(event);
-			wreadUpdatePartialPassThrough();
-			// ignores=YES 时点击不会进 local monitor，须在 global 补发 Chrome。
+			wreadUpdateIgnoresFromMouse();
 			if (g_readMode && g_window != NULL && [event type] == NSEventTypeLeftMouseDown) {
 				NSWindow *window = (__bridge NSWindow *)g_window;
 				NSPoint mouse = [NSEvent mouseLocation];
-				BOOL posted =
-				    wreadTryPassthroughForward(window, mouse, event, "global");
-				// ignores 自然穿透时可能未走 Post，仍夺回焦点。
+				BOOL posted = wreadTryPassthroughForward(window, mouse, event, "global");
 				if (!posted && wreadIgnoresAtScreenPoint(window, mouse)) {
 					wreadScheduleRefocusWread(window);
 				}
@@ -674,17 +511,8 @@ static void wreadInstallMouseMonitor(void) {
 	}];
 	g_localMouseMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:mask
 	                                                            handler:^NSEvent *(NSEvent *event) {
-		if (g_readMode && g_window != NULL && [event type] == NSEventTypeLeftMouseDown) {
-			NSWindow *window = (__bridge NSWindow *)g_window;
-			NSPoint mouse = [NSEvent mouseLocation];
-			if (wreadPrepareInteractiveMouseDown(window, mouse)) {
-				wreadTrackMouseButton(event);
-				wreadUpdatePartialPassThrough();
-				return nil;
-			}
-		}
 		wreadTrackMouseButton(event);
-		wreadUpdatePartialPassThrough();
+		wreadUpdateIgnoresFromMouse();
 		if (g_readMode && g_window != NULL && [event type] == NSEventTypeLeftMouseDown) {
 			NSWindow *window = (__bridge NSWindow *)g_window;
 			NSPoint mouse = [NSEvent mouseLocation];
@@ -695,9 +523,7 @@ static void wreadInstallMouseMonitor(void) {
 		return event;
 	}];
 	if (g_mouseMonitor == NULL) {
-		wreadLog("global mouse monitor NULL — 需在 系统设置→隐私与安全性→辅助功能 中允许 wread");
-	} else {
-		wreadLog("mouse monitors installed global=%p local=%p", g_mouseMonitor, g_localMouseMonitor);
+		wreadLog("global monitor NULL — 需在 辅助功能 中允许 wread");
 	}
 }
 
@@ -709,7 +535,7 @@ void wreadSetPassThroughLayout(CGFloat scopeWidth, CGFloat noteSize, const char 
 		g_place[sizeof(g_place) - 1] = '\0';
 	}
 	wreadRunOnMain(^{
-		wreadUpdatePartialPassThrough();
+		wreadUpdateIgnoresFromMouse();
 	});
 }
 
@@ -717,25 +543,20 @@ void wreadSetPassThrough(void *nsWindow, bool enable) {
 	if (nsWindow == NULL) {
 		return;
 	}
-
 	wreadRunOnMain(^{
 		g_window = nsWindow;
 		g_readMode = enable;
 		NSWindow *window = (__bridge NSWindow *)nsWindow;
-
 		if (!enable) {
 			wreadRemoveMouseMonitor();
-			wreadRemoveHitOverlay();
 			g_mouseDragging = NO;
 			g_window = NULL;
 			wreadApplyPassThrough(window, NO, NO);
 			return;
 		}
-
-		wreadInstallHitOverlay(window);
 		wreadInstallMouseMonitor();
-		wreadUpdatePartialPassThrough();
-		wreadLog("read mode on overlay+pass wn=%ld ax=%d", (long)[window windowNumber],
+		wreadUpdateIgnoresFromMouse();
+		wreadLog("read mode on wn=%ld ax=%d", (long)[window windowNumber],
 		         AXIsProcessTrusted() ? 1 : 0);
 	});
 }

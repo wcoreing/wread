@@ -1,4 +1,4 @@
-/* 尺寸与 internal/overlay/edge_rail.go、pass_darwin 热区一致 */
+/* 尺寸与 internal/overlay/layout_geom.go 一致 */
 :root {
   --edge-rail-btn-w: 30px;
   --edge-rail-btn-h: 72px;

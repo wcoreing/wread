@@ -330,7 +330,7 @@ func (w *Workspace) syncPassThroughLayout() {
 	if w.state.Docked {
 		noteSz = w.state.SidebarW
 	}
-	overlay.SetLayout(w.ScopeWidth(), noteSz, place)
+	overlay.SetLayout(w.ScopeWidth(), noteSz, place, w.state.Docked)
 }
 
 func (w *Workspace) effectivePlace() string {
