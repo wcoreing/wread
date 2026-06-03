@@ -37,11 +37,22 @@ export function onEdgeRailClick(action: () => void) {
 
 type ReaderEdgeRailProps = {
   interpreting: boolean
+  continuousRead: boolean
+  continuousRunning: boolean
   onInterpret: () => void
+  onContinuousReadChange: (on: boolean) => void
+  onStopContinuous: () => void
 }
 
-/** ReaderEdgeRail 阅读器靠翻页侧内缘：解读。 */
-export function ReaderEdgeRail({ interpreting, onInterpret }: ReaderEdgeRailProps) {
+/** ReaderEdgeRail 阅读器靠翻页侧内缘：解读与连续伴读。 */
+export function ReaderEdgeRail({
+  interpreting,
+  continuousRead,
+  continuousRunning,
+  onInterpret,
+  onContinuousReadChange,
+  onStopContinuous,
+}: ReaderEdgeRailProps) {
   return (
     <aside className="pane-edge-rail pane-edge-rail-reader" aria-label="解读">
       <EdgeRailBtn
@@ -54,6 +65,71 @@ export function ReaderEdgeRail({ interpreting, onInterpret }: ReaderEdgeRailProp
       >
         {interpreting ? '解读中' : '解读'}
       </EdgeRailBtn>
+      {continuousRunning ? (
+        <EdgeRailBtn
+          className="continuous-stop"
+          title="停止连续伴读"
+          onMouseDown={onEdgeRailFocus}
+          onClick={onEdgeRailClick(onStopContinuous)}
+        >
+          停止
+        </EdgeRailBtn>
+      ) : (
+        <EdgeRailBtn
+          active={continuousRead}
+          title={continuousRead ? '连续伴读已开启：解读后自动翻页继续' : '开启连续伴读'}
+          onMouseDown={onEdgeRailFocus}
+          onClick={onEdgeRailClick(() => onContinuousReadChange(!continuousRead))}
+        >
+          连续
+        </EdgeRailBtn>
+      )}
     </aside>
+  )
+}
+
+type InterpretControlsProps = {
+  interpreting: boolean
+  continuousRead: boolean
+  continuousRunning: boolean
+  onInterpret: () => void
+  onContinuousReadChange: (on: boolean) => void
+  onStopContinuous: () => void
+}
+
+/** InterpretControls 顶栏解读与连续伴读控件。 */
+export function InterpretControls({
+  interpreting,
+  continuousRead,
+  continuousRunning,
+  onInterpret,
+  onContinuousReadChange,
+  onStopContinuous,
+}: InterpretControlsProps) {
+  return (
+    <div className="overlay-interpret-group">
+      <button
+        type="button"
+        className={`overlay-continuous-btn${continuousRead ? ' active' : ''}`}
+        title={continuousRead ? '连续伴读已开启' : '开启连续伴读：解读后自动翻页继续'}
+        disabled={continuousRunning}
+        onClick={() => onContinuousReadChange(!continuousRead)}
+      >
+        连续
+      </button>
+      {continuousRunning && (
+        <button type="button" className="overlay-continuous-stop-btn" onClick={onStopContinuous}>
+          停止
+        </button>
+      )}
+      <button
+        type="button"
+        className="overlay-interpret-btn"
+        disabled={interpreting}
+        onClick={onInterpret}
+      >
+        {interpreting ? '解读中…' : '解读'}
+      </button>
+    </div>
   )
 }

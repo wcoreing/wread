@@ -378,6 +378,33 @@ export class PromptTemplateSaveDO {
 }
 
 /**
+ * ReadSettingsDO 伴读行为设置。
+ */
+export class ReadSettingsDO {
+    /**
+     * 连续伴读：解读完自动翻页并继续
+     */
+    "continuousRead": boolean;
+
+    /** Creates a new ReadSettingsDO instance. */
+    constructor($$source: Partial<ReadSettingsDO> = {}) {
+        if (!("continuousRead" in $$source)) {
+            this["continuousRead"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ReadSettingsDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ReadSettingsDO {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ReadSettingsDO($$parsedSource as Partial<ReadSettingsDO>);
+    }
+}
+
+/**
  * ReaderSettingsDO 侧栏阅读样式。
  */
 export class ReaderSettingsDO {

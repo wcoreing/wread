@@ -92,6 +92,23 @@ func (e *Engine) stale(gen uint64) bool {
 	return gen != e.gen
 }
 
+// CancelJob 取消进行中的解读任务。
+func (e *Engine) CancelJob() {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.cancel != nil {
+		e.cancel()
+		e.cancel = nil
+	}
+	e.gen++
+}
+
+// InterpretOutcome 单次解读结果。
+type InterpretOutcome struct {
+	Snap      model.SnapDO
+	Duplicate bool // OCR 与已有页重复
+}
+
 func (e *Engine) abortErr(ctx context.Context, gen uint64) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -217,7 +234,7 @@ func (e *Engine) CaptureRegion(ctx context.Context, region model.RegionDO) ([]by
 }
 
 // Interpret 解读当前区域。
-func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.SnapDO, error) {
+func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (InterpretOutcome, error) {
 	ctx, gen := e.beginJob(ctx)
 	defer e.endJob(gen)
 
@@ -225,13 +242,13 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	img, err := e.captureImage(ctx, region)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return model.SnapDO{}, err
+			return InterpretOutcome{}, err
 		}
 		e.emit("read:error", err.Error())
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 	if err := e.abortErr(ctx, gen); err != nil {
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 
 	if preview, err := capture.PreviewDataURL(img, capture.PreviewMaxWidth); err == nil {
@@ -245,13 +262,13 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	ocrText, err := ocr.ExtractText(ctx, img)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return model.SnapDO{}, err
+			return InterpretOutcome{}, err
 		}
 		e.emit("read:error", err.Error())
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 	if err := e.abortErr(ctx, gen); err != nil {
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 
 	e.lastOCR = ocrText
@@ -260,14 +277,14 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	if reason := ocr.JunkReason(ocrText); reason != "" {
 		log.Printf("[wread] ocr junk rejected: %s", reason)
 		e.emit("read:error", reason)
-		return model.SnapDO{}, fmt.Errorf("%s", reason)
+		return InterpretOutcome{}, fmt.Errorf("%s", reason)
 	}
 
 	hash := hashText(ocrText)
 	sess, err := e.store.EnsureActiveSession()
 	if err != nil {
 		e.emit("read:error", err.Error())
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 	if dup, err := e.store.FindSnapByHash(sess.ID, hash); err == nil && dup != nil {
 		e.lastOCR = ocrText
@@ -277,7 +294,7 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 			e.emit("read:preview", dup.CapturePreview)
 		}
 		e.emit("read:done", *dup)
-		return *dup, nil
+		return InterpretOutcome{Snap: *dup, Duplicate: true}, nil
 	}
 
 	base, key, modelName := e.store.AIConfig()
@@ -295,13 +312,13 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	})
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return model.SnapDO{}, err
+			return InterpretOutcome{}, err
 		}
 		e.emit("read:error", err.Error())
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 	if err := e.abortErr(ctx, gen); err != nil {
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 
 	chapterTitle := ""
@@ -313,7 +330,7 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	e.emit("read:status", "生成标题…")
 	pageTitle := e.generatePageTitle(ctx, chapterTitle, summary)
 	if err := e.abortErr(ctx, gen); err != nil {
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 
 	capturePreview := ""
@@ -323,7 +340,7 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	snap, err := e.store.InsertSnap(sess.ID, pageTitle, ocrText, summary, capturePreview, concepts, hash)
 	if err != nil {
 		e.emit("read:error", err.Error())
-		return model.SnapDO{}, err
+		return InterpretOutcome{}, err
 	}
 	e.lastOCR = ocrText
 	e.lastSnap = &snap
@@ -338,7 +355,7 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 		}
 	}
 	e.emit("read:done", snap)
-	return snap, nil
+	return InterpretOutcome{Snap: snap}, nil
 }
 
 // AddPageToChapter 将解读页归入章节，空标题时使用解读时已生成的 snap 标题。

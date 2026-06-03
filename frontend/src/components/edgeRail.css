@@ -78,6 +78,18 @@
   cursor: not-allowed;
 }
 
+.edge-rail-btn.continuous-stop {
+  color: #e87068;
+  border-color: rgba(220, 80, 70, 0.45);
+  background: color-mix(in srgb, #dc5046 10%, var(--sys-rail-bg));
+}
+
+.edge-rail-btn.continuous-stop:hover:not(:disabled) {
+  color: #ff8a82;
+  border-color: rgba(220, 80, 70, 0.65);
+  background: color-mix(in srgb, #dc5046 18%, var(--sys-rail-bg));
+}
+
 /* 阅读器：右内缘贴边（近翻页），略压过分割线避免接缝漏线 */
 .workspace.docked.place-right .scope-pane .pane-edge-rail-reader,
 .workspace.docked.place-center .scope-pane .pane-edge-rail-reader {

@@ -15,7 +15,8 @@ function configure() {
         "catalog:changed": $$createType0,
         "notebook:opened": $$createType1,
         "read:done": $$createType2,
-        "reader:settings": $$createType3,
+        "read:settings": $$createType3,
+        "reader:settings": $$createType4,
     }));
 }
 
@@ -23,6 +24,7 @@ function configure() {
 const $$createType0 = model$0.CatalogNodeDO.createFrom;
 const $$createType1 = model$0.SessionDO.createFrom;
 const $$createType2 = model$0.SnapDO.createFrom;
-const $$createType3 = model$0.ReaderSettingsDO.createFrom;
+const $$createType3 = model$0.ReadSettingsDO.createFrom;
+const $$createType4 = model$0.ReaderSettingsDO.createFrom;
 
 configure();

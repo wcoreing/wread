@@ -23,12 +23,15 @@ declare module "@wailsio/runtime" {
             "overlay:editable": boolean;
             "overlay:scopeMode": string;
             "pill:restored": string;
+            "read:continuous": boolean;
+            "read:continuousStop": string;
             "read:delta": string;
             "read:done": model$0.SnapDO;
             "read:error": string;
             "read:followup": string;
             "read:ocr": string;
             "read:preview": string;
+            "read:settings": model$0.ReadSettingsDO;
             "read:status": string;
             "reader:settings": model$0.ReaderSettingsDO;
         }

@@ -39,6 +39,9 @@ func init() {
 	application.RegisterEvent[model.ReaderSettingsDO]("reader:settings")
 	application.RegisterEvent[model.CatalogNodeDO]("catalog:changed")
 	application.RegisterEvent[string]("pill:restored")
+	application.RegisterEvent[bool]("read:continuous")
+	application.RegisterEvent[string]("read:continuousStop")
+	application.RegisterEvent[model.ReadSettingsDO]("read:settings")
 }
 
 func main() {

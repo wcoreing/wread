@@ -486,3 +486,50 @@
   cursor: not-allowed;
   filter: grayscale(0.2);
 }
+
+.overlay-continuous-btn {
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.28);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: color-mix(in srgb, var(--sys-accent) 8%, transparent);
+  color: var(--sys-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.overlay-continuous-btn.active {
+  background: color-mix(in srgb, var(--sys-accent) 18%, var(--sys-fill-subtle));
+  border-color: rgba(var(--sys-accent-rgb), 0.45);
+  color: var(--sys-text-emphasis);
+}
+
+.overlay-continuous-btn:hover:not(:disabled) {
+  border-color: rgba(var(--sys-accent-rgb), 0.5);
+  color: var(--sys-text-emphasis);
+}
+
+.overlay-continuous-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.overlay-continuous-stop-btn {
+  border: 1px solid rgba(220, 80, 70, 0.45);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: color-mix(in srgb, #dc5046 12%, transparent);
+  color: #e87068;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+}
+
+.overlay-continuous-stop-btn:hover {
+  background: color-mix(in srgb, #dc5046 22%, transparent);
+}

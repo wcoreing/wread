@@ -74,3 +74,15 @@ func applyPassThroughMain(w application.Window, readMode bool, scopeW, noteSz, c
 	setNativePassThrough(w.NativeWindow(), false)
 	w.SetIgnoreMouseEvents(false)
 }
+
+// TurnPage 在阅读穿透带翻页侧 Post 左键，模拟用户点击下层阅读器翻页。
+func TurnPage(w application.Window) bool {
+	if w == nil {
+		return false
+	}
+	var ok bool
+	application.InvokeSync(func() {
+		ok = turnPageNative(w.NativeWindow())
+	})
+	return ok
+}

@@ -12,7 +12,7 @@ import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
 import { useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
 import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
-import { ReaderEdgeRail } from '../components/PaneEdgeRail'
+import { InterpretControls, ReaderEdgeRail } from '../components/PaneEdgeRail'
 import WorkspaceCatalogPane from '../components/WorkspaceCatalogPane'
 import ScopeNoteBody from '../components/ScopeNoteBody'
 import { usePillRestore } from '../hooks/usePillRestore'
@@ -152,7 +152,7 @@ export default function WorkspacePage() {
   /** onToolbarMouseDown 顶栏空白区拖动移动窗口（不走 wails:drag）。 */
   const onToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .overlay-mode-radio, .overlay-restore-btn, .overlay-interpret-group, .overlay-pill-btn')) {
+    if (t.closest('button, .overlay-mode-radio, .overlay-restore-btn, .overlay-interpret-group, .overlay-pill-btn, .overlay-continuous-btn, .overlay-continuous-stop-btn')) {
       return
     }
     frameDrag.startMove(e)
@@ -392,16 +392,14 @@ export default function WorkspacePage() {
             收起
           </button>
           {!showReaderEdgeRail && (
-            <div className="overlay-interpret-group">
-              <button
-                type="button"
-                className="overlay-interpret-btn"
-                disabled={nb.interpreting}
-                onClick={onInterpretClick}
-              >
-                {nb.interpreting ? '解读中…' : '解读'}
-              </button>
-            </div>
+            <InterpretControls
+              interpreting={nb.interpreting}
+              continuousRead={nb.continuousRead}
+              continuousRunning={nb.continuousRunning}
+              onInterpret={onInterpretClick}
+              onContinuousReadChange={(on) => nb.setContinuousReadMode(on).catch(console.error)}
+              onStopContinuous={() => nb.stopContinuousRead().catch(console.error)}
+            />
           )}
         </div>
 
@@ -437,7 +435,14 @@ export default function WorkspacePage() {
         )}
 
         {showReaderEdgeRail && (
-          <ReaderEdgeRail interpreting={nb.interpreting} onInterpret={() => void interpret()} />
+          <ReaderEdgeRail
+            interpreting={nb.interpreting}
+            continuousRead={nb.continuousRead}
+            continuousRunning={nb.continuousRunning}
+            onInterpret={() => void interpret()}
+            onContinuousReadChange={(on) => nb.setContinuousReadMode(on).catch(console.error)}
+            onStopContinuous={() => nb.stopContinuousRead().catch(console.error)}
+          />
         )}
       </section>
 

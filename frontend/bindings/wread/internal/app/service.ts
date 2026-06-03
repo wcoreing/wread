@@ -207,11 +207,20 @@ export function GetPromptSettings(): $CancellablePromise<model$0.PromptSettingsD
 }
 
 /**
+ * GetReadSettings 读取伴读行为设置。
+ */
+export function GetReadSettings(): $CancellablePromise<model$0.ReadSettingsDO> {
+    return $Call.ByID(1178307304).then(($result: any) => {
+        return $$createType9($result);
+    });
+}
+
+/**
  * GetReaderSettings 读取侧栏阅读样式。
  */
 export function GetReaderSettings(): $CancellablePromise<model$0.ReaderSettingsDO> {
     return $Call.ByID(1389044899).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType10($result);
     });
 }
 
@@ -227,7 +236,7 @@ export function GetScopeMode(): $CancellablePromise<string> {
  */
 export function GetSnapCaptureSettings(): $CancellablePromise<model$0.SnapCaptureSettingsDO> {
     return $Call.ByID(4293895444).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType11($result);
     });
 }
 
@@ -236,7 +245,7 @@ export function GetSnapCaptureSettings(): $CancellablePromise<model$0.SnapCaptur
  */
 export function GetWindowLayoutPresets(): $CancellablePromise<model$0.WindowLayoutPresetsDO> {
     return $Call.ByID(158967705).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType12($result);
     });
 }
 
@@ -262,6 +271,13 @@ export function InterpretNow(region: model$0.RegionDO): $CancellablePromise<void
 }
 
 /**
+ * IsContinuousReadRunning 连续伴读是否正在运行。
+ */
+export function IsContinuousReadRunning(): $CancellablePromise<boolean> {
+    return $Call.ByID(1408228255);
+}
+
+/**
  * IsPillMode 当前是否处于 Pill 收起态。
  */
 export function IsPillMode(): $CancellablePromise<boolean> {
@@ -273,7 +289,7 @@ export function IsPillMode(): $CancellablePromise<boolean> {
  */
 export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
     return $Call.ByID(1689678366).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType13($result);
     });
 }
 
@@ -282,7 +298,7 @@ export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
  */
 export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1945990983).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType14($result);
     });
 }
 
@@ -291,7 +307,7 @@ export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1975139466).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType14($result);
     });
 }
 
@@ -300,7 +316,7 @@ export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSnaps(): $CancellablePromise<model$0.SnapDO[]> {
     return $Call.ByID(2592071840).then(($result: any) => {
-        return $$createType15($result);
+        return $$createType16($result);
     });
 }
 
@@ -390,7 +406,7 @@ export function SavePillPosition(x: number, y: number): $CancellablePromise<void
  */
 export function SavePromptTemplate($in: model$0.PromptTemplateSaveDO): $CancellablePromise<model$0.PromptTemplateDO> {
     return $Call.ByID(2547522166, $in).then(($result: any) => {
-        return $$createType16($result);
+        return $$createType17($result);
     });
 }
 
@@ -406,7 +422,7 @@ export function SaveReaderSettings($in: model$0.ReaderSettingsDO): $CancellableP
  */
 export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $CancellablePromise<model$0.WindowLayoutPresetDO> {
     return $Call.ByID(3058634027, $in).then(($result: any) => {
-        return $$createType17($result);
+        return $$createType18($result);
     });
 }
 
@@ -415,7 +431,7 @@ export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $
  */
 export function SelectSnap(snapID: string): $CancellablePromise<model$0.SnapDO> {
     return $Call.ByID(1907960539, snapID).then(($result: any) => {
-        return $$createType14($result);
+        return $$createType15($result);
     });
 }
 
@@ -452,6 +468,13 @@ export function SetCatalogInsertParent(chapterID: string): $CancellablePromise<v
  */
 export function SetCatalogWidth(width: number): $CancellablePromise<void> {
     return $Call.ByID(1648358512, width);
+}
+
+/**
+ * SetContinuousRead 切换连续伴读偏好；关闭时立即停止进行中的会话。
+ */
+export function SetContinuousRead(on: boolean): $CancellablePromise<void> {
+    return $Call.ByID(3451808326, on);
 }
 
 /**
@@ -497,6 +520,13 @@ export function ShowSidebar(): $CancellablePromise<void> {
 }
 
 /**
+ * StopContinuousRead 停止连续伴读循环。
+ */
+export function StopContinuousRead(): $CancellablePromise<void> {
+    return $Call.ByID(2445521692);
+}
+
+/**
  * SyncPopoutBounds 将弹出笔记窗 bounds 写入持久化。
  */
 export function SyncPopoutBounds(): $CancellablePromise<void> {
@@ -536,12 +566,13 @@ const $$createType5 = model$0.CatalogSettingsDO.createFrom;
 const $$createType6 = model$0.LayoutSettingsDO.createFrom;
 const $$createType7 = model$0.PillPositionDO.createFrom;
 const $$createType8 = model$0.PromptSettingsDO.createFrom;
-const $$createType9 = model$0.ReaderSettingsDO.createFrom;
-const $$createType10 = model$0.SnapCaptureSettingsDO.createFrom;
-const $$createType11 = model$0.WindowLayoutPresetsDO.createFrom;
-const $$createType12 = $Create.Array($$createType0);
-const $$createType13 = $Create.Array($$createType1);
-const $$createType14 = model$0.SnapDO.createFrom;
-const $$createType15 = $Create.Array($$createType14);
-const $$createType16 = model$0.PromptTemplateDO.createFrom;
-const $$createType17 = model$0.WindowLayoutPresetDO.createFrom;
+const $$createType9 = model$0.ReadSettingsDO.createFrom;
+const $$createType10 = model$0.ReaderSettingsDO.createFrom;
+const $$createType11 = model$0.SnapCaptureSettingsDO.createFrom;
+const $$createType12 = model$0.WindowLayoutPresetsDO.createFrom;
+const $$createType13 = $Create.Array($$createType0);
+const $$createType14 = $Create.Array($$createType1);
+const $$createType15 = model$0.SnapDO.createFrom;
+const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = model$0.PromptTemplateDO.createFrom;
+const $$createType18 = model$0.WindowLayoutPresetDO.createFrom;

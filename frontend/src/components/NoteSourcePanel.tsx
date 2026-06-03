@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSourcePanelView } from '../hooks/useSourcePanelView'
 
 type Props = {
@@ -14,6 +15,18 @@ export default function NoteSourcePanel({ ocrOriginal, capturePreview, pageTitle
   const hasImage = Boolean(capturePreview)
   const hasOcr = Boolean(ocrOriginal.trim())
   const hasSource = hasImage || hasOcr
+
+  /** closeZoom 关闭截屏放大层。 */
+  const closeZoom = useCallback(() => setZoomOpen(false), [])
+
+  useEffect(() => {
+    if (!zoomOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeZoom()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [zoomOpen, closeZoom])
 
   /** resolveViewMode 当前可展示的模式，无数据时回退到另一项。 */
   const activeMode = (() => {
@@ -76,16 +89,28 @@ export default function NoteSourcePanel({ ocrOriginal, capturePreview, pageTitle
       ) : (
         <p className="source-empty">当前模式暂无内容，请切换查看</p>
       )}
-      {zoomOpen && hasImage && (
-        <div className="source-zoom-backdrop" role="presentation" onClick={() => setZoomOpen(false)}>
-          <img
-            src={capturePreview}
-            alt={pageTitle || '截屏原文'}
-            className="source-zoom-img"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      {zoomOpen &&
+        hasImage &&
+        createPortal(
+          <div
+            className="source-zoom-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="截屏放大"
+            onClick={closeZoom}
+          >
+            <button type="button" className="source-zoom-close" aria-label="关闭" onClick={closeZoom}>
+              ×
+            </button>
+            <img
+              src={capturePreview}
+              alt={pageTitle || '截屏原文'}
+              className="source-zoom-img"
+              onClick={closeZoom}
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }

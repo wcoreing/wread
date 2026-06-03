@@ -65,6 +65,11 @@ type CatalogSettingsDO struct {
 	AutoAdd bool `json:"autoAdd"`
 }
 
+// ReadSettingsDO 伴读行为设置。
+type ReadSettingsDO struct {
+	ContinuousRead bool `json:"continuousRead"` // 连续伴读：解读完自动翻页并继续
+}
+
 // CatalogNodeSaveDO 新建或更新目录节点。
 type CatalogNodeSaveDO struct {
 	ID       string `json:"id"`

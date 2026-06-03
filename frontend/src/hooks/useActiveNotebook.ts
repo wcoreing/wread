@@ -44,6 +44,8 @@ export function useActiveNotebook() {
   const [interpreting, setInterpreting] = useState(false)
   const [catalogNodes, setCatalogNodes] = useState<CatalogNodeDO[]>([])
   const [catalogAutoAdd, setCatalogAutoAdd] = useState(true)
+  const [continuousRead, setContinuousRead] = useState(false)
+  const [continuousRunning, setContinuousRunning] = useState(false)
   const [selectedChapterId, setSelectedChapterId] = useState('')
   const [selectedPageId, setSelectedPageId] = useState('')
   const [rootSelected, setRootSelected] = useState(true)
@@ -221,6 +223,18 @@ export function useActiveNotebook() {
     setCatalogAutoAdd(on)
   }
 
+  /** setContinuousReadMode 切换连续伴读偏好。 */
+  const setContinuousReadMode = async (on: boolean) => {
+    if (on === continuousRead) return
+    await Service.SetContinuousRead(on)
+    setContinuousRead(on)
+  }
+
+  /** stopContinuousRead 停止连续伴读循环。 */
+  const stopContinuousRead = async () => {
+    await Service.StopContinuousRead()
+  }
+
   /** addActiveToChapter 手动将当前解读归入选中章节。 */
   const addActiveToChapter = async (): Promise<boolean> => {
     if (!activeSnapId) return false
@@ -326,6 +340,8 @@ export function useActiveNotebook() {
   useEffect(() => {
     Service.GetAppInfo().then(setAppInfo).catch(console.error)
     Service.GetCatalogSettings().then((s) => setCatalogAutoAdd(s.autoAdd)).catch(console.error)
+    Service.GetReadSettings().then((s) => setContinuousRead(s.continuousRead)).catch(console.error)
+    Service.IsContinuousReadRunning().then(setContinuousRunning).catch(console.error)
     Service.GetReaderSettings().then(setReaderSettings).catch(console.error)
     Service.GetActiveNotebook()
       .then(applyActiveNotebook)
@@ -374,6 +390,21 @@ export function useActiveNotebook() {
       setInterpreting(false)
       setStreaming('')
     })
+    const offContinuous = Events.On('read:continuous', (ev: { data: boolean }) => {
+      setContinuousRunning(ev.data)
+      if (!ev.data) {
+        setInterpreting(false)
+        setStreaming('')
+      }
+    })
+    const offContinuousStop = Events.On('read:continuousStop', (ev: { data: string }) => {
+      setStatus(ev.data)
+      setInterpreting(false)
+      setStreaming('')
+    })
+    const offReadSettings = Events.On('read:settings', (ev: { data: { continuousRead: boolean } }) => {
+      setContinuousRead(ev.data.continuousRead)
+    })
     const offReaderSettings = Events.On('reader:settings', (ev: { data: ReaderSettingsDO }) =>
       setReaderSettings(ev.data),
     )
@@ -404,6 +435,9 @@ export function useActiveNotebook() {
       offDone()
       offError()
       offFollowup()
+      offContinuous()
+      offContinuousStop()
+      offReadSettings()
       offReaderSettings()
       offCatalog()
       offNotebook()
@@ -481,6 +515,10 @@ export function useActiveNotebook() {
     updateReaderSettings,
     catalogNodes,
     catalogAutoAdd,
+    continuousRead,
+    continuousRunning,
+    setContinuousReadMode,
+    stopContinuousRead,
     rootSelected,
     selectedChapterId,
     selectedChapterTitle,

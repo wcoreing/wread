@@ -282,6 +282,67 @@ static void wreadOnPassthroughBandClick(NSWindow *window, NSPoint mouse, NSEvent
 	wreadScheduleRefocusWread(window);
 }
 
+// wreadPostMouseClickAt 在屏幕坐标 Post 左键到下层应用。
+static BOOL wreadPostMouseClickAt(NSWindow *wreadWindow, NSPoint cocoa) {
+	if (wreadWindow == NULL) {
+		return NO;
+	}
+	NSInteger wn = [wreadWindow windowNumber];
+	NSInteger belowWN =
+	    [NSWindow windowNumberAtPoint:cocoa belowWindowWithWindowNumber:wn];
+	if (belowWN <= 0) {
+		wreadLog("turn page fail: no window below at (%.1f,%.1f)", cocoa.x, cocoa.y);
+		return NO;
+	}
+	pid_t pid = 0;
+	if (!wreadPIDForWindowNumber((CGWindowID)belowWN, &pid)) {
+		return NO;
+	}
+	if (pid == [[NSProcessInfo processInfo] processIdentifier]) {
+		return NO;
+	}
+	CGPoint quartz = wreadCocoaToQuartz(cocoa);
+	CGEventRef down = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, quartz, kCGMouseButtonLeft);
+	if (down == NULL) {
+		return NO;
+	}
+	CGEventRef up = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, quartz, kCGMouseButtonLeft);
+	CGEventSetIntegerValueField(down, kCGMouseEventClickState, 1);
+	if (up != NULL) {
+		CGEventSetIntegerValueField(up, kCGMouseEventClickState, 1);
+	}
+	CGEventPost(kCGHIDEventTap, down);
+	if (up != NULL) {
+		CGEventPost(kCGHIDEventTap, up);
+		CFRelease(up);
+	}
+	CFRelease(down);
+	g_lastForwardClick = CFAbsoluteTimeGetCurrent();
+	wreadLog("turn page ok quartz=(%.1f,%.1f)", quartz.x, quartz.y);
+	return YES;
+}
+
+// wreadPostTurnPage 在穿透带翻页侧 Post 左键（连续伴读自动翻页）。
+BOOL wreadPostTurnPage(void *nsWindow) {
+	if (nsWindow == NULL) {
+		return NO;
+	}
+	NSWindow *window = (__bridge NSWindow *)nsWindow;
+	NSRect band = wreadPassthroughRect(window);
+	if (band.size.width < 20.0 || band.size.height < 20.0) {
+		wreadLog("turn page fail: band too small");
+		return NO;
+	}
+	NSPoint pt;
+	pt.x = band.origin.x + band.size.width * 0.82;
+	pt.y = band.origin.y + band.size.height * 0.5;
+	if (!wreadPostMouseClickAt(window, pt)) {
+		return NO;
+	}
+	wreadScheduleRefocusWread(window);
+	return YES;
+}
+
 static void wreadRunOnMain(void (^block)(void)) {
 	if ([NSThread isMainThread]) {
 		block();
@@ -443,4 +504,8 @@ func setNativePassThroughLayout(scopeW, noteSz, catalogW int, place string) {
 
 func setNativeFrameDragging(dragging bool) {
 	C.wreadSetFrameDragging(C.bool(dragging))
+}
+
+func turnPageNative(nativeWindow unsafe.Pointer) bool {
+	return bool(C.wreadPostTurnPage(nativeWindow))
 }

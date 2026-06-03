@@ -30,6 +30,7 @@ type Service struct {
 	version         string
 	overlayEditMode bool
 	pillSnapshot    model.PillRestoreSnapshotDO
+	cont            continuousRead
 }
 
 // NewService 创建 Service。
@@ -196,8 +197,16 @@ func (s *Service) SyncPopoutBounds() {
 	s.ws.SyncPopoutBounds()
 }
 
-func (s *Service) onInterpretDone() {
+func (s *Service) onInterpretDone(out read.InterpretOutcome) {
 	s.applyOverlayMouseMode()
+
+	s.cont.mu.Lock()
+	running := s.cont.active
+	s.cont.mu.Unlock()
+	if !running {
+		return
+	}
+	s.onInterpretDoneContinuous(out)
 }
 
 // EnsureOverlayReadMode 布局就绪后同步开卷穿透状态。
@@ -698,20 +707,28 @@ func (s *Service) SelectSnap(snapID string) (model.SnapDO, error) {
 
 // InterpretNow 解读开卷区内区域。
 func (s *Service) InterpretNow(region model.RegionDO) error {
+	if s.store.GetReadSettings().ContinuousRead {
+		s.startContinuous()
+	}
 	go func() {
 		r := region
 		if r.W <= 0 || r.H <= 0 {
 			r = s.DefaultRegion()
 		}
-		snap, err := s.engine.Interpret(context.Background(), r)
+		out, err := s.engine.Interpret(context.Background(), r)
 		if err != nil {
-			if !errors.Is(err, context.Canceled) {
+			if s.IsContinuousReadRunning() {
+				if errors.Is(err, context.Canceled) {
+					s.stopContinuous("")
+				} else {
+					s.stopContinuous("连续伴读已停止：" + err.Error())
+				}
+			} else if !errors.Is(err, context.Canceled) {
 				log.Printf("[wread] interpret error: %v", err)
 			}
 			return
 		}
-		_ = snap
-		s.onInterpretDone()
+		s.onInterpretDone(out)
 	}()
 	return nil
 }

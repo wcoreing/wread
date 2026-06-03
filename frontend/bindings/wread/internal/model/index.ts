@@ -13,6 +13,7 @@ export {
     PromptSettingsDO,
     PromptTemplateDO,
     PromptTemplateSaveDO,
+    ReadSettingsDO,
     ReaderSettingsDO,
     RegionDO,
     SessionDO,
