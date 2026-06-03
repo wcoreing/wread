@@ -1,0 +1,8 @@
+{
+  "name": "wread",
+  "private": true,
+  "scripts": {
+    "install:frontend": "npm install --prefix frontend",
+    "dev": "npm run install:frontend && wails3 dev -config ./build/config.yml"
+  }
+}
