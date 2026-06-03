@@ -1,17 +1,16 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import NoteCatalog from './NoteCatalog'
 import NotebookList from './NotebookList'
 import InterpretBody from './InterpretBody'
-import NoteReaderSettings from './NoteReaderSettings'
-import type { CatalogNodeDO, PromptTemplateDO, ReaderSettingsDO, SessionDO } from '../../bindings/wread/internal/model'
+import NotePageBar from './NotePageBar'
+import NoteSourcePanel from './NoteSourcePanel'
+import type { CatalogNodeDO, ReaderSettingsDO, SessionDO } from '../../bindings/wread/internal/model'
 import {
-  readCatalogSide,
-  saveCatalogSide,
   type CatalogSide,
 } from '../lib/catalogLayout'
+import { useCatalogFontSize } from '../hooks/useCatalogFontSize'
 import { useCatalogPanelWidth } from '../hooks/useCatalogPanelWidth'
 import { useNotebookListWidth } from '../hooks/useNotebookListWidth'
-import { NoteEdgeRail } from './PaneEdgeRail'
 
 type Props = {
   notebookName: string
@@ -28,9 +27,6 @@ type Props = {
   onMoveNode: (nodeId: string, parentId: string, index: number) => void
   readerSettings: ReaderSettingsDO
   onReaderSettingsChange: (next: ReaderSettingsDO) => void
-  templates: PromptTemplateDO[]
-  activeTemplateId: string
-  onPickTemplate: (id: string) => void
   status: string
   interpreting: boolean
   interpretBody: string
@@ -40,10 +36,13 @@ type Props = {
   question: string
   onQuestionChange: (q: string) => void
   onFollowUp: () => void
-  catalogAutoAdd: boolean
-  onCatalogAutoAddChange: (auto: boolean) => void
-  pendingInChapter: boolean
-  onAddToChapter: () => void
+  catalogAutoAdd?: boolean
+  pendingCatalogEntry?: boolean
+  catalogEntryReady?: boolean
+  onAddToChapter?: () => void
+  selectedChapterTitle?: string
+  catalogEntryScrollId?: string
+  onCatalogEntryScrollDone?: () => void
   pageTitle: string
   concepts: string[]
   catalogCollapsed: boolean
@@ -55,8 +54,13 @@ type Props = {
   onCreateNotebook: () => void
   onDeleteNotebook: (id: string) => void
   onBatchDeleteNotebooks: (ids: string[]) => void
-  showEdgeRail?: boolean
-  onToggleListOpen?: () => void
+  catalogExternal?: boolean
+  notesInScope?: boolean
+  hideReaderBar?: boolean
+  catalogSide: CatalogSide
+  onCatalogSideChange: (side: CatalogSide) => void
+  ocrOriginal?: string
+  capturePreview?: string
   className?: string
 }
 
@@ -76,9 +80,6 @@ export default function NotePaneBody({
   onMoveNode,
   readerSettings,
   onReaderSettingsChange,
-  templates,
-  activeTemplateId,
-  onPickTemplate,
   status,
   interpreting,
   interpretBody,
@@ -88,10 +89,13 @@ export default function NotePaneBody({
   question,
   onQuestionChange,
   onFollowUp,
-  catalogAutoAdd,
-  onCatalogAutoAddChange,
-  pendingInChapter,
+  catalogAutoAdd = true,
+  pendingCatalogEntry = false,
+  catalogEntryReady = false,
   onAddToChapter,
+  selectedChapterTitle = '',
+  catalogEntryScrollId = '',
+  onCatalogEntryScrollDone,
   pageTitle,
   concepts,
   catalogCollapsed,
@@ -103,34 +107,26 @@ export default function NotePaneBody({
   onCreateNotebook,
   onDeleteNotebook,
   onBatchDeleteNotebooks,
-  showEdgeRail = false,
-  onToggleListOpen,
+  catalogExternal = false,
+  notesInScope = false,
+  hideReaderBar = false,
+  catalogSide,
+  onCatalogSideChange,
+  ocrOriginal = '',
+  capturePreview = '',
   className = 'sidebar-body',
 }: Props) {
-  const [catalogSide, setCatalogSide] = useState<CatalogSide>(readCatalogSide)
   const splitRef = useRef<HTMLDivElement>(null)
-  const { panelStyle, startWidthDrag } = useCatalogPanelWidth(catalogSide)
+  const { panelStyle: catalogWidthStyle, startWidthDrag } = useCatalogPanelWidth(catalogSide)
+  const { fontSize, panelStyle: catalogFontStyle, changeFontSize } = useCatalogFontSize()
+  const catalogPanelStyle = { ...catalogWidthStyle, ...catalogFontStyle }
   const { panelStyle: notebookPanelStyle, startWidthDrag: startNotebookWidthDrag } = useNotebookListWidth()
-
-  /** setCatalogPanelSide 切换目录侧栏左右位置。 */
-  const setCatalogPanelSide = (side: CatalogSide) => {
-    setCatalogSide(side)
-    saveCatalogSide(side)
-  }
 
   return (
     <div className={`${className} notebook-pane-shell`}>
-      {showEdgeRail && onToggleListOpen && (
-        <NoteEdgeRail
-          listOpen={listOpen}
-          onToggleList={onToggleListOpen}
-          catalogCollapsed={catalogCollapsed}
-          onToggleCatalog={() => onCatalogCollapsedChange(!catalogCollapsed)}
-        />
-      )}
       <div
         ref={splitRef}
-        className={`note-split${listOpen ? '' : ' notebook-collapsed'}${catalogCollapsed ? ' catalog-collapsed' : ''}${catalogSide === 'right' ? ' catalog-right' : ''}`}
+        className={`note-split${listOpen ? '' : ' notebook-collapsed'}${catalogExternal || catalogCollapsed ? ' catalog-collapsed' : ''}${!catalogExternal && catalogSide === 'right' ? ' catalog-right' : ''}`}
       >
         {listOpen && (
           <div className="notebook-panel-wrap">
@@ -156,7 +152,7 @@ export default function NotePaneBody({
           </div>
         )}
 
-        {!catalogCollapsed && (
+        {!catalogExternal && !catalogCollapsed && (
           <NoteCatalog
             notebookName={notebookName}
             onNotebookNameChange={onNotebookNameChange}
@@ -171,71 +167,57 @@ export default function NotePaneBody({
             onBatchDelete={onBatchDeleteNodes}
             onMove={onMoveNode}
             catalogSide={catalogSide}
-            onToggleCatalogSide={() => setCatalogPanelSide(catalogSide === 'left' ? 'right' : 'left')}
-            panelStyle={panelStyle}
+            onToggleCatalogSide={() => onCatalogSideChange(catalogSide === 'left' ? 'right' : 'left')}
+            panelStyle={catalogPanelStyle}
+            fontSize={fontSize}
+            onFontSizeChange={changeFontSize}
             onResizeStart={(x) => startWidthDrag(x, splitRef.current?.clientWidth || window.innerWidth)}
+            scrollToNodeId={catalogEntryScrollId}
+            onScrollToNodeDone={onCatalogEntryScrollDone}
           />
         )}
 
-        <div className="catalog-splitter">
-          {!catalogAutoAdd && pendingInChapter && (
-            <button
-              type="button"
-              className="catalog-splitter-add"
-              title="将当前解读归入选中章节"
-              onClick={(e) => {
-                e.stopPropagation()
-                onAddToChapter()
-              }}
-            >
-              归入
-            </button>
-          )}
-        </div>
-
         <div className="note-page">
-          <div className="note-page-bar">
-            <NoteReaderSettings
+          {!hideReaderBar && (
+            <NotePageBar
               settings={readerSettings}
               onChange={onReaderSettingsChange}
-              templates={templates}
-              activeTemplateId={activeTemplateId}
-              onPickTemplate={onPickTemplate}
-              catalogSide={catalogSide}
-              onCatalogSideChange={setCatalogPanelSide}
             />
-            <div className="note-catalog-mode" role="radiogroup" aria-label="归入方式">
+          )}
+          {!catalogAutoAdd && pendingCatalogEntry && onAddToChapter && (
+            <div className="note-entry-banner">
+              <span className="note-entry-banner-text">
+                {catalogEntryReady
+                  ? `待录入${selectedChapterTitle ? ` · ${selectedChapterTitle}` : ''}`
+                  : '解读已完成，请先在目录选择章节'}
+              </span>
               <button
                 type="button"
-                role="radio"
-                aria-checked={catalogAutoAdd}
-                className={catalogAutoAdd ? 'active' : ''}
-                onClick={() => onCatalogAutoAddChange(true)}
+                className={`note-action-btn${catalogEntryReady ? ' primary' : ''}`}
+                onClick={onAddToChapter}
               >
-                自动
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={!catalogAutoAdd}
-                className={!catalogAutoAdd ? 'active' : ''}
-                onClick={() => onCatalogAutoAddChange(false)}
-              >
-                手动
+                录入
               </button>
             </div>
-          </div>
+          )}
           {status && <div className={`status-line ${interpreting ? 'busy' : 'error'}`}>{status}</div>}
-          <div className="panel current-panel">
-            <InterpretBody
-              content={interpretBody}
-              emptyHint={emptyHint}
-              streaming={interpreting && isStreaming}
-              layoutTheme={readerSettings.layoutTheme}
-              pageTitle={pageTitle}
-              notebookName={notebookName}
-              concepts={concepts}
-            />
+          <div className={`panel current-panel${notesInScope ? ' source-mode' : ''}`}>
+            {notesInScope ? (
+              <NoteSourcePanel
+                ocrOriginal={ocrOriginal}
+                capturePreview={capturePreview}
+                pageTitle={pageTitle}
+              />
+            ) : (
+              <InterpretBody
+                content={interpretBody}
+                emptyHint={emptyHint}
+                streaming={interpreting && isStreaming}
+                pageTitle={pageTitle}
+                notebookName={notebookName}
+                concepts={concepts}
+              />
+            )}
             <div className="followup">
               <input
                 value={question}

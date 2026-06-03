@@ -28,7 +28,7 @@ func init() {
 	application.RegisterEvent[string]("read:followup")
 	application.RegisterEvent[model.SnapDO]("read:done")
 	application.RegisterEvent[bool]("overlay:editable")
-	application.RegisterEvent[bool]("overlay:readingMode")
+	application.RegisterEvent[string]("overlay:scopeMode")
 	application.RegisterEvent[bool]("layout:docked")
 	application.RegisterEvent[int]("layout:sidebarW")
 	application.RegisterEvent[string]("layout:notePlace")
@@ -88,7 +88,7 @@ func main() {
 		MinWidth:         661,
 		MinHeight:        180,
 		Frameless:        true,
-		AlwaysOnTop:      true,
+		AlwaysOnTop:      false,
 		BackgroundType:   application.BackgroundTypeTransparent,
 		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
 		URL:              "/",
@@ -111,7 +111,7 @@ func main() {
 		Height:           pb.Height,
 		MinWidth:         320,
 		MinHeight:        480,
-		AlwaysOnTop:      true,
+		AlwaysOnTop:      false,
 		Frameless:        true,
 		Hidden:           wsState.Docked,
 		BackgroundColour: application.NewRGB(18, 18, 24),

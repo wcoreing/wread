@@ -207,10 +207,19 @@ export function GetReaderSettings(): $CancellablePromise<model$0.ReaderSettingsD
 }
 
 /**
- * GetReadingMode 开卷是否处于阅读穿透模式。
+ * GetScopeMode 读取阅读器模式：op | read | note。
  */
-export function GetReadingMode(): $CancellablePromise<boolean> {
-    return $Call.ByID(3504571844);
+export function GetScopeMode(): $CancellablePromise<string> {
+    return $Call.ByID(2816291252);
+}
+
+/**
+ * GetSnapCaptureSettings 读取解读截屏保留设置。
+ */
+export function GetSnapCaptureSettings(): $CancellablePromise<model$0.SnapCaptureSettingsDO> {
+    return $Call.ByID(4293895444).then(($result: any) => {
+        return $$createType9($result);
+    });
 }
 
 /**
@@ -218,7 +227,7 @@ export function GetReadingMode(): $CancellablePromise<boolean> {
  */
 export function GetWindowLayoutPresets(): $CancellablePromise<model$0.WindowLayoutPresetsDO> {
     return $Call.ByID(158967705).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType10($result);
     });
 }
 
@@ -248,7 +257,7 @@ export function InterpretNow(region: model$0.RegionDO): $CancellablePromise<void
  */
 export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
     return $Call.ByID(1689678366).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType11($result);
     });
 }
 
@@ -257,7 +266,7 @@ export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
  */
 export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1945990983).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType12($result);
     });
 }
 
@@ -266,7 +275,7 @@ export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1975139466).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType12($result);
     });
 }
 
@@ -275,7 +284,7 @@ export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSnaps(): $CancellablePromise<model$0.SnapDO[]> {
     return $Call.ByID(2592071840).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType14($result);
     });
 }
 
@@ -330,7 +339,7 @@ export function SaveAISettings($in: model$0.AISettingsSaveDO): $CancellablePromi
  */
 export function SavePromptTemplate($in: model$0.PromptTemplateSaveDO): $CancellablePromise<model$0.PromptTemplateDO> {
     return $Call.ByID(2547522166, $in).then(($result: any) => {
-        return $$createType14($result);
+        return $$createType15($result);
     });
 }
 
@@ -346,7 +355,7 @@ export function SaveReaderSettings($in: model$0.ReaderSettingsDO): $CancellableP
  */
 export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $CancellablePromise<model$0.WindowLayoutPresetDO> {
     return $Call.ByID(3058634027, $in).then(($result: any) => {
-        return $$createType15($result);
+        return $$createType16($result);
     });
 }
 
@@ -355,7 +364,7 @@ export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $
  */
 export function SelectSnap(snapID: string): $CancellablePromise<model$0.SnapDO> {
     return $Call.ByID(1907960539, snapID).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType13($result);
     });
 }
 
@@ -388,6 +397,13 @@ export function SetCatalogInsertParent(chapterID: string): $CancellablePromise<v
 }
 
 /**
+ * SetCatalogWidth 同步目录侧栏宽度（0 表示收起），供穿透带几何使用。
+ */
+export function SetCatalogWidth(width: number): $CancellablePromise<void> {
+    return $Call.ByID(1648358512, width);
+}
+
+/**
  * SetNotePlace 设置笔记停靠方位：right left top bottom center popout。
  */
 export function SetNotePlace(place: string): $CancellablePromise<void> {
@@ -395,10 +411,10 @@ export function SetNotePlace(place: string): $CancellablePromise<void> {
 }
 
 /**
- * SetReadingMode 切换阅读穿透模式。
+ * SetScopeMode 切换阅读器模式。
  */
-export function SetReadingMode(on: boolean): $CancellablePromise<void> {
-    return $Call.ByID(1420050496, on);
+export function SetScopeMode(mode: string): $CancellablePromise<void> {
+    return $Call.ByID(3456384864, mode);
 }
 
 /**
@@ -406,6 +422,13 @@ export function SetReadingMode(on: boolean): $CancellablePromise<void> {
  */
 export function SetSidebarWidth(width: number): $CancellablePromise<void> {
     return $Call.ByID(4041747925, width);
+}
+
+/**
+ * SetSnapKeepCapture 切换是否在每页笔记中保留截屏。
+ */
+export function SetSnapKeepCapture(on: boolean): $CancellablePromise<void> {
+    return $Call.ByID(12042558, on);
 }
 
 /**
@@ -462,10 +485,11 @@ const $$createType5 = model$0.CatalogSettingsDO.createFrom;
 const $$createType6 = model$0.LayoutSettingsDO.createFrom;
 const $$createType7 = model$0.PromptSettingsDO.createFrom;
 const $$createType8 = model$0.ReaderSettingsDO.createFrom;
-const $$createType9 = model$0.WindowLayoutPresetsDO.createFrom;
-const $$createType10 = $Create.Array($$createType0);
-const $$createType11 = $Create.Array($$createType1);
-const $$createType12 = model$0.SnapDO.createFrom;
-const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = model$0.PromptTemplateDO.createFrom;
-const $$createType15 = model$0.WindowLayoutPresetDO.createFrom;
+const $$createType9 = model$0.SnapCaptureSettingsDO.createFrom;
+const $$createType10 = model$0.WindowLayoutPresetsDO.createFrom;
+const $$createType11 = $Create.Array($$createType0);
+const $$createType12 = $Create.Array($$createType1);
+const $$createType13 = model$0.SnapDO.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = model$0.PromptTemplateDO.createFrom;
+const $$createType16 = model$0.WindowLayoutPresetDO.createFrom;

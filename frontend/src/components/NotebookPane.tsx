@@ -12,8 +12,6 @@ type Props = {
   onCreateNotebook: () => void
   onDeleteNotebook: (id: string) => void
   onBatchDeleteNotebooks: (ids: string[]) => void
-  showEdgeRail?: boolean
-  onToggleListOpen?: () => void
   className?: string
 } & Omit<
   NoteBodyProps,
@@ -25,8 +23,6 @@ type Props = {
   | 'onCreateNotebook'
   | 'onDeleteNotebook'
   | 'onBatchDeleteNotebooks'
-  | 'showEdgeRail'
-  | 'onToggleListOpen'
 >
 
 /** NotebookPane 笔记区：笔记本侧栏 + 目录 + 解读正文。 */
@@ -38,16 +34,12 @@ export default function NotebookPane({
   onCreateNotebook,
   onDeleteNotebook,
   onBatchDeleteNotebooks,
-  showEdgeRail,
-  onToggleListOpen,
   className = 'notebook-pane-body',
   ...noteProps
 }: Props) {
   return (
     <NotePaneBody
       {...noteProps}
-      showEdgeRail={showEdgeRail}
-      onToggleListOpen={onToggleListOpen}
       className={className}
       notebooks={notebooks}
       activeNotebookId={activeNotebookId}

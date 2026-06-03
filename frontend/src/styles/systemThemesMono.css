@@ -1,0 +1,726 @@
+/* 米白 / 雪白 / 灰白 / 黑色主题 */
+
+@keyframes sys-mono-white-shimmer {
+  0%, 100% { opacity: 0.72; transform: scale(1) translate(0, 0); }
+  50% { opacity: 1; transform: scale(1.03) translate(1%, -0.5%); }
+}
+
+@keyframes sys-mono-black-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes sys-mono-border-flow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(18deg); }
+}
+
+/* ── 米白 RICE ── */
+html.system-theme-rice {
+  color-scheme: light;
+  --sys-accent: #b45309;
+  --sys-accent-strong: #78350f;
+  --sys-accent-2: #d97706;
+  --sys-accent-rgb: 180, 83, 9;
+  --sys-accent-strong-rgb: 120, 53, 15;
+  --sys-accent-2-rgb: 217, 119, 6;
+  --sys-text-brand: #44403c;
+  --sys-text-on-accent: #fffbeb;
+  --sys-text-primary: #44403c;
+  --sys-text-emphasis: #292524;
+  --sys-text-secondary: #78716c;
+  --sys-text-tertiary: #a8a29e;
+  --sys-text-accent: #b45309;
+  --sys-text-accent-bright: #92400e;
+  --sys-text-danger: #dc2626;
+  --sys-text-danger-soft: #ef4444;
+  --sys-text-danger-muted: #fca5a5;
+  --sys-bg-solid: #faf8f5;
+  --sys-surface-rgb: 250, 248, 245;
+  --sys-fill-subtle: rgba(255, 252, 247, 0.85);
+  --sys-fill-soft: rgba(255, 250, 240, 0.72);
+  --sys-fill-faint: rgba(255, 248, 235, 0.55);
+  --sys-fill-muted: rgba(255, 253, 248, 0.92);
+  --sys-fill-strong: rgba(255, 255, 250, 0.96);
+  --sys-input-bg: rgba(255, 252, 245, 0.9);
+  --sys-inset-highlight: rgba(255, 255, 252, 0.95);
+  --sys-rail-bg: rgba(255, 252, 245, 0.75);
+  --sys-rail-bg-hover: rgba(255, 253, 248, 0.92);
+  --sys-bg-gradient:
+    radial-gradient(ellipse 110% 85% at 50% -25%, rgba(255, 253, 248, 1) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 55% at 100% 0%, rgba(231, 214, 186, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(214, 203, 184, 0.35) 0%, transparent 48%),
+    radial-gradient(ellipse 55% 45% at 80% 75%, rgba(250, 235, 215, 0.4) 0%, transparent 45%),
+    linear-gradient(168deg, #faf8f5 0%, #f5f0e8 42%, #ebe4d8 100%);
+  --sys-accent-gradient: linear-gradient(135deg, #d97706 0%, #b45309 40%, #78350f 75%, #451a03 100%);
+  --sys-brand-gradient: linear-gradient(120deg, #44403c 0%, #b45309 40%, #d97706 65%, #292524 100%);
+  --sys-btn-glow:
+    0 0 0 1px rgba(255, 252, 245, 0.8) inset,
+    0 0 0 1px rgba(180, 83, 9, 0.25),
+    0 4px 20px rgba(180, 83, 9, 0.2),
+    0 12px 36px rgba(68, 64, 60, 0.12);
+  --sys-frame-glow:
+    0 0 0 1px rgba(214, 203, 184, 0.55),
+    0 0 40px rgba(231, 214, 186, 0.28),
+    0 0 32px rgba(250, 235, 215, 0.22),
+    0 16px 48px rgba(68, 64, 60, 0.08);
+  --sys-glass-shadow:
+    0 1px 2px rgba(68, 64, 60, 0.05),
+    0 8px 28px rgba(180, 83, 9, 0.08),
+    inset 0 1px 0 rgba(255, 255, 252, 0.95);
+  --sys-theme-preview: linear-gradient(135deg, #faf8f5, #e7e0d4 40%, #d6cbb8 70%, #44403c);
+  --sys-border-gradient: linear-gradient(145deg, rgba(250, 235, 215, 0.9) 0%, rgba(231, 214, 186, 0.6) 30%, rgba(255, 253, 248, 0.3) 50%, rgba(214, 203, 184, 0.55) 72%, rgba(180, 83, 9, 0.35) 100%);
+  --sys-ambient-conic: conic-gradient(from 200deg at 65% 25%, rgba(250, 235, 215, 0.5), rgba(231, 214, 186, 0.35), rgba(214, 203, 184, 0.4), rgba(250, 235, 215, 0.5));
+  --sys-hover-menu: linear-gradient(135deg, rgba(250, 235, 215, 0.65), rgba(231, 214, 186, 0.5), rgba(254, 243, 199, 0.45));
+  --sys-glass-border: rgba(180, 83, 9, 0.14);
+}
+
+/* ── 雪白 SNOW ── */
+html.system-theme-snow {
+  color-scheme: light;
+  --sys-accent: #0ea5e9;
+  --sys-accent-strong: #0284c7;
+  --sys-accent-2: #38bdf8;
+  --sys-accent-rgb: 14, 165, 233;
+  --sys-accent-strong-rgb: 2, 132, 199;
+  --sys-accent-2-rgb: 56, 189, 248;
+  --sys-text-brand: #0f172a;
+  --sys-text-on-accent: #ffffff;
+  --sys-text-primary: #0f172a;
+  --sys-text-emphasis: #020617;
+  --sys-text-secondary: #475569;
+  --sys-text-tertiary: #94a3b8;
+  --sys-text-accent: #0284c7;
+  --sys-text-accent-bright: #0ea5e9;
+  --sys-text-danger: #dc2626;
+  --sys-text-danger-soft: #ef4444;
+  --sys-text-danger-muted: #fca5a5;
+  --sys-bg-solid: #ffffff;
+  --sys-surface-rgb: 255, 255, 255;
+  --sys-fill-subtle: rgba(255, 255, 255, 0.88);
+  --sys-fill-soft: rgba(248, 250, 252, 0.75);
+  --sys-fill-faint: rgba(241, 245, 249, 0.58);
+  --sys-fill-muted: rgba(255, 255, 255, 0.94);
+  --sys-fill-strong: rgba(255, 255, 255, 0.98);
+  --sys-input-bg: rgba(255, 255, 255, 0.92);
+  --sys-inset-highlight: rgba(255, 255, 255, 0.98);
+  --sys-rail-bg: rgba(255, 255, 255, 0.78);
+  --sys-rail-bg-hover: rgba(255, 255, 255, 0.95);
+  --sys-bg-gradient:
+    radial-gradient(ellipse 120% 92% at 50% -32%, rgba(255, 255, 255, 1) 0%, transparent 58%),
+    radial-gradient(ellipse 70% 55% at 100% 0%, rgba(224, 242, 254, 0.6) 0%, transparent 52%),
+    radial-gradient(ellipse 65% 50% at 0% 100%, rgba(186, 230, 253, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 45% at 85% 80%, rgba(219, 234, 254, 0.4) 0%, transparent 48%),
+    radial-gradient(ellipse 45% 38% at 20% 30%, rgba(240, 249, 255, 0.5) 0%, transparent 42%),
+    linear-gradient(168deg, #ffffff 0%, #f8fafc 45%, #f1f5f9 100%);
+  --sys-accent-gradient: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 40%, #0284c7 70%, #0369a1 100%);
+  --sys-brand-gradient: linear-gradient(120deg, #020617 0%, #0ea5e9 38%, #38bdf8 62%, #0f172a 100%);
+  --sys-btn-glow:
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+    0 0 0 1px rgba(14, 165, 233, 0.22),
+    0 4px 22px rgba(14, 165, 233, 0.2),
+    0 12px 40px rgba(15, 23, 42, 0.1);
+  --sys-frame-glow:
+    0 0 0 1px rgba(186, 230, 253, 0.55),
+    0 0 52px rgba(186, 230, 253, 0.28),
+    0 0 40px rgba(219, 234, 254, 0.22),
+    0 16px 56px rgba(15, 23, 42, 0.06);
+  --sys-glass-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 32px rgba(14, 165, 233, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  --sys-theme-preview: linear-gradient(135deg, #ffffff, #e0f2fe 35%, #bae6fd 65%, #0f172a);
+  --sys-border-gradient: linear-gradient(145deg, rgba(224, 242, 254, 0.9) 0%, rgba(186, 230, 253, 0.55) 28%, rgba(255, 255, 255, 0.3) 50%, rgba(147, 197, 253, 0.55) 72%, rgba(14, 165, 233, 0.4) 100%);
+  --sys-ambient-conic: conic-gradient(from 230deg at 72% 18%, rgba(224, 242, 254, 0.48), rgba(186, 230, 253, 0.38), rgba(219, 234, 254, 0.42), rgba(224, 242, 254, 0.48));
+  --sys-hover-menu: linear-gradient(135deg, rgba(224, 242, 254, 0.65), rgba(186, 230, 253, 0.5), rgba(219, 234, 254, 0.42));
+  --sys-glass-border: rgba(14, 165, 233, 0.14);
+}
+
+/* ── 灰白 GRAY：零饱和 · 灰阶精准层次 ── */
+html.system-theme-gray {
+  color-scheme: light;
+  --sys-accent: #525252;
+  --sys-accent-strong: #262626;
+  --sys-accent-2: #737373;
+  --sys-accent-rgb: 82, 82, 82;
+  --sys-accent-strong-rgb: 38, 38, 38;
+  --sys-accent-2-rgb: 115, 115, 115;
+  --sys-text-brand: #262626;
+  --sys-text-on-accent: #fafafa;
+  --sys-text-primary: #404040;
+  --sys-text-emphasis: #171717;
+  --sys-text-secondary: #737373;
+  --sys-text-tertiary: #a3a3a3;
+  --sys-text-accent: #525252;
+  --sys-text-accent-bright: #262626;
+  --sys-text-danger: #737373;
+  --sys-text-danger-soft: #525252;
+  --sys-text-danger-muted: #a3a3a3;
+  --sys-bg-solid: #f5f5f5;
+  --sys-surface-rgb: 245, 245, 245;
+  --sys-fill-subtle: rgba(255, 255, 255, 0.86);
+  --sys-fill-soft: rgba(250, 250, 250, 0.74);
+  --sys-fill-faint: rgba(245, 245, 245, 0.58);
+  --sys-fill-muted: rgba(255, 255, 255, 0.93);
+  --sys-fill-strong: rgba(255, 255, 255, 0.97);
+  --sys-input-bg: rgba(255, 255, 255, 0.94);
+  --sys-inset-highlight: rgba(255, 255, 255, 0.98);
+  --sys-rail-bg: rgba(255, 255, 255, 0.76);
+  --sys-rail-bg-hover: rgba(255, 255, 255, 0.94);
+  --sys-bg-gradient:
+    radial-gradient(ellipse 118% 90% at 50% -30%, rgba(255, 255, 255, 1) 0%, transparent 56%),
+    radial-gradient(ellipse 68% 52% at 100% 0%, rgba(229, 229, 229, 0.55) 0%, transparent 50%),
+    radial-gradient(ellipse 62% 48% at 0% 100%, rgba(212, 212, 212, 0.42) 0%, transparent 48%),
+    radial-gradient(ellipse 50% 42% at 82% 78%, rgba(245, 245, 245, 0.65) 0%, transparent 44%),
+    linear-gradient(168deg, #fafafa 0%, #f5f5f5 44%, #ececec 100%);
+  --sys-accent-gradient: linear-gradient(135deg, #737373 0%, #525252 38%, #404040 68%, #262626 100%);
+  --sys-brand-gradient: linear-gradient(120deg, #737373 0%, #525252 35%, #404040 62%, #171717 100%);
+  --sys-btn-glow:
+    0 0 0 1px rgba(255, 255, 255, 0.88) inset,
+    0 0 0 1px rgba(38, 38, 38, 0.14),
+    0 4px 18px rgba(23, 23, 23, 0.1),
+    0 10px 32px rgba(23, 23, 23, 0.06);
+  --sys-frame-glow:
+    0 0 0 1px rgba(163, 163, 163, 0.45),
+    0 0 40px rgba(163, 163, 163, 0.12),
+    0 0 28px rgba(212, 212, 212, 0.18),
+    0 16px 48px rgba(23, 23, 23, 0.05);
+  --sys-glass-shadow:
+    0 1px 2px rgba(23, 23, 23, 0.04),
+    0 8px 28px rgba(23, 23, 23, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  --sys-theme-preview: linear-gradient(135deg, #fafafa, #e5e5e5 38%, #a3a3a3 68%, #171717);
+  --sys-border-gradient: linear-gradient(
+    145deg,
+    rgba(212, 212, 212, 0.85) 0%,
+    rgba(229, 229, 229, 0.55) 28%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(163, 163, 163, 0.5) 72%,
+    rgba(82, 82, 82, 0.32) 100%
+  );
+  --sys-ambient-conic: conic-gradient(
+    from 215deg at 68% 22%,
+    rgba(229, 229, 229, 0.42),
+    rgba(212, 212, 212, 0.32),
+    rgba(245, 245, 245, 0.38),
+    rgba(229, 229, 229, 0.42)
+  );
+  --sys-hover-menu: linear-gradient(135deg, rgba(245, 245, 245, 0.9), rgba(229, 229, 229, 0.72), rgba(212, 212, 212, 0.55));
+  --sys-glass-border: rgba(38, 38, 38, 0.1);
+}
+
+/* ── 黑色 BLACK ── */
+html.system-theme-black {
+  color-scheme: dark;
+  --sys-accent: #b8ad9a;
+  --sys-accent-strong: #cfc4ae;
+  --sys-accent-2: #7a7368;
+  --sys-accent-rgb: 184, 173, 154;
+  --sys-accent-strong-rgb: 207, 196, 174;
+  --sys-accent-2-rgb: 122, 115, 104;
+  --sys-text-brand: #ddd6c8;
+  --sys-text-on-accent: #121110;
+  --sys-text-primary: #d4cfc4;
+  --sys-text-emphasis: #ece8e0;
+  --sys-text-secondary: #969188;
+  --sys-text-tertiary: #5e5a54;
+  --sys-text-accent: #c4b89e;
+  --sys-text-accent-bright: #e0d8c8;
+  --sys-text-danger: #e07070;
+  --sys-text-danger-soft: #c06060;
+  --sys-text-danger-muted: #8a4545;
+  --sys-bg-solid: #000000;
+  --sys-surface-rgb: 0, 0, 0;
+  --sys-fill-subtle: rgba(255, 255, 255, 0.035);
+  --sys-fill-soft: rgba(255, 255, 255, 0.022);
+  --sys-fill-faint: rgba(255, 255, 255, 0.012);
+  --sys-fill-muted: rgba(255, 255, 255, 0.05);
+  --sys-fill-strong: rgba(255, 255, 255, 0.07);
+  --sys-input-bg: rgba(255, 255, 255, 0.04);
+  --sys-inset-highlight: rgba(212, 196, 168, 0.1);
+  --sys-rail-bg: rgba(0, 0, 0, 0.72);
+  --sys-rail-bg-hover: rgba(255, 255, 255, 0.06);
+  --sys-bg-gradient:
+    radial-gradient(ellipse 85% 55% at 50% -12%, rgba(207, 196, 174, 0.07) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 40% at 100% 8%, rgba(255, 255, 255, 0.025) 0%, transparent 52%),
+    radial-gradient(ellipse 50% 38% at 0% 92%, rgba(122, 115, 104, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 88% 78%, rgba(207, 196, 174, 0.035) 0%, transparent 45%),
+    linear-gradient(180deg, #040404 0%, #010101 55%, #000000 100%);
+  --sys-accent-gradient: linear-gradient(
+    180deg,
+    rgba(207, 196, 174, 0.16) 0%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(122, 115, 104, 0.1) 100%
+  );
+  --sys-brand-gradient: linear-gradient(120deg, #8a8278 0%, #cfc4ae 42%, #ece8e0 68%, #7a7368 100%);
+  --sys-btn-glow:
+    0 0 0 1px rgba(207, 196, 174, 0.2) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 0 18px rgba(207, 196, 174, 0.07);
+  --sys-frame-glow:
+    0 0 0 1px rgba(207, 196, 174, 0.1),
+    0 0 48px rgba(0, 0, 0, 0.65),
+    0 0 96px rgba(207, 196, 174, 0.03);
+  --sys-glass-shadow:
+    inset 0 1px 0 rgba(212, 196, 168, 0.07),
+    0 8px 32px rgba(0, 0, 0, 0.55);
+  --sys-theme-preview: linear-gradient(135deg, #cfc4ae 0%, #525252 35%, #1a1a1a 62%, #000000 100%);
+  --sys-glass-border: rgba(207, 196, 174, 0.1);
+  --sys-border-gradient: linear-gradient(
+    155deg,
+    rgba(207, 196, 174, 0.32) 0%,
+    rgba(255, 255, 255, 0.05) 32%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(207, 196, 174, 0.1) 72%,
+    rgba(184, 173, 154, 0.24) 100%
+  );
+  --sys-ambient-conic: conic-gradient(
+    from 210deg at 60% 15%,
+    rgba(207, 196, 174, 0.06),
+    rgba(255, 255, 255, 0.02),
+    rgba(122, 115, 104, 0.05),
+    rgba(207, 196, 174, 0.06)
+  );
+  --sys-hover-menu: linear-gradient(135deg, rgba(207, 196, 174, 0.08), rgba(255, 255, 255, 0.03));
+}
+
+/* ── 结构层：渐变描边框 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.docked,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.note-only,
+html.system-theme-black .workspace.docked,
+html.system-theme-black .workspace.note-only,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-root,
+html.system-theme-black .sidebar-root {
+  position: relative;
+  isolation: isolate;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.docked,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.note-only {
+  border: none;
+  box-shadow: var(--sys-frame-glow);
+}
+
+html.system-theme-black .workspace.docked,
+html.system-theme-black .workspace.note-only {
+  border: none;
+  box-shadow: var(--sys-frame-glow);
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.docked::after,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .workspace.note-only::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: var(--sys-border-gradient);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+  animation: sys-mono-border-flow 12s ease-in-out infinite alternate;
+}
+
+html.system-theme-black .workspace.docked::after,
+html.system-theme-black .workspace.note-only::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: var(--sys-border-gradient);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 环境光层 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-pane,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-root {
+  overflow: hidden;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-pane::before,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-root::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--sys-ambient-conic);
+  filter: blur(48px);
+  opacity: 0.55;
+  animation: sys-mono-white-shimmer 10s ease-in-out infinite;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-pane::after,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 28%, transparent 72%, rgba(24, 24, 27, 0.04) 100%);
+}
+
+html.system-theme-black .note-pane::before,
+html.system-theme-black .sidebar-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 75% 50% at 50% -6%, rgba(207, 196, 174, 0.08) 0%, transparent 58%),
+    radial-gradient(ellipse 45% 38% at 100% 45%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse 42% 36% at 0% 65%, rgba(122, 115, 104, 0.04) 0%, transparent 48%);
+  animation: sys-mono-black-pulse 9s ease-in-out infinite;
+}
+
+html.system-theme-black .note-pane::after,
+html.system-theme-black .sidebar-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(207, 196, 174, 0.06),
+    inset 0 -24px 48px rgba(0, 0, 0, 0.45);
+}
+
+/* ── 顶栏玻璃 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-toolbar,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-toolbar,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .overlay-toolbar {
+  position: relative;
+  z-index: 3;
+  background-color: rgba(255, 255, 255, 0.42) !important;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.78) 0%,
+      rgba(255, 255, 255, 0.56) 44%,
+      color-mix(in srgb, var(--sys-accent) 7%, rgba(255, 255, 255, 0.62)) 100%
+    ),
+    linear-gradient(
+      108deg,
+      color-mix(in srgb, var(--sys-accent) 5%, transparent) 0%,
+      transparent 36%,
+      color-mix(in srgb, var(--sys-accent-2) 4%, transparent) 68%,
+      transparent 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E") !important;
+  background-size: auto, auto, 120px 120px !important;
+  background-blend-mode: normal, normal, overlay !important;
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom-color: rgba(var(--sys-accent-rgb), 0.15) !important;
+  box-shadow: var(--sys-glass-shadow) !important;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .scope-pane .overlay-toolbar {
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+}
+
+html.system-theme-black .sidebar-toolbar,
+html.system-theme-black .note-toolbar,
+html.system-theme-black .overlay-toolbar {
+  position: relative;
+  z-index: 3;
+  background-color: rgba(0, 0, 0, 0.88) !important;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(207, 196, 174, 0.07) 0%,
+      rgba(0, 0, 0, 0.94) 42%,
+      rgba(0, 0, 0, 0.98) 100%
+    ),
+    linear-gradient(
+      108deg,
+      rgba(207, 196, 174, 0.03) 0%,
+      transparent 42%,
+      rgba(255, 255, 255, 0.015) 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E") !important;
+  background-size: auto, auto, 120px 120px !important;
+  background-blend-mode: normal, normal, overlay !important;
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border-bottom-color: rgba(207, 196, 174, 0.1) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(207, 196, 174, 0.08),
+    0 4px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.system-theme-black .scope-pane .overlay-toolbar {
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(207, 196, 174, 0.08) !important;
+}
+
+/* ── 按钮与菜单 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-menu-btn.active,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-action-btn.primary,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-wake-btn:hover,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .overlay-interpret-btn {
+  background: var(--sys-accent-gradient) !important;
+  color: var(--sys-text-on-accent) !important;
+  box-shadow: var(--sys-btn-glow) !important;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-menu-btn:not(.active):hover {
+  background: var(--sys-hover-menu) !important;
+  color: var(--sys-text-emphasis) !important;
+  border-color: rgba(var(--sys-accent-rgb), 0.3) !important;
+  box-shadow: 0 4px 20px rgba(var(--sys-accent-rgb), 0.12) !important;
+}
+
+html.system-theme-black .sidebar-menu-btn.active,
+html.system-theme-black .note-action-btn.primary,
+html.system-theme-black .sidebar-wake-btn:hover,
+html.system-theme-black .overlay-interpret-btn,
+html.system-theme-black .edge-rail-btn.active,
+html.system-theme-black .overlay-mode-radio button.active,
+html.system-theme-black .note-catalog-mode button.active {
+  background: rgba(207, 196, 174, 0.08) !important;
+  color: var(--sys-text-accent-bright) !important;
+  border-color: rgba(207, 196, 174, 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 20px rgba(207, 196, 174, 0.06) !important;
+}
+
+html.system-theme-black .edge-rail-btn.interpret {
+  color: var(--sys-text-emphasis) !important;
+  background: linear-gradient(180deg, #4a4744 0%, #32302d 55%, #252322 100%) !important;
+  border: 1px dashed rgba(207, 196, 174, 0.38) !important;
+  box-shadow: none !important;
+}
+
+html.system-theme-black .sidebar-menu-btn:not(.active):hover {
+  background: rgba(207, 196, 174, 0.05) !important;
+  color: var(--sys-text-emphasis) !important;
+  border-color: rgba(207, 196, 174, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ── 浮起面板层 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-body,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-body,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .interpret-settings,
+html.system-theme-black .sidebar-body,
+html.system-theme-black .note-body,
+html.system-theme-black .interpret-settings {
+  position: relative;
+  z-index: 1;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .panel,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .reader-settings,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .theme-card,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .interpret-settings select,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .interpret-settings input,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .interpret-settings-editor,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .followup input,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-action-btn:not(.primary),
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-menu-btn:not(.active) {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: var(--sys-glass-border) !important;
+  box-shadow: var(--sys-glass-shadow) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.system-theme-black .panel,
+html.system-theme-black .reader-settings,
+html.system-theme-black .theme-card,
+html.system-theme-black .interpret-settings select,
+html.system-theme-black .interpret-settings input,
+html.system-theme-black .interpret-settings-editor,
+html.system-theme-black .followup input,
+html.system-theme-black .note-action-btn:not(.primary),
+html.system-theme-black .sidebar-menu-btn:not(.active) {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border-color: rgba(207, 196, 174, 0.1) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(207, 196, 174, 0.05),
+    0 4px 20px rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.system-theme-black .theme-card.active {
+  border-color: rgba(207, 196, 174, 0.22) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(207, 196, 174, 0.1),
+    0 0 24px rgba(207, 196, 174, 0.06) !important;
+}
+
+html.system-theme-black .theme-card.active .theme-card-label {
+  color: var(--sys-text-accent-bright) !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .theme-card.active {
+  border-color: rgba(var(--sys-accent-rgb), 0.35) !important;
+  box-shadow: var(--sys-btn-glow), var(--sys-glass-shadow) !important;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .theme-card.active .theme-card-label {
+  background: var(--sys-brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── 阅读器区 ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .catalog-pane-shell {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: none !important;
+}
+
+html.system-theme-black .catalog-pane-shell {
+  background: linear-gradient(180deg, rgba(6, 6, 6, 0.96) 0%, rgba(0, 0, 0, 0.99) 100%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: none !important;
+  box-shadow: none !important;
+}
+
+html.system-theme-black .catalog-panel {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border-color: rgba(207, 196, 174, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(207, 196, 174, 0.04) !important;
+}
+
+html.system-theme-black .notebook-list {
+  background: linear-gradient(180deg, #050505 0%, #000000 100%) !important;
+  border-right-color: rgba(207, 196, 174, 0.08) !important;
+}
+
+html.system-theme-black .catalog-row.active,
+html.system-theme-black .catalog-row.chapter-row.active,
+html.system-theme-black .catalog-row.page-row.active {
+  background: rgba(207, 196, 174, 0.06) !important;
+}
+
+html.system-theme-black .catalog-row.chapter-row.active {
+  box-shadow: inset 2px 0 0 rgba(207, 196, 174, 0.38) !important;
+}
+
+html.system-theme-black .notebook-list-item.active {
+  background: rgba(207, 196, 174, 0.07) !important;
+}
+
+html.system-theme-black .overlay-mode-radio {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border-color: rgba(207, 196, 174, 0.1) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.system-theme-black .scope-pane .overlay-mode-radio {
+  box-shadow: none !important;
+}
+
+html.system-theme-black .scope-pane .overlay-mode-radio button.active {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+html.system-theme-black .workspace-splitter-drag::after {
+  background: transparent !important;
+}
+
+html.system-theme-black .workspace-splitter-drag:hover::after {
+  background: rgba(207, 196, 174, 0.12) !important;
+}
+
+.workspace.docked.place-right .workspace-splitter,
+.workspace.docked.place-center .workspace-splitter {
+  width: 0;
+  min-width: 0;
+  overflow: visible;
+}
+
+.workspace.docked.place-right .workspace-splitter-drag,
+.workspace.docked.place-center .workspace-splitter-drag {
+  width: 8px;
+  margin-left: -4px;
+}
+
+html.system-theme-black .note-pane {
+  box-shadow: none !important;
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-root {
+  border-color: transparent;
+  box-shadow: var(--sys-frame-glow);
+}
+
+html.system-theme-black .sidebar-root {
+  border-color: transparent;
+  box-shadow: var(--sys-frame-glow);
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .status-line.busy,
+html.system-theme-black .status-line.busy {
+  color: var(--sys-text-accent);
+  text-shadow: 0 0 12px rgba(var(--sys-accent-rgb), 0.35);
+}
+
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .edge-rail-btn.interpret {
+  color: var(--sys-text-on-accent) !important;
+  background: var(--sys-accent-gradient) !important;
+  border: 1px dashed rgba(var(--sys-accent-rgb), 0.45) !important;
+  box-shadow: none !important;
+}
+
+/* ── 灰白专属：克制动效与灰阶强调 ── */
+html.system-theme-gray .workspace.docked::after,
+html.system-theme-gray .workspace.note-only::after {
+  animation: none;
+}
+
+html.system-theme-gray .note-pane::before,
+html.system-theme-gray .sidebar-root::before {
+  animation: none;
+  opacity: 0.35;
+  filter: blur(56px);
+}
+
+html.system-theme-gray .note-pane::after,
+html.system-theme-gray .sidebar-root::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, transparent 30%, transparent 74%, rgba(23, 23, 23, 0.03) 100%);
+}
+
+html.system-theme-gray .status-line.busy {
+  text-shadow: none;
+  color: var(--sys-text-secondary);
+}
+
+html.system-theme-gray .theme-card.active .theme-card-label {
+  background: linear-gradient(135deg, #525252 0%, #262626 55%, #171717 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html.system-theme-gray .tabs button.active {
+  background: rgba(38, 38, 38, 0.08);
+  color: var(--sys-text-emphasis);
+}
+
+html.system-theme-gray .template-list-badge {
+  background: rgba(38, 38, 38, 0.1);
+  color: var(--sys-text-emphasis);
+}

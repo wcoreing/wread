@@ -4,17 +4,17 @@
   line-height: var(--interpret-line-height, 1.75);
   font-size: var(--interpret-font-size, 15px);
   font-family: var(--interpret-font-family, inherit);
-  color: #e8e4df;
+  color: var(--ith-ink);
   padding: 0 2px 16px;
   scroll-behavior: smooth;
 }
 
 .interpret-body.streaming {
-  color: var(--ith-ink, #ece8e3);
+  color: var(--ith-ink);
 }
 
 .interpret-body.empty {
-  color: #78716c;
+  color: var(--sys-text-tertiary);
   font-size: 13px;
   line-height: 1.6;
   padding: 12px 8px;
@@ -30,7 +30,7 @@
   height: 1.1em;
   margin-left: 2px;
   vertical-align: text-bottom;
-  background: var(--ith-accent, #d4a574);
+  background: var(--ith-accent);
   animation: interpret-cursor-blink 1s step-end infinite;
 }
 
@@ -45,7 +45,7 @@
 .interpret-masthead {
   margin-bottom: calc(var(--interpret-paragraph-gap, 12px) * 1.5);
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(212, 165, 116, 0.22);
+  border-bottom: 1px solid var(--ith-border);
 }
 
 .interpret-kicker {
@@ -53,7 +53,7 @@
   font-size: calc(var(--interpret-font-size, 15px) * 0.72);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ith-accent, #d4a574);
+  color: var(--ith-accent);
   font-weight: 600;
 }
 
@@ -62,7 +62,7 @@
   font-size: calc(var(--interpret-font-size, 15px) * 1.55);
   font-weight: 700;
   line-height: 1.25;
-  color: #faf7f2;
+  color: var(--ith-title);
   letter-spacing: -0.02em;
 }
 
@@ -70,9 +70,9 @@
   margin: 0 0 12px;
   font-size: calc(var(--interpret-font-size, 15px) * 1.08);
   line-height: 1.55;
-  color: var(--ith-lead, #f5e6c8);
+  color: var(--ith-lead);
   font-style: italic;
-  border-left: 3px solid rgba(212, 165, 116, 0.55);
+  border-left: 3px solid color-mix(in srgb, var(--ith-accent) 55%, transparent);
   padding-left: 12px;
 }
 
@@ -80,8 +80,8 @@
   margin: 0 0 12px;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(212, 165, 116, 0.2);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--ith-border);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--sys-bg-solid) 65%, #000000);
 }
 
 .interpret-hero img {
@@ -105,9 +105,9 @@
   padding: 3px 10px;
   border-radius: 999px;
   font-size: calc(var(--interpret-font-size, 15px) * 0.78);
-  background: rgba(196, 181, 253, 0.15);
-  border: 1px solid rgba(196, 181, 253, 0.35);
-  color: #e9e0ff;
+  background: color-mix(in srgb, var(--ith-concepts) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ith-concepts) 35%, transparent);
+  color: var(--ith-tag-fg);
 }
 
 .interpret-article-body {
@@ -118,11 +118,11 @@
 
 .markdown-body {
   --md-gap: var(--interpret-paragraph-gap, 12px);
-  --md-heading-color: #faf7f2;
-  --md-muted: var(--ith-muted, #a8a29e);
-  --md-accent: var(--ith-accent, #d4a574);
-  --md-border: rgba(212, 165, 116, 0.2);
-  --md-code-bg: rgba(28, 25, 23, 0.9);
+  --md-heading-color: var(--ith-heading);
+  --md-muted: var(--ith-muted);
+  --md-accent: var(--ith-accent);
+  --md-border: var(--ith-border);
+  --md-code-bg: var(--ith-code-bg);
 }
 
 .markdown-body > :first-child {
@@ -175,58 +175,58 @@
 }
 
 .interpret-section-head.theme-lead {
-  color: var(--ith-lead, #f5e6c8);
+  color: var(--ith-lead);
 }
 
 .interpret-section-head.theme-lead + p {
   font-size: calc(var(--interpret-font-size, 15px) * 1.12);
   line-height: 1.6;
-  color: #f5f0e8;
+  color: var(--ith-ink);
 }
 
 .interpret-section-head.theme-concepts {
-  color: var(--ith-concepts, #c4b5fd);
+  color: var(--ith-concepts);
 }
 
 .interpret-section-head.theme-concepts ~ ul,
 .interpret-section-head.theme-concepts ~ ol {
   padding: 10px 12px 10px 2em;
   border-radius: 8px;
-  background: rgba(196, 181, 253, 0.06);
-  border: 1px solid rgba(196, 181, 253, 0.18);
+  background: color-mix(in srgb, var(--ith-concepts) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ith-concepts) 18%, transparent);
 }
 
 .interpret-section-head.theme-logic {
-  color: var(--ith-logic, #7dd3fc);
+  color: var(--ith-logic);
 }
 
 .interpret-section-head.theme-logic ~ p,
 .interpret-section-head.theme-logic ~ ul {
   padding-left: 4px;
-  border-left: 2px solid rgba(125, 211, 252, 0.35);
+  border-left: 2px solid color-mix(in srgb, var(--ith-logic) 35%, transparent);
   margin-left: 2px;
 }
 
 .interpret-section-head.theme-note {
-  color: var(--ith-note, #fcd34d);
+  color: var(--ith-note);
 }
 
 .interpret-section-head.theme-note ~ p,
 .interpret-section-head.theme-note ~ ul {
   padding: 10px 12px;
   border-radius: 8px;
-  background: rgba(252, 211, 77, 0.06);
-  border: 1px solid rgba(252, 211, 77, 0.22);
+  background: color-mix(in srgb, var(--ith-note) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ith-note) 22%, transparent);
 }
 
 .interpret-section-head.theme-misc {
-  color: var(--ith-accent, #d4a574);
+  color: var(--ith-accent);
 }
 
 .markdown-body h3,
 .markdown-body h4 {
   margin: calc(var(--md-gap) * 1.2) 0 calc(var(--md-gap) * 0.6);
-  color: #e7e2dc;
+  color: var(--ith-heading);
   font-weight: 650;
   line-height: 1.35;
 }
@@ -237,16 +237,16 @@
 
 .markdown-body h4 {
   font-size: var(--interpret-font-size, 15px);
-  color: #d6d0c8;
+  color: var(--ith-em);
 }
 
 .markdown-body strong {
-  color: #faf7f2;
+  color: var(--ith-strong);
   font-weight: 650;
 }
 
 .markdown-body em {
-  color: #d6d0c8;
+  color: var(--ith-em);
 }
 
 .markdown-body a {
@@ -275,8 +275,8 @@
   border: none;
   border-left: 4px solid var(--md-accent);
   border-radius: 0 10px 10px 0;
-  background: linear-gradient(90deg, rgba(212, 165, 116, 0.12) 0%, transparent 100%);
-  color: #e7e2dc;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ith-accent) 12%, transparent) 0%, transparent 100%);
+  color: var(--ith-blockquote);
   font-size: calc(var(--interpret-font-size, 15px) * 1.02);
   font-style: italic;
 }
@@ -285,10 +285,10 @@
   padding: 0.14em 0.4em;
   border-radius: 4px;
   background: var(--md-code-bg);
-  border: 1px solid rgba(212, 165, 116, 0.15);
+  border: 1px solid color-mix(in srgb, var(--ith-accent) 15%, transparent);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.9em;
-  color: #f0e6d8;
+  color: var(--ith-code-fg);
 }
 
 .markdown-body pre {
@@ -303,7 +303,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #e8e4df;
+  color: var(--ith-code-fg);
 }
 
 .markdown-body hr {
@@ -330,18 +330,19 @@
   padding: 8px 10px;
   border: 1px solid var(--md-border);
   text-align: left;
+  color: var(--ith-ink);
 }
 
 .markdown-body th {
-  background: rgba(212, 165, 116, 0.12);
-  color: #f5f0e8;
+  background: color-mix(in srgb, var(--ith-accent) 12%, transparent);
+  color: var(--ith-table-head);
   font-weight: 600;
   font-size: 0.88em;
   letter-spacing: 0.04em;
 }
 
 .markdown-body tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--sys-accent) 4%, transparent);
 }
 
 .interpret-figure {
@@ -360,4 +361,3 @@
   font-size: 0.85em;
   color: var(--md-muted);
 }
-

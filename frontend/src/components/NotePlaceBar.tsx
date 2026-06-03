@@ -12,13 +12,14 @@ const PLACE_OPTIONS: { place: NotePlaceId; label: string }[] = [
 type Props = {
   active: NotePlaceId
   onPick: (place: NotePlaceId) => void
+  className?: string
 }
 
-/** NotePlaceBar 笔记顶栏位置选择。 */
-export default function NotePlaceBar({ active, onPick }: Props) {
+/** NotePlaceBar 笔记停靠位置选择。 */
+export default function NotePlaceBar({ active, onPick, className = 'note-layout-select' }: Props) {
   return (
     <select
-      className="note-layout-select"
+      className={className}
       value={active}
       title="笔记位置"
       onChange={(e) => onPick(e.target.value as NotePlaceId)}

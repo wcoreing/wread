@@ -21,7 +21,7 @@ declare module "@wailsio/runtime" {
             "layout:sidebarW": number;
             "notebook:opened": model$0.SessionDO;
             "overlay:editable": boolean;
-            "overlay:readingMode": boolean;
+            "overlay:scopeMode": string;
             "read:delta": string;
             "read:done": model$0.SnapDO;
             "read:error": string;

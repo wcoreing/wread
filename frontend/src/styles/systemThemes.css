@@ -1,0 +1,13 @@
+/* 系统 UI 主题 fallback（完整定义见 systemThemesMono.css） */
+
+:root {
+  --sys-fill-subtle: rgba(255, 252, 247, 0.85);
+  --sys-fill-soft: rgba(255, 250, 240, 0.72);
+  --sys-fill-faint: rgba(255, 248, 235, 0.55);
+  --sys-fill-muted: rgba(255, 253, 248, 0.92);
+  --sys-fill-strong: rgba(255, 255, 250, 0.96);
+  --sys-input-bg: rgba(255, 252, 245, 0.9);
+  --sys-inset-highlight: rgba(255, 255, 252, 0.95);
+  --sys-rail-bg: rgba(255, 252, 245, 0.75);
+  --sys-rail-bg-hover: rgba(255, 253, 248, 0.92);
+}

@@ -23,146 +23,33 @@ html, body, #root {
 }
 
 .overlay-toolbar {
-  position: relative;
   z-index: 20;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  background: rgba(15, 15, 22, 0.92);
-  border: 1px solid rgba(129, 140, 248, 0.55);
-  border-right: none;
-  border-radius: 10px 0 0 0;
-  --wails-draggable: no-drag;
-  cursor: grab;
-  user-select: none;
-}
-
-.overlay-toolbar:active {
-  cursor: grabbing;
-}
-
-.overlay-brand {
-  font-weight: 700;
-  color: #c7d2fe;
-  font-size: 13px;
-}
-
-.overlay-tip {
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  color: #94a3b8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.overlay-mode-radio {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  flex-shrink: 0;
-  --wails-draggable: no-drag;
-}
-
-.overlay-mode-radio button {
-  height: 22px;
-  padding: 0 10px;
   border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: #64748b;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.overlay-mode-radio button.active {
-  background: rgba(99, 102, 241, 0.35);
-  color: #e0e7ff;
-}
-
-.overlay-mode-radio button:hover:not(.active) {
-  color: #94a3b8;
-}
-
-.overlay-interpret-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 4px 14px;
-  background: #6366f1;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  --wails-draggable: no-drag;
-  flex-shrink: 0;
-}
-
-.overlay-interpret-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  --wails-draggable: no-drag;
-}
-
-.overlay-interpret-btn:hover:not(:disabled) {
-  background: #818cf8;
-}
-
-.overlay-interpret-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.overlay-restore-btn {
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 999px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  --wails-draggable: no-drag;
-  flex-shrink: 0;
-}
-
-.overlay-restore-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #e2e8f0;
+  border-radius: 0;
 }
 
 .overlay-frame {
   position: absolute;
   inset: 0;
-  top: 36px;
-  border: 2px dashed rgba(129, 140, 248, 0.9);
-  border-right: none;
+  top: var(--toolbar-h, 38px);
+  border: none;
   border-radius: 0 0 0 10px;
   box-sizing: border-box;
   pointer-events: none;
-  background: rgba(99, 102, 241, 0.04);
+  background: transparent;
+  box-shadow: none;
 }
 
-.read-mode .overlay-frame {
-  top: 36px;
-  border-radius: 0 0 0 10px;
+.edit-mode .overlay-frame {
+  border: 2px dashed rgba(255, 255, 255, 0.88);
   border-right: none;
-  background: rgba(99, 102, 241, 0.02);
-  border-color: rgba(129, 140, 248, 0.55);
+  border-radius: 0 0 0 10px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32);
 }
 
-.op-mode .overlay-frame {
-  top: 36px;
-  border-radius: 0 0 0 10px;
-  border-right: none;
-  background: rgba(99, 102, 241, 0.06);
-  border-color: rgba(129, 140, 248, 0.75);
+.read-mode.edit-mode .overlay-frame {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28);
 }
 
 .overlay-hint {
@@ -171,12 +58,46 @@ html, body, #root {
   left: 50%;
   transform: translateX(-50%);
   font-size: 11px;
-  color: rgba(199, 210, 254, 0.85);
-  background: rgba(15, 15, 22, 0.72);
-  padding: 3px 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(0, 0, 0, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 4px 12px;
   border-radius: 999px;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.note-mode .overlay-frame {
+  display: none;
+}
+
+.scope-note-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 5;
+  background: var(--sys-bg-gradient);
+}
+
+.scope-note-bar {
+  flex-shrink: 0;
+  margin: 4px 10px 0;
+  --wails-draggable: no-drag;
+}
+
+.scope-note-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 16px 16px;
+  box-sizing: border-box;
+}
+
+.scope-pane.note-mode {
+  background: var(--sys-bg-gradient);
 }
 
 /* 边框/角点缩放（前端 ResizeWorkspace；禁用 wails:drag 避免 macOS 整窗移动抖动） */
@@ -187,7 +108,7 @@ html, body, #root {
 }
 
 .overlay-edge-top {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   left: 8px;
   right: 8px;
   height: 8px;
@@ -203,7 +124,7 @@ html, body, #root {
 }
 
 .overlay-edge-left {
-  top: 44px;
+  top: calc(var(--toolbar-h, 38px) + 8px);
   bottom: 8px;
   left: 0;
   width: 8px;
@@ -211,7 +132,7 @@ html, body, #root {
 }
 
 .overlay-edge-right {
-  top: 44px;
+  top: calc(var(--toolbar-h, 38px) + 8px);
   bottom: 8px;
   right: 0;
   width: 8px;
@@ -227,13 +148,13 @@ html, body, #root {
 }
 
 .overlay-corner-nw {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   left: 0;
   cursor: nwse-resize;
 }
 
 .overlay-corner-ne {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   right: 0;
   cursor: nesw-resize;
 }

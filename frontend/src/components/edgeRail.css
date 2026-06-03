@@ -5,6 +5,7 @@
   --edge-rail-btn-pad: 10px;
   --edge-rail-gap: 8px;
   --edge-rail-radius: 6px;
+  --edge-rail-border-style: dashed;
 }
 
 .pane-edge-rail {
@@ -24,10 +25,10 @@
   min-width: var(--edge-rail-btn-w);
   min-height: var(--edge-rail-btn-h);
   padding: var(--edge-rail-btn-pad) 4px;
-  border: 1px solid rgba(129, 140, 248, 0.22);
+  border: 1px var(--edge-rail-border-style) rgba(var(--sys-accent-rgb), 0.28);
   border-radius: var(--edge-rail-radius);
-  background: rgba(12, 12, 18, 0.55);
-  color: #94a3b8;
+  background: var(--sys-rail-bg);
+  color: var(--sys-text-secondary);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.1;
@@ -40,25 +41,35 @@
 }
 
 .edge-rail-btn:hover:not(:disabled):not(.active) {
-  color: #e2e8f0;
-  border-color: rgba(129, 140, 248, 0.45);
-  background: rgba(30, 30, 42, 0.85);
+  color: var(--sys-text-emphasis);
+  border-color: rgba(var(--sys-accent-rgb), 0.45);
+  background: var(--sys-rail-bg-hover);
 }
 
 .edge-rail-btn.active {
-  color: #fff;
-  border-color: rgba(129, 140, 248, 0.65);
-  background: rgba(99, 102, 241, 0.42);
+  color: var(--sys-text-on-accent);
+  border-color: rgba(var(--sys-accent-rgb), 0.7);
+  background: var(--sys-accent-gradient);
+  box-shadow: var(--sys-btn-glow);
 }
 
 .edge-rail-btn.active:hover:not(:disabled) {
-  color: #fff;
-  border-color: rgba(129, 140, 248, 0.75);
-  background: rgba(99, 102, 241, 0.5);
+  color: var(--sys-text-on-accent);
+  border-color: rgba(var(--sys-accent-rgb), 0.85);
+  filter: brightness(1.1);
+  box-shadow: var(--sys-btn-glow), 0 0 20px rgba(var(--sys-accent-rgb), 0.3);
 }
 
 .edge-rail-btn.interpret {
-  color: #e0e7ff;
+  color: var(--sys-text-on-accent);
+  background: var(--sys-accent-gradient);
+  border: 1px var(--edge-rail-border-style) rgba(var(--sys-accent-rgb), 0.45);
+  box-shadow: none;
+}
+
+.edge-rail-btn.interpret:hover:not(:disabled):not(.busy) {
+  color: var(--sys-text-on-accent);
+  filter: brightness(1.08);
 }
 
 .edge-rail-btn:disabled,
@@ -67,68 +78,32 @@
   cursor: not-allowed;
 }
 
-.notebook-pane-shell {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.notebook-pane-shell > .note-split {
-  flex: 1;
-  min-height: 0;
-}
-
-/* 笔记在右：左内缘竖条，贴左无圆角 */
-.workspace.docked.place-right .notebook-pane-shell .pane-edge-rail-note,
-.workspace.docked.place-center .notebook-pane-shell .pane-edge-rail-note,
-.sidebar-root .notebook-pane-shell .pane-edge-rail-note {
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  flex-direction: column;
-}
-
-.workspace.docked.place-right .notebook-pane-shell .edge-rail-btn,
-.workspace.docked.place-center .notebook-pane-shell .edge-rail-btn,
-.sidebar-root .notebook-pane-shell .edge-rail-btn {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-left-color: transparent;
-}
-
-/* 笔记在左：右内缘贴边 */
-.workspace.docked.place-left .notebook-pane-shell .pane-edge-rail-note {
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  flex-direction: column;
-}
-
-.workspace.docked.place-left .notebook-pane-shell .edge-rail-btn {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right-color: transparent;
-}
-
-/* 阅读器：右内缘贴边（近翻页） */
+/* 阅读器：右内缘贴边（近翻页），略压过分割线避免接缝漏线 */
 .workspace.docked.place-right .scope-pane .pane-edge-rail-reader,
 .workspace.docked.place-center .scope-pane .pane-edge-rail-reader {
   top: 50%;
-  right: 0;
+  right: -1px;
   transform: translateY(-50%);
   flex-direction: column;
+  z-index: 30;
 }
 
-.workspace.docked.place-right .scope-pane .edge-rail-btn,
-.workspace.docked.place-center .scope-pane .edge-rail-btn {
+.workspace.docked.place-right .scope-pane .edge-rail-btn:not(.interpret),
+.workspace.docked.place-center .scope-pane .edge-rail-btn:not(.interpret) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-color: transparent;
+  box-shadow: none;
+}
+
+.workspace.docked.place-right .scope-pane .edge-rail-btn.interpret,
+.workspace.docked.place-center .scope-pane .edge-rail-btn.interpret {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border-right-color: transparent;
 }
 
-/* 独立阅读器单窗：解读竖条贴右内缘（与 place-right 内嵌一致） */
+/* 独立阅读器单窗：解读竖条贴右内缘 */
 .workspace.undocked .scope-pane .pane-edge-rail-reader {
   top: 50%;
   right: 0;
@@ -179,32 +154,6 @@
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-color: transparent;
-}
-
-.workspace.docked.place-top .notebook-pane-shell .pane-edge-rail-note {
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  flex-direction: row;
-}
-
-.workspace.docked.place-top .notebook-pane-shell .edge-rail-btn {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-color: transparent;
-}
-
-.workspace.docked.place-bottom .notebook-pane-shell .pane-edge-rail-note {
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  flex-direction: row;
-}
-
-.workspace.docked.place-bottom .notebook-pane-shell .edge-rail-btn {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-color: transparent;
 }
 
 .workspace.place-top .edge-rail-btn,

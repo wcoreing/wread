@@ -77,7 +77,7 @@ export function useWindowLayoutPresets() {
     await applyPreset(editId)
   }
 
-  /** createPreset 将当前窗口保存为新预设。 */
+  /** createPreset 将当前窗口保存为新预设，返回新预设 id。 */
   const createPreset = async () => {
     const saved = await Service.SaveWindowLayoutPreset({
       id: '',
@@ -86,6 +86,7 @@ export function useWindowLayoutPresets() {
     })
     await loadPresets(saved.id)
     setStatus('已保存当前窗口')
+    return saved.id
   }
 
   /** refreshPresetFromCurrent 用当前窗口覆盖所选预设。 */

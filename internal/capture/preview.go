@@ -9,13 +9,16 @@ import (
 	"image/png"
 )
 
+// PreviewMaxWidth 保存到笔记的截屏预览最大宽度（像素）。
+const PreviewMaxWidth = 1600
+
 // PreviewDataURL 生成截屏预览 data URL，宽度超过 maxWidth 时等比缩小。
 func PreviewDataURL(img []byte, maxWidth int) (string, error) {
 	if len(img) == 0 {
 		return "", fmt.Errorf("截屏为空")
 	}
 	if maxWidth <= 0 {
-		maxWidth = 480
+		maxWidth = PreviewMaxWidth
 	}
 
 	src, _, err := image.Decode(bytes.NewReader(img))

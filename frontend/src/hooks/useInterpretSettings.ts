@@ -103,7 +103,7 @@ export function useInterpretSettings() {
     }
   }
 
-  /** createTemplate 新建空白模板。 */
+  /** createTemplate 新建空白模板，返回新模板 id。 */
   const createTemplate = async () => {
     try {
       await flushTemplateSave()
@@ -119,6 +119,7 @@ export function useInterpretSettings() {
     setPromptSettings(st)
     loadPromptEditor(st, saved.id)
     setStatus('')
+    return saved.id
   }
 
   /** updateTplName 更新模板名称并自动保存。 */

@@ -39,6 +39,7 @@ static id g_mouseMonitor = NULL;
 static id g_localMouseMonitor = NULL;
 static CGFloat g_scopeWidth = 640.0;
 static CGFloat g_noteSize = 0.0;
+static CGFloat g_catalogWidth = 0.0;
 static char g_place[16] = "right";
 
 void wreadSetPassMetrics(double toolbarH, double edgeInset, double readerRailW,
@@ -97,7 +98,8 @@ static NSRect wreadScopeFrameRect(NSWindow *window) {
 	if (wreadPlaceIs("left")) {
 		x += g_noteSize;
 		w = g_scopeWidth;
-	} else if (g_noteSize > 0.0) {
+	} else {
+		x += g_catalogWidth;
 		w = g_scopeWidth;
 	}
 	return NSMakeRect(x,
@@ -367,13 +369,16 @@ static void wreadInstallMouseMonitor(void) {
 	}
 }
 
-void wreadSetPassThroughLayout(CGFloat scopeWidth, CGFloat noteSize, const char *place) {
-	if (scopeWidth == g_scopeWidth && noteSize == g_noteSize && place != NULL &&
+void wreadSetPassThroughLayout(CGFloat scopeWidth, CGFloat noteSize, CGFloat catalogWidth,
+                               const char *place) {
+	if (scopeWidth == g_scopeWidth && noteSize == g_noteSize &&
+	    catalogWidth == g_catalogWidth && place != NULL &&
 	    strncmp(g_place, place, sizeof(g_place)) == 0) {
 		return;
 	}
 	g_scopeWidth = scopeWidth;
 	g_noteSize = noteSize;
+	g_catalogWidth = catalogWidth;
 	if (place != NULL) {
 		strncpy(g_place, place, sizeof(g_place) - 1);
 		g_place[sizeof(g_place) - 1] = '\0';
@@ -430,10 +435,10 @@ func setNativePassThrough(nativeWindow unsafe.Pointer, enable bool) {
 	C.wreadSetPassThrough(nativeWindow, C.bool(enable))
 }
 
-func setNativePassThroughLayout(scopeW, noteSz int, place string) {
+func setNativePassThroughLayout(scopeW, noteSz, catalogW int, place string) {
 	cPlace := C.CString(place)
 	defer C.free(unsafe.Pointer(cPlace))
-	C.wreadSetPassThroughLayout(C.double(scopeW), C.double(noteSz), cPlace)
+	C.wreadSetPassThroughLayout(C.double(scopeW), C.double(noteSz), C.double(catalogW), cPlace)
 }
 
 func setNativeFrameDragging(dragging bool) {

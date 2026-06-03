@@ -28,19 +28,25 @@ type AISettingsSaveDO struct {
 type SessionDO struct {
 	ID           string `json:"id"`
 	NotebookName string `json:"notebookName"`
-	CreatedAt int64  `json:"createdAt"`
-	UpdatedAt int64  `json:"updatedAt"`
+	CreatedAt    int64  `json:"createdAt"`
+	UpdatedAt    int64  `json:"updatedAt"`
 }
 
 // SnapDO 单次解读快照。
 type SnapDO struct {
-	ID        string   `json:"id"`
-	SessionID string   `json:"sessionId"`
-	Title     string   `json:"title"`
-	OCRText   string   `json:"ocrText"`
-	Summary   string   `json:"summary"`
-	Concepts  []string `json:"concepts"`
-	CreatedAt int64    `json:"createdAt"`
+	ID              string   `json:"id"`
+	SessionID       string   `json:"sessionId"`
+	Title           string   `json:"title"`
+	OCRText         string   `json:"ocrText"`
+	Summary         string   `json:"summary"`
+	Concepts        []string `json:"concepts"`
+	CapturePreview  string   `json:"capturePreview"`
+	CreatedAt       int64    `json:"createdAt"`
+}
+
+// SnapCaptureSettingsDO 解读截屏保留设置。
+type SnapCaptureSettingsDO struct {
+	KeepCapture bool `json:"keepCapture"`
 }
 
 // CatalogNodeDO 章节树节点：chapter 为章节容器，page 为章节下的解读页。
@@ -135,7 +141,6 @@ type ReaderSettingsDO struct {
 	LineHeight   float64 `json:"lineHeight"`
 	FontFamily   string  `json:"fontFamily"`
 	ParagraphGap int     `json:"paragraphGap"`
-	LayoutTheme  string  `json:"layoutTheme"` // magazine minimal academic terminal card brief
 }
 
 // PromptTemplateDO 解读提示词模板。

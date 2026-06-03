@@ -16,19 +16,18 @@ html, body, #root {
 }
 
 .workspace.docked {
-  border: 1px solid rgba(129, 140, 248, 0.55);
+  border: none;
   border-radius: 10px;
+  box-shadow: var(--sys-frame-glow);
 }
 
 .workspace.undocked .scope-pane .overlay-toolbar {
   border-radius: 10px 10px 0 0;
   border: none;
-  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
 }
 
-.workspace.undocked .scope-pane .overlay-frame,
-.workspace.undocked .scope-pane.read-mode .overlay-frame,
-.workspace.undocked .scope-pane .overlay-templates {
+.workspace.undocked .scope-pane.edit-mode .overlay-frame,
+.workspace.undocked .scope-pane.edit-mode .overlay-templates {
   border-radius: 0 0 10px 10px;
 }
 
@@ -62,34 +61,116 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   background: transparent;
+  z-index: 1;
+}
+
+/* 透明读区：高于 workspace 渐变外框层，避免伪元素压在读区上 */
+.workspace.docked .scope-pane.op-mode,
+.workspace.docked .scope-pane.read-mode {
+  z-index: 2;
+}
+
+.reader-zone {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.catalog-pane-shell {
+  flex: 0 0 var(--catalog-panel-w, 280px);
+  width: var(--catalog-panel-w, 280px);
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-right: none;
+  background: rgba(var(--sys-surface-rgb), 0.92);
+  overflow: hidden;
+  --wails-draggable: no-drag;
+}
+
+.catalog-pane-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.catalog-pane-body .catalog-panel-wrap {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  max-width: none;
+  width: 100%;
+}
+
+.catalog-pane-body .catalog-panel {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  border-right: none;
+  border-radius: 0;
+}
+
+.catalog-pane-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 30;
+  --wails-draggable: no-drag;
+}
+
+.catalog-pane-resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.catalog-pane-resize:hover::after {
+  background: rgba(var(--sys-accent-rgb), 0.45);
 }
 
 .workspace.docked .scope-pane .overlay-toolbar {
   border: none;
-  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
   border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 var(--toolbar-highlight, rgba(255, 255, 255, 0.05));
 }
 
-.workspace.docked .scope-pane .overlay-frame,
-.workspace.docked .scope-pane.read-mode .overlay-frame,
-.workspace.docked .scope-pane .overlay-templates {
+.workspace.docked .scope-pane .overlay-toolbar::after {
+  display: none;
+}
+
+.workspace.docked .scope-pane.edit-mode .overlay-frame,
+.workspace.docked .scope-pane.edit-mode .overlay-templates {
   border-radius: 0;
   border-top: none;
   border-left: none;
   border-bottom: none;
-}
-
-.workspace.place-top.docked .scope-pane .overlay-toolbar,
-.workspace.place-bottom.docked .scope-pane .overlay-toolbar {
-  border-top: 1px solid rgba(129, 140, 248, 0.35);
+  box-shadow: none;
 }
 
 .note-pane {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #12121a 0%, #0d0d12 100%);
-  color: #e5e7eb;
+  background: var(--sys-bg-gradient);
+  color: var(--sys-text-primary);
   overflow: hidden;
   min-height: 0;
   position: relative;
@@ -117,29 +198,21 @@ html, body, #root {
 .workspace.docked .note-pane {
   border: none;
   border-radius: 0;
+  box-shadow: none;
 }
 
 .workspace.docked.place-right .note-pane,
-.workspace.docked.place-center .note-pane {
-  border-left: 1px solid rgba(129, 140, 248, 0.35);
-}
-
-.workspace.docked.place-left .note-pane {
-  border-right: 1px solid rgba(129, 140, 248, 0.35);
-}
-
-.workspace.docked.place-top .note-pane {
-  border-bottom: 1px solid rgba(129, 140, 248, 0.35);
-}
-
+.workspace.docked.place-center .note-pane,
+.workspace.docked.place-left .note-pane,
+.workspace.docked.place-top .note-pane,
 .workspace.docked.place-bottom .note-pane {
-  border-top: 1px solid rgba(129, 140, 248, 0.35);
+  border: none;
 }
 
 .note-toolbar {
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid rgba(129, 140, 248, 0.25);
+  border-bottom: 1px solid rgba(var(--sys-accent-rgb), 0.25);
 }
 
 .workspace.docked.place-right .note-toolbar {
@@ -166,8 +239,9 @@ html, body, #root {
 .workspace.note-only {
   width: 100vw;
   height: 100vh;
-  border: 1px solid rgba(129, 140, 248, 0.55);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.55);
   border-radius: 10px;
+  box-shadow: var(--sys-frame-glow);
   box-sizing: border-box;
   position: relative;
 }
@@ -182,14 +256,14 @@ html, body, #root {
 }
 
 .workspace.note-only .overlay-edge-top {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   left: 8px;
   right: 8px;
 }
 
 .workspace.note-only .overlay-corner-nw,
 .workspace.note-only .overlay-corner-ne {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
 }
 
 .workspace.note-only .note-pane {
@@ -254,13 +328,13 @@ html, body, #root {
 
 /* 笔记区外边框缩放（内嵌时窗口右/左/上/下边在笔记侧） */
 .note-pane .overlay-edge-top {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   z-index: 18;
 }
 
 .note-pane .overlay-corner-ne,
 .note-pane .overlay-corner-nw {
-  top: 36px;
+  top: var(--toolbar-h, 38px);
   z-index: 19;
 }
 

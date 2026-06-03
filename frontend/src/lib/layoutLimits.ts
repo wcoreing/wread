@@ -1,3 +1,5 @@
+import { catalogPanelDefaultW, readCatalogPanelWidth } from './catalogLayout'
+
 /** 开卷区最小尺寸（与 backend minScopeWidth 一致）。 */
 export const minScopeSize = 240
 
@@ -29,15 +31,20 @@ export function workspaceFrameMinSize(
   if (place === 'center') {
     return { minW: minScopeSize + minSidebarWidth, minH: undockedMinH }
   }
-  return { minW: minScopeSize + sidebarW + 1, minH: undockedMinH }
+  return { minW: minScopeSize + sidebarW + catalogPanelDefaultW + 1, minH: undockedMinH }
+}
+
+/** catalogColumnWidth 内嵌 place-right 时目录栏占用宽度（收起为 0）。 */
+export function catalogColumnWidth(collapsed: boolean): number {
+  return collapsed ? 0 : readCatalogPanelWidth()
 }
 
 /** sidebarDragLimits 返回分割条拖动时的笔记区尺寸上下限。 */
-export function sidebarDragLimits(vertical: boolean) {
+export function sidebarDragLimits(vertical: boolean, catalogW = 0) {
   if (vertical) {
     const max = Math.max(minNoteHeight, window.innerHeight - minScopeSize - 1)
     return { min: minNoteHeight, max }
   }
-  const max = Math.max(minSidebarWidth, window.innerWidth - minScopeSize - 1)
+  const max = Math.max(minSidebarWidth, window.innerWidth - minScopeSize - catalogW - 1)
   return { min: minSidebarWidth, max }
 }

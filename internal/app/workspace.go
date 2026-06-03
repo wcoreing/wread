@@ -29,6 +29,7 @@ type Workspace struct {
 	state     model.WorkspaceStateDO
 	syncing   bool
 	frameLive bool
+	catalogW  int
 	lastW     int
 	lastH     int
 	saveMu    sync.Mutex
@@ -128,11 +129,7 @@ func (w *Workspace) LayoutSnapshot() model.WindowLayoutSnapshotDO {
 			if w.isVertical() {
 				w.state.ScopeW = b.Width
 			} else {
-				sw := b.Width - w.state.SidebarW
-				if sw < 0 {
-					sw = 0
-				}
-				w.state.ScopeW = sw
+				w.state.ScopeW = w.readerWidthFromBounds(b)
 			}
 		} else {
 			w.state.ScopeW = b.Width
@@ -217,6 +214,39 @@ func (w *Workspace) ApplyLayoutSnapshot(snap model.WindowLayoutSnapshotDO) {
 		w.state.Docked, w.effectivePlace(), winW, snap.H, snap.X, snap.Y)
 }
 
+// SetCatalogWidth 同步目录侧栏宽度（0 表示收起），供穿透带几何使用。
+func (w *Workspace) SetCatalogWidth(width int) {
+	if width < 0 {
+		width = 0
+	}
+	if width > 480 {
+		width = 480
+	}
+	if w.catalogW == width {
+		return
+	}
+	old := w.catalogW
+	w.catalogW = width
+	if w.svc.workspace != nil && w.state.Docked && w.effectivePlace() == "right" {
+		delta := width - old
+		if delta != 0 {
+			b := w.svc.workspace.Bounds()
+			w.withSync(func() {
+				w.svc.workspace.SetBounds(application.Rect{
+					X: b.X, Y: b.Y, Width: b.Width + delta, Height: b.Height,
+				})
+			})
+			w.lastW = b.Width + delta
+		}
+	}
+	w.syncPassThroughLayout()
+}
+
+// CatalogWidth 返回当前目录侧栏宽度（DIP）。
+func (w *Workspace) CatalogWidth() int {
+	return w.catalogW
+}
+
 // ApplyLayout 启动完成后应用布局与穿透区域。
 func (w *Workspace) ApplyLayout() {
 	if w.svc.workspace == nil {
@@ -274,6 +304,9 @@ func (w *Workspace) SyncBounds() {
 			w.state.ScopeW = b.Width
 		} else {
 			sw := b.Width - w.state.SidebarW
+			if w.effectivePlace() == "right" && w.catalogW > 0 {
+				sw -= w.catalogW
+			}
 			if sw < 0 {
 				sw = 0
 			}
@@ -358,14 +391,18 @@ func (w *Workspace) SetSidebarWidth(size int) {
 			if size < minSidebarWidth {
 				size = minSidebarWidth
 			}
-			max := b.Width - minScopeWidth
+			catW := w.catalogColumnW()
+			max := b.Width - minScopeWidth - catW
 			if max < minSidebarWidth {
 				max = minSidebarWidth
 			}
 			if size > max {
 				size = max
 			}
-			w.state.ScopeW = b.Width - size
+			w.state.ScopeW = b.Width - size - catW
+			if w.state.ScopeW < 0 {
+				w.state.ScopeW = 0
+			}
 		}
 	} else {
 		if size < minSidebarWidth {
@@ -381,6 +418,23 @@ func (w *Workspace) SetSidebarWidth(size int) {
 	w.svc.emit("layout:sidebarW", size)
 }
 
+// readerWidthFromBounds 水平内嵌时开卷区宽度（扣除笔记栏与目录栏）。
+func (w *Workspace) readerWidthFromBounds(b application.Rect) int {
+	sw := b.Width - w.state.SidebarW - w.catalogColumnW()
+	if sw < 0 {
+		sw = 0
+	}
+	return sw
+}
+
+// catalogColumnW 内嵌 place-right 时目录栏占用宽度。
+func (w *Workspace) catalogColumnW() int {
+	if !w.state.Docked || w.effectivePlace() != "right" {
+		return 0
+	}
+	return w.catalogW
+}
+
 // ScopeWidth 返回开卷区域宽度（DIP）。
 func (w *Workspace) ScopeWidth() int {
 	if w.svc.workspace == nil {
@@ -394,11 +448,7 @@ func (w *Workspace) ScopeWidth() int {
 		return b.Width
 	}
 	if w.state.Docked {
-		sw := b.Width - w.state.SidebarW
-		if sw < 0 {
-			sw = 0
-		}
-		return sw
+		return w.readerWidthFromBounds(b)
 	}
 	return b.Width
 }
@@ -411,11 +461,31 @@ func (w *Workspace) applyDockState(resizeWorkspace bool) {
 		wb := w.svc.workspace.Bounds()
 		if w.state.Docked {
 			if resizeWorkspace {
-				w.svc.workspace.SetBounds(application.Rect{
-					X: wb.X, Y: wb.Y,
-					Width:  w.windowWidth(),
-					Height: wb.Height,
-				})
+				if w.isVertical() {
+					w.svc.workspace.SetBounds(application.Rect{
+						X: wb.X, Y: wb.Y,
+						Width:  wb.Width,
+						Height: w.windowWidth(),
+					})
+				} else {
+					catW := w.catalogColumnW()
+					scopeW := wb.Width
+					// 从独立窗切回：当前窗宽即阅读区，需向右扩展笔记栏与目录栏。
+					if wb.Width < w.state.SidebarW+catW+minScopeWidth {
+						scopeW = wb.Width
+					} else {
+						scopeW = w.readerWidthFromBounds(wb)
+					}
+					if scopeW < minScopeWidth {
+						scopeW = minScopeWidth
+					}
+					w.state.ScopeW = scopeW
+					totalW := scopeW + w.state.SidebarW + catW
+					w.svc.workspace.SetBounds(application.Rect{
+						X: wb.X, Y: wb.Y, Width: totalW, Height: wb.Height,
+					})
+					w.lastW, w.lastH = totalW, wb.Height
+				}
 			}
 			if w.svc.popout != nil {
 				w.svc.popout.Hide()
@@ -468,11 +538,12 @@ func (w *Workspace) syncPassThroughLayout() {
 		return
 	}
 	noteSz := 0
+	catalogW := w.catalogColumnW()
 	place := w.effectivePlace()
 	if w.state.Docked {
 		noteSz = w.state.SidebarW
 	}
-	overlay.SetLayout(w.ScopeWidth(), noteSz, place)
+	overlay.SetLayout(w.ScopeWidth(), noteSz, catalogW, place)
 }
 
 func (w *Workspace) effectivePlace() string {
@@ -496,7 +567,7 @@ func (w *Workspace) isVertical() bool {
 
 func (w *Workspace) windowWidth() int {
 	if w.state.Docked && !w.isVertical() {
-		return w.state.ScopeW + w.state.SidebarW
+		return w.state.ScopeW + w.state.SidebarW + w.catalogColumnW()
 	}
 	return w.state.ScopeW
 }

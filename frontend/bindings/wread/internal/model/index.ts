@@ -15,6 +15,7 @@ export {
     ReaderSettingsDO,
     RegionDO,
     SessionDO,
+    SnapCaptureSettingsDO,
     SnapDO,
     WindowLayoutPresetDO,
     WindowLayoutPresetSaveDO,

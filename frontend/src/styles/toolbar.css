@@ -1,0 +1,462 @@
+/* 各窗口顶栏：玻璃层 + 噪点 + 底部光带 + 控件质感 */
+
+.sidebar-toolbar,
+.overlay-toolbar {
+  --toolbar-h: 38px;
+  --toolbar-pad-x: 12px;
+  --toolbar-glass: rgba(var(--sys-surface-rgb), 0.72);
+  --toolbar-border: rgba(var(--sys-accent-rgb), 0.28);
+  --toolbar-highlight: color-mix(in srgb, var(--sys-inset-highlight) 88%, transparent);
+  --toolbar-groove: rgba(var(--sys-accent-rgb), 0.1);
+
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 var(--toolbar-pad-x);
+  background-color: rgba(var(--sys-surface-rgb), 0.52);
+  background-image:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sys-accent) 12%, rgba(var(--sys-surface-rgb), 0.84)) 0%,
+      rgba(var(--sys-surface-rgb), 0.62) 46%,
+      color-mix(in srgb, var(--sys-accent-2, var(--sys-accent)) 8%, rgba(var(--sys-surface-rgb), 0.74)) 100%
+    ),
+    linear-gradient(
+      108deg,
+      color-mix(in srgb, var(--sys-accent) 4%, transparent) 0%,
+      transparent 32%,
+      rgba(var(--sys-accent-rgb), 0.08) 52%,
+      rgba(var(--sys-accent-2-rgb, var(--sys-accent-rgb)), 0.06) 72%,
+      transparent 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: auto, auto, 120px 120px;
+  background-blend-mode: normal, normal, overlay;
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border-bottom: 1px solid var(--toolbar-border);
+  box-shadow:
+    inset 0 1px 0 var(--toolbar-highlight),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+  --wails-draggable: no-drag;
+  cursor: grab;
+  user-select: none;
+}
+
+.sidebar-toolbar:active,
+.overlay-toolbar:active {
+  cursor: grabbing;
+}
+
+/* 顶光 + 主题色晕 */
+.sidebar-toolbar::before,
+.overlay-toolbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sys-accent) 10%, transparent) 0%,
+      transparent 42%,
+      color-mix(in srgb, var(--sys-accent-2, var(--sys-accent)) 4%, transparent) 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(var(--sys-accent-rgb), 0.07) 38%,
+      rgba(var(--sys-accent-2-rgb, var(--sys-accent-rgb)), 0.06) 62%,
+      transparent 100%
+    );
+}
+
+/* 底部渐变光带 */
+.sidebar-toolbar::after,
+.overlay-toolbar::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(var(--sys-accent-rgb), 0.15) 12%,
+    rgba(var(--sys-accent-rgb), 0.65) 50%,
+    rgba(var(--sys-accent-2-rgb, var(--sys-accent-rgb)), 0.15) 88%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(var(--sys-accent-rgb), 0.22);
+}
+
+.sidebar-toolbar > *,
+.overlay-toolbar > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 品牌标识：实心字保证各主题可读，左侧竖条保留主题渐变 */
+.sidebar-brand,
+.overlay-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--sys-text-emphasis);
+  flex-shrink: 0;
+}
+
+.sidebar-brand::before,
+.overlay-brand::before {
+  content: '';
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--sys-accent-gradient);
+  box-shadow:
+    0 0 10px rgba(var(--sys-accent-rgb), 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.sidebar-version {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--sys-text-tertiary);
+  background: var(--sys-fill-muted);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  box-shadow: inset 0 1px 0 var(--sys-inset-highlight);
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.note-toolbar-spacer {
+  flex: 1;
+  min-width: 8px;
+  position: relative;
+}
+
+/* 拖拽握点 */
+.note-toolbar-spacer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 10px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(var(--sys-accent-rgb), 0.35) 1.5px, transparent 1.5px) 4px 50% / 8px 8px no-repeat,
+    radial-gradient(circle, rgba(var(--sys-accent-rgb), 0.35) 1.5px, transparent 1.5px) 50% 50% / 8px 8px no-repeat,
+    radial-gradient(circle, rgba(var(--sys-accent-rgb), 0.35) 1.5px, transparent 1.5px) calc(100% - 4px) 50% / 8px 8px no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 菜单按钮 */
+.sidebar-menu-btn {
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  background: var(--sys-fill-subtle);
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-menu-btn.active {
+  background: var(--sys-accent-gradient);
+  color: var(--sys-text-on-accent);
+  border-color: rgba(var(--sys-accent-rgb), 0.55);
+  box-shadow:
+    var(--sys-btn-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-menu-btn:hover:not(.active) {
+  background: color-mix(in srgb, var(--sys-accent) 14%, var(--sys-fill-subtle));
+  color: var(--sys-text-emphasis);
+  border-color: rgba(var(--sys-accent-rgb), 0.38);
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 0 12px rgba(var(--sys-accent-rgb), 0.14);
+}
+
+.sidebar-wake-btn {
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.45);
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--sys-accent) 18%, var(--sys-fill-subtle));
+  color: var(--sys-text-emphasis);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 0 14px rgba(var(--sys-accent-rgb), 0.18);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-wake-btn:hover {
+  background: var(--sys-accent-gradient);
+  color: var(--sys-text-on-accent);
+  box-shadow: var(--sys-btn-glow);
+}
+
+.note-app-brand {
+  user-select: none;
+  --wails-draggable: drag;
+}
+
+.note-scope-bar {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(var(--sys-accent-rgb), 0.12);
+  background: rgba(var(--sys-surface-rgb), 0.35);
+  --wails-draggable: drag;
+}
+
+.note-scope-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-scope-bar .sidebar-menu-btn,
+.note-entry-mode {
+  --wails-draggable: no-drag;
+}
+
+.note-entry-mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.note-entry-mode-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--sys-text-tertiary);
+  white-space: nowrap;
+}
+
+.note-scope-add-btn {
+  flex-shrink: 0;
+}
+
+.note-layout-select {
+  height: 26px;
+  min-width: 72px;
+  padding: 0 26px 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.28);
+  background-color: var(--sys-fill-subtle);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2394a3b8' d='M2 3.5 5 6.5 8 3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  color: var(--sys-text-emphasis);
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.note-layout-select:hover {
+  border-color: rgba(var(--sys-accent-rgb), 0.42);
+  background-color: color-mix(in srgb, var(--sys-accent) 8%, var(--sys-fill-subtle));
+}
+
+.note-layout-select:focus {
+  border-color: rgba(var(--sys-accent-rgb), 0.55);
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 0 0 2px rgba(var(--sys-accent-rgb), 0.15);
+}
+
+.note-toolbar-nav {
+  flex-shrink: 0;
+}
+
+.note-toolbar-nav button {
+  min-width: 52px;
+}
+
+.settings-wake-reader {
+  width: 100%;
+  margin-bottom: 12px;
+  height: 30px;
+}
+
+.settings-layout-presets-title {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.scope-pane .overlay-toolbar {
+  overflow: hidden;
+  border-bottom: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+.scope-pane .overlay-toolbar::before,
+.scope-pane .overlay-toolbar::after {
+  display: none !important;
+}
+
+.scope-pane .overlay-mode-radio {
+  box-shadow: none !important;
+}
+
+.scope-pane .overlay-mode-radio button.active {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+/* 阅读器顶栏控件 */
+.overlay-mode-radio {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--sys-fill-muted);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+}
+
+.overlay-mode-radio button {
+  height: 24px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sys-text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.overlay-mode-radio button.active {
+  background: var(--sys-accent-gradient);
+  color: var(--sys-text-on-accent);
+  box-shadow:
+    var(--sys-btn-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.overlay-mode-radio button:hover:not(.active) {
+  color: var(--sys-text-emphasis);
+  background: color-mix(in srgb, var(--sys-accent) 10%, transparent);
+}
+
+.overlay-tip {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--sys-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 4px;
+}
+
+.overlay-restore-btn {
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  border-radius: 999px;
+  padding: 4px 11px;
+  background: var(--sys-fill-subtle);
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.overlay-restore-btn:hover {
+  background: color-mix(in srgb, var(--sys-accent) 12%, var(--sys-fill-subtle));
+  border-color: rgba(var(--sys-accent-rgb), 0.38);
+  color: var(--sys-text-emphasis);
+}
+
+.overlay-interpret-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 5px 16px;
+  background: var(--sys-accent-gradient);
+  color: var(--sys-text-on-accent);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+  box-shadow:
+    var(--sys-btn-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.overlay-interpret-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+}
+
+.overlay-interpret-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: var(--sys-btn-glow), 0 0 22px rgba(var(--sys-accent-rgb), 0.32);
+}
+
+.overlay-interpret-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}

@@ -542,9 +542,9 @@ func (s *Store) GetSnap(id string) (model.SnapDO, error) {
 	var conceptsRaw string
 	err := s.withLock(func(db *sql.DB) error {
 		err := db.QueryRow(`
-SELECT id, session_id, title, ocr_text, summary, concepts_json, created_at
+SELECT id, session_id, title, ocr_text, summary, concepts_json, capture_preview, created_at
 FROM snaps WHERE id = ?
-`, id).Scan(&snap.ID, &snap.SessionID, &snap.Title, &snap.OCRText, &snap.Summary, &conceptsRaw, &snap.CreatedAt)
+`, id).Scan(&snap.ID, &snap.SessionID, &snap.Title, &snap.OCRText, &snap.Summary, &conceptsRaw, &snap.CapturePreview, &snap.CreatedAt)
 		if err != nil {
 			return err
 		}

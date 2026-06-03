@@ -16,6 +16,7 @@ import {
 } from '../lib/catalogDrag'
 import { buildCatalogTree, isChapter, type CatalogTreeNode } from '../lib/catalogTree'
 import type { CatalogSide } from '../lib/catalogLayout'
+import { catalogFontSizeMax, catalogFontSizeMin } from '../lib/catalogLayout'
 
 type Props = {
   notebookName: string
@@ -32,8 +33,14 @@ type Props = {
   onCreateChapter: (parentId: string) => void
   catalogSide: CatalogSide
   onToggleCatalogSide: () => void
+  hideSideToggle?: boolean
   panelStyle?: CSSProperties
+  fontSize?: number
+  onFontSizeChange?: (size: number) => void
+  resizeEdge?: 'left' | 'right'
   onResizeStart?: (startX: number, containerW: number) => void
+  scrollToNodeId?: string
+  onScrollToNodeDone?: () => void
 }
 
 type ConfirmState =
@@ -67,6 +74,7 @@ type NodeProps = {
   onDragEnd: () => void
   onRowDragOver: (e: React.DragEvent, node: CatalogNodeDO) => void
   onRowDrop: (e: React.DragEvent, node: CatalogNodeDO) => void
+  openChapterIds: Set<string>
 }
 
 /** pageLabelText 笔记页完整标题文案。 */
@@ -97,6 +105,7 @@ function CatalogTreeNodeRow({
   onDragEnd,
   onRowDragOver,
   onRowDrop,
+  openChapterIds,
 }: NodeProps) {
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -108,6 +117,12 @@ function CatalogTreeNodeRow({
   const isDragging = dragId === node.id
   const dropOn = dropHint?.targetId === node.id ? `drop-${dropHint.place}` : ''
   const fullTitle = chapter ? node.title || '未命名' : pageLabelText(pageIndex, node.title)
+
+  useEffect(() => {
+    if (chapter && openChapterIds.has(node.id)) {
+      setOpen(true)
+    }
+  }, [chapter, node.id, openChapterIds])
 
   useEffect(() => {
     if (pendingRenameId === node.id) {
@@ -140,6 +155,7 @@ function CatalogTreeNodeRow({
       <div
         className={`catalog-row ${active && !batchMode ? 'active' : ''} ${checked ? 'checked' : ''} ${isDragging ? 'dragging' : ''} ${dropOn} ${chapter ? 'chapter-row' : 'page-row'}`}
         style={{ paddingLeft: `${8 + depth * 14}px` }}
+        data-catalog-id={node.id}
         onDragOver={(e) => onRowDragOver(e, node)}
         onDrop={(e) => onRowDrop(e, node)}
       >
@@ -159,9 +175,7 @@ function CatalogTreeNodeRow({
           <button type="button" className="catalog-toggle" onClick={() => setOpen((v) => !v)} aria-label={open ? '收起' : '展开'}>
             {open ? '▾' : '▸'}
           </button>
-        ) : (
-          <span className={`catalog-toggle ${chapter ? '' : 'page-dot'}`}>{chapter ? '' : '·'}</span>
-        )}
+        ) : null}
         {batchMode && chapter && hasChildren && (
           <button type="button" className="catalog-toggle" onClick={() => setOpen((v) => !v)} aria-label={open ? '收起' : '展开'}>
             {open ? '▾' : '▸'}
@@ -183,36 +197,46 @@ function CatalogTreeNodeRow({
             }}
           />
         ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            className={`catalog-label${batchMode ? '' : ' draggable'}`}
-            title={fullTitle}
-            draggable={!batchMode}
-            onClick={handleSelect}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                handleSelect()
-              }
-            }}
-            onContextMenu={(e) => onContextMenu(e, node)}
-            onDragStart={(e) => {
-              if (batchMode) return
-              setCatalogDragData(e.dataTransfer, node.id)
-              onDragStart(node.id)
-            }}
-            onDragEnd={onDragEnd}
-          >
-            {chapter ? (
-              <span className="catalog-label-text">{node.title || '未命名'}</span>
-            ) : (
-              <>
-                <span className="page-no">第{pageIndex}页</span>
-                <span className="page-title">{node.title || '未命名'}</span>
-              </>
+          <>
+            {!batchMode && (
+              <span
+                className="catalog-drag-handle"
+                draggable
+                title="拖动排序"
+                aria-label="拖动排序"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onDragStart={(e) => {
+                  setCatalogDragData(e.dataTransfer, node.id)
+                  onDragStart(node.id)
+                }}
+                onDragEnd={onDragEnd}
+              />
             )}
-          </div>
+            <div
+              role="button"
+              tabIndex={0}
+              className="catalog-label"
+              title={fullTitle}
+              onClick={handleSelect}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleSelect()
+                }
+              }}
+              onContextMenu={(e) => onContextMenu(e, node)}
+            >
+              {chapter ? (
+                <span className="catalog-label-text">{node.title || '未命名'}</span>
+              ) : (
+                <>
+                  <span className="page-no">第{pageIndex}页</span>
+                  <span className="page-title">{node.title || '未命名'}</span>
+                </>
+              )}
+            </div>
+          </>
         )}
         {!batchMode && (
           <button
@@ -255,6 +279,7 @@ function CatalogTreeNodeRow({
             onDragEnd={onDragEnd}
             onRowDragOver={onRowDragOver}
             onRowDrop={onRowDrop}
+            openChapterIds={openChapterIds}
           />
         )
       })}
@@ -278,12 +303,20 @@ export default function NoteCatalog({
   onCreateChapter,
   catalogSide,
   onToggleCatalogSide,
+  hideSideToggle = false,
   panelStyle,
+  fontSize,
+  onFontSizeChange,
+  resizeEdge,
   onResizeStart,
+  scrollToNodeId = '',
+  onScrollToNodeDone,
 }: Props) {
   const tree = useMemo(() => buildCatalogTree(nodes), [nodes])
   const [batchMode, setBatchMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set())
+  const [openChapterIds, setOpenChapterIds] = useState<Set<string>>(() => new Set())
+  const listRef = useRef<HTMLDivElement>(null)
   const [confirm, setConfirm] = useState<ConfirmState>(null)
   const [dragId, setDragId] = useState('')
   const [dropHint, setDropHint] = useState<CatalogDropHint | null>(null)
@@ -296,6 +329,38 @@ export default function NoteCatalog({
   const confirmCopy = confirm
     ? describeCatalogDelete(nodes, confirm.kind === 'single' ? [confirm.node.id] : confirm.ids)
     : { title: '', message: '' }
+
+  /** scrollToEntryNode 录入成功后展开章节并滚到目录底部。 */
+  useEffect(() => {
+    if (!scrollToNodeId) return
+    const target = nodes.find((n) => n.id === scrollToNodeId)
+    if (target?.kind === 'page' && target.parentId) {
+      setOpenChapterIds((prev) => {
+        const next = new Set(prev)
+        next.add(target.parentId)
+        return next
+      })
+    }
+  }, [scrollToNodeId, nodes])
+
+  useEffect(() => {
+    if (!scrollToNodeId) return
+    const timer = window.setTimeout(() => {
+      const list = listRef.current
+      if (!list) {
+        onScrollToNodeDone?.()
+        return
+      }
+      const row = list.querySelector(`[data-catalog-id="${scrollToNodeId}"]`)
+      if (row) {
+        row.scrollIntoView({ block: 'end', behavior: 'smooth' })
+      } else {
+        list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
+      }
+      onScrollToNodeDone?.()
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [scrollToNodeId, nodes, openChapterIds, onScrollToNodeDone])
 
   useEffect(() => {
     if (pendingRenameId !== 'notebook') return
@@ -335,6 +400,7 @@ export default function NoteCatalog({
   }
 
   const checkedCount = checkedIds.size
+  const resizeSide = resizeEdge ?? catalogSide
 
   const ctxItems = (() => {
     if (!ctxMenu) return []
@@ -409,17 +475,32 @@ export default function NoteCatalog({
               </>
             ) : (
               <>
+                {onFontSizeChange != null && fontSize != null && (
+                  <label className="catalog-font-size" title="目录字号">
+                    <span className="catalog-font-size-label">Aa</span>
+                    <input
+                      type="range"
+                      min={catalogFontSizeMin}
+                      max={catalogFontSizeMax}
+                      value={fontSize}
+                      onChange={(e) => onFontSizeChange(Number(e.target.value))}
+                    />
+                    <em>{fontSize}</em>
+                  </label>
+                )}
                 <button type="button" className="catalog-batch-btn" onClick={toggleBatchMode} disabled={nodes.length === 0}>
                   批量
                 </button>
-                <button
-                  type="button"
-                  className="catalog-side-btn"
-                  onClick={onToggleCatalogSide}
-                  title={catalogSide === 'left' ? '目录移到右侧' : '目录移到左侧'}
-                >
-                  {catalogSide === 'left' ? '居右' : '居左'}
-                </button>
+                {!hideSideToggle && (
+                  <button
+                    type="button"
+                    className="catalog-side-btn"
+                    onClick={onToggleCatalogSide}
+                    title={catalogSide === 'left' ? '目录移到右侧' : '目录移到左侧'}
+                  >
+                    {catalogSide === 'left' ? '居右' : '居左'}
+                  </button>
+                )}
                 <button type="button" className="catalog-new-btn" onClick={() => onCreateChapter(selectedChapterId)} title="新建章节">
                   + 章
                 </button>
@@ -427,7 +508,7 @@ export default function NoteCatalog({
             )}
           </div>
         </div>
-        <div className="catalog-list" onDragLeave={() => setDropHint(null)}>
+        <div ref={listRef} className="catalog-list" onDragLeave={() => setDropHint(null)}>
           {tree.length === 0 && <p className="catalog-empty">点「+ 章」创建章节</p>}
           {tree.map((node) => (
             <CatalogTreeNodeRow
@@ -479,13 +560,14 @@ export default function NoteCatalog({
                 const move = computeCatalogMove(nodesRef.current, fromId, target.id, place)
                 if (move) onMove(fromId, move.parentId, move.index)
               }}
+              openChapterIds={openChapterIds}
             />
           ))}
         </div>
       </div>
       {onResizeStart && (
         <div
-          className={`catalog-panel-resize catalog-panel-resize-${catalogSide}`}
+          className={`catalog-panel-resize catalog-panel-resize-${resizeSide}`}
           title="拖动调整目录宽度"
           onMouseDown={(e) => {
             e.preventDefault()

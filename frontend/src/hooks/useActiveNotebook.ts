@@ -49,12 +49,12 @@ export function useActiveNotebook() {
   const [activeSnapId, setActiveSnapId] = useState('')
   const [pageTitle, setPageTitle] = useState('')
   const [concepts, setConcepts] = useState<string[]>([])
+  const [catalogEntryScrollId, setCatalogEntryScrollId] = useState('')
   const [readerSettings, setReaderSettings] = useState<ReaderSettingsDO>({
     fontSize: 15,
     lineHeight: 1.75,
     fontFamily: 'system',
     paragraphGap: 12,
-    layoutTheme: 'magazine',
   })
 
   const streamBuf = useRef('')
@@ -76,13 +76,22 @@ export function useActiveNotebook() {
   }
 
   /** reloadCatalog 刷新当前笔记本目录。 */
-  const reloadCatalog = useCallback(() => {
-    Service.ListCatalog()
+  const reloadCatalog = useCallback((): Promise<CatalogNodeDO[]> => {
+    return Service.ListCatalog()
       .then((nodes) => {
         setCatalogNodes(nodes)
-        return syncSelectedChapter(nodes)
+        void syncSelectedChapter(nodes)
+        return nodes
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err)
+        return [] as CatalogNodeDO[]
+      })
+  }, [])
+
+  /** clearCatalogEntryScroll 目录滚到位后清除录入滚动标记。 */
+  const clearCatalogEntryScroll = useCallback(() => {
+    setCatalogEntryScrollId('')
   }, [])
 
   /** reloadNotebooks 刷新笔记本列表。 */
@@ -183,7 +192,7 @@ export function useActiveNotebook() {
     setConcepts(snap.concepts || [])
     setCurrent(snap.summary)
     setOcrOriginal(snap.ocrText || '')
-    setCapturePreview('')
+    setCapturePreview(snap.capturePreview || '')
   }
 
   /** createChapter 新建章节。 */
@@ -203,11 +212,23 @@ export function useActiveNotebook() {
   }
 
   /** addActiveToChapter 手动将当前解读归入选中章节。 */
-  const addActiveToChapter = async () => {
-    if (!activeSnapId || !selectedChapterId) return
-    const node = await Service.AddToCatalog(selectedChapterId, activeSnapId, '')
-    reloadCatalog()
-    setSelectedPageId(node.id)
+  const addActiveToChapter = async (): Promise<boolean> => {
+    if (!activeSnapId) return false
+    if (!selectedChapterId) {
+      setStatus('请先在目录选择章节')
+      return false
+    }
+    try {
+      const node = await Service.AddToCatalog(selectedChapterId, activeSnapId, '')
+      setSelectedPageId(node.id)
+      await reloadCatalog()
+      setCatalogEntryScrollId(node.id)
+      setStatus('')
+      return true
+    } catch (e: unknown) {
+      setStatus(String(e))
+      return false
+    }
   }
 
   /** renameCatalogNode 重命名章节或笔记页。 */
@@ -321,6 +342,9 @@ export function useActiveNotebook() {
       setConcepts(ev.data.concepts || [])
       setCurrent(ev.data.summary)
       setOcrOriginal(ev.data.ocrText || '')
+      if (ev.data.capturePreview) {
+        setCapturePreview(ev.data.capturePreview)
+      }
       setSelectedPageId('')
       setStatus('')
       setInterpreting(false)
@@ -348,6 +372,7 @@ export function useActiveNotebook() {
         if (ev.data.kind === 'page') {
           setSelectedPageId(ev.data.id)
           setSelectedChapterId(ev.data.parentId)
+          setCatalogEntryScrollId(ev.data.id)
           Service.SetCatalogInsertParent(ev.data.parentId).catch(console.error)
         } else {
           setSelectedChapterId(ev.data.id)
@@ -413,9 +438,11 @@ export function useActiveNotebook() {
   const hasSources = Boolean(capturePreview || ocrOriginal)
   const interpretBody = streaming || current
   const emptyHint = '在阅读器点「解读」开始'
-  const pendingInChapter = Boolean(
-    activeSnapId && !snapInCatalog(catalogNodes, activeSnapId) && selectedChapterId,
+  const pendingCatalogEntry = Boolean(
+    activeSnapId && !snapInCatalog(catalogNodes, activeSnapId),
   )
+  const catalogEntryReady = pendingCatalogEntry && Boolean(selectedChapterId)
+  const pendingInChapter = catalogEntryReady
   const selectedChapterTitle = findChapterTitle(catalogNodes, selectedChapterId)
 
   return {
@@ -440,11 +467,15 @@ export function useActiveNotebook() {
     selectedPageId,
     activeSnapId,
     pendingInChapter,
+    pendingCatalogEntry,
+    catalogEntryReady,
     selectChapter,
     selectPage,
     createChapter,
     setCatalogAutoAddMode,
     addActiveToChapter,
+    catalogEntryScrollId,
+    clearCatalogEntryScroll,
     renameCatalogNode,
     deleteCatalogNode,
     deleteCatalogNodes,

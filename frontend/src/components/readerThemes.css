@@ -1,36 +1,38 @@
-/* 解读区排版预设：通过 CSS 变量切换主题 */
+/* 解读区排版预设：色彩随系统主题 (--sys-*) 联动 */
 
 .interpret-body {
-  --ith-ink: #ece8e3;
-  --ith-muted: #a8a29e;
-  --ith-accent: #d4a574;
-  --ith-lead: #f5e6c8;
-  --ith-concepts: #c4b5fd;
-  --ith-logic: #7dd3fc;
-  --ith-note: #fcd34d;
-  --ith-border: rgba(212, 165, 116, 0.2);
-  --ith-code-bg: rgba(28, 25, 23, 0.9);
+  --ith-ink: var(--sys-text-primary);
+  --ith-muted: var(--sys-text-tertiary);
+  --ith-accent: var(--sys-text-accent);
+  --ith-lead: var(--sys-text-secondary);
+  --ith-title: var(--sys-text-emphasis);
+  --ith-strong: var(--sys-text-emphasis);
+  --ith-heading: var(--sys-text-emphasis);
+  --ith-em: var(--sys-text-secondary);
+  --ith-concepts: color-mix(in srgb, var(--sys-accent) 72%, var(--sys-text-accent));
+  --ith-logic: color-mix(in srgb, var(--sys-accent-2) 68%, var(--sys-text-accent));
+  --ith-note: var(--sys-text-accent-bright);
+  --ith-border: color-mix(in srgb, var(--sys-accent) 24%, transparent);
+  --ith-code-bg: color-mix(in srgb, var(--sys-accent) 7%, var(--sys-bg-solid));
+  --ith-code-fg: var(--sys-text-primary);
+  --ith-blockquote: var(--sys-text-secondary);
+  --ith-table-head: var(--sys-text-emphasis);
+  --ith-mermaid-bg: color-mix(in srgb, var(--sys-accent) 5%, var(--sys-bg-solid));
+  --ith-tag-fg: color-mix(in srgb, var(--sys-accent) 78%, var(--sys-text-accent));
 }
 
 .interpret-body.interpret-theme-magazine {
-  --ith-accent: #d4a574;
-  --ith-lead: #f5e6c8;
-  --ith-concepts: #c4b5fd;
-  --ith-logic: #7dd3fc;
-  --ith-note: #fcd34d;
-  --ith-border: rgba(212, 165, 116, 0.2);
+  --ith-accent: var(--sys-text-accent-bright);
 }
 
 .interpret-body.interpret-theme-minimal {
-  --ith-ink: #e2e8f0;
-  --ith-muted: #94a3b8;
-  --ith-accent: #94a3b8;
-  --ith-lead: #cbd5e1;
-  --ith-concepts: #cbd5e1;
-  --ith-logic: #cbd5e1;
-  --ith-note: #e2e8f0;
-  --ith-border: rgba(148, 163, 184, 0.25);
-  --ith-code-bg: rgba(15, 23, 42, 0.6);
+  --ith-accent: var(--sys-text-tertiary);
+  --ith-lead: var(--sys-text-secondary);
+  --ith-concepts: var(--sys-text-secondary);
+  --ith-logic: var(--sys-text-secondary);
+  --ith-note: var(--sys-text-primary);
+  --ith-border: color-mix(in srgb, var(--sys-text-tertiary) 28%, transparent);
+  --ith-code-bg: color-mix(in srgb, var(--sys-text-tertiary) 8%, var(--sys-bg-solid));
 }
 
 .interpret-body.interpret-theme-minimal .interpret-masthead {
@@ -58,13 +60,10 @@
 }
 
 .interpret-body.interpret-theme-academic {
-  --ith-accent: #60a5fa;
-  --ith-lead: #dbeafe;
-  --ith-concepts: #93c5fd;
-  --ith-logic: #38bdf8;
-  --ith-note: #fbbf24;
-  --ith-border: rgba(96, 165, 250, 0.25);
-  --ith-code-bg: rgba(15, 23, 42, 0.85);
+  --ith-accent: var(--sys-text-accent);
+  --ith-concepts: color-mix(in srgb, var(--sys-accent) 60%, var(--sys-text-accent));
+  --ith-logic: color-mix(in srgb, var(--sys-accent-2) 55%, var(--sys-text-accent));
+  --ith-border: color-mix(in srgb, var(--sys-accent) 30%, transparent);
 }
 
 .interpret-body.interpret-theme-academic .interpret-masthead {
@@ -82,15 +81,15 @@
 }
 
 .interpret-body.interpret-theme-terminal {
-  --ith-ink: #4ade80;
-  --ith-muted: #22c55e;
-  --ith-accent: #22d3ee;
-  --ith-lead: #86efac;
-  --ith-concepts: #a7f3d0;
-  --ith-logic: #67e8f9;
+  --ith-ink: color-mix(in srgb, #4ade80 88%, var(--sys-text-primary));
+  --ith-muted: color-mix(in srgb, #22c55e 75%, var(--sys-text-tertiary));
+  --ith-accent: color-mix(in srgb, #22d3ee 85%, var(--sys-text-accent));
+  --ith-lead: color-mix(in srgb, #86efac 82%, var(--sys-text-secondary));
+  --ith-concepts: color-mix(in srgb, #a7f3d0 80%, var(--sys-text-accent));
+  --ith-logic: color-mix(in srgb, #67e8f9 80%, var(--sys-text-accent));
   --ith-note: #fde047;
-  --ith-border: rgba(34, 197, 94, 0.25);
-  --ith-code-bg: rgba(0, 0, 0, 0.85);
+  --ith-border: color-mix(in srgb, #22c55e 28%, transparent);
+  --ith-code-bg: color-mix(in srgb, #000000 85%, var(--sys-bg-solid));
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -110,16 +109,15 @@
 .interpret-body.interpret-theme-terminal .interpret-pullquote,
 .interpret-body.interpret-theme-terminal blockquote {
   border-left-color: var(--ith-accent);
-  background: rgba(34, 197, 94, 0.06);
+  background: color-mix(in srgb, var(--ith-accent) 8%, transparent);
 }
 
 .interpret-body.interpret-theme-card {
-  --ith-accent: #818cf8;
-  --ith-lead: #c7d2fe;
-  --ith-concepts: #a5b4fc;
-  --ith-logic: #7dd3fc;
-  --ith-note: #fcd34d;
-  --ith-border: rgba(129, 140, 248, 0.22);
+  --ith-accent: color-mix(in srgb, var(--sys-accent) 75%, var(--sys-text-accent));
+  --ith-lead: var(--sys-text-secondary);
+  --ith-concepts: color-mix(in srgb, var(--sys-accent) 68%, var(--sys-text-accent));
+  --ith-logic: color-mix(in srgb, var(--sys-accent-2) 62%, var(--sys-text-accent));
+  --ith-border: color-mix(in srgb, var(--sys-accent) 26%, transparent);
 }
 
 .interpret-section-cards {
@@ -132,7 +130,7 @@
   padding: 12px 12px 10px;
   border-radius: 10px;
   border: 1px solid var(--ith-border);
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--sys-accent) 4%, var(--sys-bg-solid));
 }
 
 .interpret-section-card .interpret-section-head {
@@ -140,12 +138,11 @@
 }
 
 .interpret-body.interpret-theme-brief {
-  --ith-accent: #a8a29e;
-  --ith-lead: #d6d3d1;
-  --ith-concepts: #d6d3d1;
-  --ith-logic: #d6d3d1;
-  --ith-note: #fcd34d;
-  --ith-border: rgba(168, 162, 158, 0.2);
+  --ith-accent: var(--sys-text-tertiary);
+  --ith-lead: var(--sys-text-secondary);
+  --ith-concepts: var(--sys-text-secondary);
+  --ith-logic: var(--sys-text-secondary);
+  --ith-border: color-mix(in srgb, var(--sys-text-tertiary) 22%, transparent);
   font-size: calc(var(--interpret-font-size, 15px) * 0.94);
 }
 
@@ -178,6 +175,7 @@
   --md-accent: var(--ith-accent);
   --md-border: var(--ith-border);
   --md-code-bg: var(--ith-code-bg);
+  --md-heading-color: var(--ith-heading);
 }
 
 .interpret-kicker {
@@ -192,7 +190,7 @@
 .interpret-tags li {
   border-color: color-mix(in srgb, var(--ith-concepts) 40%, transparent);
   background: color-mix(in srgb, var(--ith-concepts) 12%, transparent);
-  color: var(--ith-concepts);
+  color: var(--ith-tag-fg);
 }
 
 .interpret-section-head.theme-lead { color: var(--ith-lead); }
@@ -246,7 +244,7 @@
   padding: 12px;
   border-radius: 10px;
   border: 1px solid var(--ith-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--ith-mermaid-bg);
   overflow-x: auto;
 }
 
@@ -270,10 +268,10 @@
 .mermaid-error {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #f87171;
+  color: var(--sys-text-danger);
 }
 
 .interpret-body.interpret-theme-terminal .mermaid-block {
-  border-color: rgba(34, 197, 94, 0.35);
-  background: rgba(0, 0, 0, 0.5);
+  border-color: color-mix(in srgb, var(--ith-accent) 35%, transparent);
+  background: color-mix(in srgb, #000000 50%, var(--sys-bg-solid));
 }

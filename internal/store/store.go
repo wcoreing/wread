@@ -97,11 +97,36 @@ CREATE INDEX IF NOT EXISTS idx_snaps_session ON snaps(session_id, created_at DES
 }
 
 func (s *Store) migrateSnapsLocked(db *sql.DB) error {
-	if s.snapsHasTitleColumn(db) {
+	if !s.snapsHasTitleColumn(db) {
+		if _, err := db.Exec(`ALTER TABLE snaps ADD COLUMN title TEXT NOT NULL DEFAULT ''`); err != nil {
+			return err
+		}
+	}
+	if s.snapsHasCapturePreviewColumn(db) {
 		return nil
 	}
-	_, err := db.Exec(`ALTER TABLE snaps ADD COLUMN title TEXT NOT NULL DEFAULT ''`)
+	_, err := db.Exec(`ALTER TABLE snaps ADD COLUMN capture_preview TEXT NOT NULL DEFAULT ''`)
 	return err
+}
+
+func (s *Store) snapsHasCapturePreviewColumn(db *sql.DB) bool {
+	rows, err := db.Query(`PRAGMA table_info(snaps)`)
+	if err != nil {
+		return false
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var cid, notnull, pk int
+		var name, typ string
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &name, &typ, &notnull, &dflt, &pk); err != nil {
+			return false
+		}
+		if name == "capture_preview" {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Store) snapsHasTitleColumn(db *sql.DB) bool {
@@ -398,9 +423,9 @@ func (s *Store) FindSnapByHash(sessionID, hash string) (*model.SnapDO, error) {
 	var conceptsRaw string
 	err := s.withLock(func(db *sql.DB) error {
 		err := db.QueryRow(`
-SELECT id, session_id, title, ocr_text, summary, concepts_json, created_at
+SELECT id, session_id, title, ocr_text, summary, concepts_json, capture_preview, created_at
 FROM snaps WHERE session_id = ? AND text_hash = ? ORDER BY created_at DESC LIMIT 1
-`, sessionID, hash).Scan(&snap.ID, &snap.SessionID, &snap.Title, &snap.OCRText, &snap.Summary, &conceptsRaw, &snap.CreatedAt)
+`, sessionID, hash).Scan(&snap.ID, &snap.SessionID, &snap.Title, &snap.OCRText, &snap.Summary, &conceptsRaw, &snap.CapturePreview, &snap.CreatedAt)
 		if err != nil {
 			return err
 		}
@@ -413,15 +438,15 @@ FROM snaps WHERE session_id = ? AND text_hash = ? ORDER BY created_at DESC LIMIT
 }
 
 // InsertSnap 写入解读快照。
-func (s *Store) InsertSnap(sessionID, title, ocrText, summary string, concepts []string, textHash string) (model.SnapDO, error) {
+func (s *Store) InsertSnap(sessionID, title, ocrText, summary, capturePreview string, concepts []string, textHash string) (model.SnapDO, error) {
 	now := time.Now().Unix()
 	id := uuid.NewString()
 	conceptsRaw, _ := json.Marshal(concepts)
 	err := s.withLock(func(db *sql.DB) error {
 		if _, err := db.Exec(`
-INSERT INTO snaps(id, session_id, title, ocr_text, summary, concepts_json, text_hash, created_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-`, id, sessionID, title, ocrText, summary, string(conceptsRaw), textHash, now); err != nil {
+INSERT INTO snaps(id, session_id, title, ocr_text, summary, concepts_json, text_hash, capture_preview, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, id, sessionID, title, ocrText, summary, string(conceptsRaw), textHash, capturePreview, now); err != nil {
 			return err
 		}
 		_, err := db.Exec(`UPDATE sessions SET updated_at = ? WHERE id = ?`, now, sessionID)
@@ -432,7 +457,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?)
 	}
 	return model.SnapDO{
 		ID: id, SessionID: sessionID, Title: title, OCRText: ocrText, Summary: summary,
-		Concepts: concepts, CreatedAt: now,
+		CapturePreview: capturePreview, Concepts: concepts, CreatedAt: now,
 	}, nil
 }
 
@@ -466,10 +491,10 @@ FROM snaps WHERE session_id = ? ORDER BY created_at DESC LIMIT ?
 }
 
 const (
-	defaultFontSize      = 15
-	defaultLineHeight    = 1.75
-	defaultFontFamily    = "system"
-	defaultParagraphGap  = 12
+	defaultFontSize     = 15
+	defaultLineHeight   = 1.75
+	defaultFontFamily   = "system"
+	defaultParagraphGap = 12
 )
 
 var fontFamilyMap = map[string]string{
@@ -478,15 +503,6 @@ var fontFamilyMap = map[string]string{
 	"kai":    `'Kaiti SC', 'STKaiti', KaiTi, serif`,
 	"sans":   `'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif`,
 	"mono":   `ui-monospace, SFMono-Regular, Menlo, monospace`,
-}
-
-var layoutThemeSet = map[string]struct{}{
-	"magazine": {}, "minimal": {}, "academic": {}, "terminal": {}, "card": {}, "brief": {},
-}
-
-func isLayoutTheme(v string) bool {
-	_, ok := layoutThemeSet[v]
-	return ok
 }
 
 // GetReaderSettings 读取侧栏阅读样式。
@@ -498,7 +514,6 @@ func (s *Store) GetReaderSettings() model.ReaderSettingsDO {
 			LineHeight:   defaultLineHeight,
 			FontFamily:   defaultFontFamily,
 			ParagraphGap: defaultParagraphGap,
-			LayoutTheme:  "magazine",
 		}
 	}
 	var st model.ReaderSettingsDO
@@ -515,9 +530,6 @@ func (s *Store) GetReaderSettings() model.ReaderSettingsDO {
 	if st.ParagraphGap < 4 || st.ParagraphGap > 28 {
 		st.ParagraphGap = defaultParagraphGap
 	}
-	if !isLayoutTheme(st.LayoutTheme) {
-		st.LayoutTheme = "magazine"
-	}
 	return st
 }
 
@@ -528,7 +540,6 @@ func (s *Store) SaveReaderSettings(in model.ReaderSettingsDO) error {
 		LineHeight:   in.LineHeight,
 		FontFamily:   in.FontFamily,
 		ParagraphGap: in.ParagraphGap,
-		LayoutTheme:  in.LayoutTheme,
 	}
 	if st.FontSize < 8 {
 		st.FontSize = 8
@@ -550,9 +561,6 @@ func (s *Store) SaveReaderSettings(in model.ReaderSettingsDO) error {
 	}
 	if st.ParagraphGap > 28 {
 		st.ParagraphGap = 28
-	}
-	if !isLayoutTheme(st.LayoutTheme) {
-		st.LayoutTheme = "magazine"
 	}
 	raw, err := json.Marshal(st)
 	if err != nil {

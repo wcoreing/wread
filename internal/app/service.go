@@ -175,6 +175,14 @@ func (s *Service) FinishWorkspaceResize() error {
 	return nil
 }
 
+// SetCatalogWidth 同步目录侧栏宽度（0 表示收起），供穿透带几何使用。
+func (s *Service) SetCatalogWidth(width int) {
+	if s.ws == nil {
+		return
+	}
+	s.ws.SetCatalogWidth(width)
+}
+
 // SyncPopoutBounds 将弹出笔记窗 bounds 写入持久化。
 func (s *Service) SyncPopoutBounds() {
 	if s.ws == nil {
@@ -192,30 +200,43 @@ func (s *Service) EnsureOverlayReadMode() {
 	s.applyOverlayMouseMode()
 }
 
-// GetReadingMode 开卷是否处于阅读穿透模式。
-func (s *Service) GetReadingMode() bool {
-	return s.store.GetReadingMode()
+// GetScopeMode 读取阅读器模式：op | read | note。
+func (s *Service) GetScopeMode() string {
+	return s.store.GetScopeMode()
 }
 
-// SetReadingMode 切换阅读穿透模式。
-func (s *Service) SetReadingMode(on bool) error {
-	if err := s.store.SetReadingMode(on); err != nil {
+// SetScopeMode 切换阅读器模式。
+func (s *Service) SetScopeMode(mode string) error {
+	if err := s.store.SetScopeMode(mode); err != nil {
 		return err
 	}
-	if on {
-		s.overlayEditMode = false
-	}
+	s.overlayEditMode = false
 	s.applyOverlayMouseMode()
 	return nil
 }
 
-// applyOverlayMouseMode 根据阅读/调整模式更新穿透。
+// applyOverlayMouseMode 根据阅读/调整模式更新穿透与窗口置顶。
 func (s *Service) applyOverlayMouseMode() {
-	passThrough := s.store.GetReadingMode() && !s.overlayEditMode
+	passThrough := s.store.GetScopeMode() == "read" && !s.overlayEditMode
 	overlay.ApplyPassThrough(s.workspace, passThrough)
+	s.applyWindowAlwaysOnTop()
 	s.emit("overlay:editable", s.overlayEditMode)
-	s.emit("overlay:readingMode", s.store.GetReadingMode())
+	s.emit("overlay:scopeMode", s.store.GetScopeMode())
 	s.emit("overlay:passAX", overlay.AccessibilityTrusted())
+}
+
+// applyWindowAlwaysOnTop 仅阅读模式（非调整态）置顶工作区，弹出笔记窗永不置顶。
+func (s *Service) applyWindowAlwaysOnTop() {
+	top := s.store.GetScopeMode() == "read" && !s.overlayEditMode
+	application.InvokeSync(func() {
+		if s.workspace != nil {
+			s.workspace.SetAlwaysOnTop(top)
+		}
+		if s.popout != nil {
+			s.popout.SetAlwaysOnTop(false)
+		}
+	})
+	log.Printf("window always-on-top: workspace=%v mode=%s edit=%v", top, s.store.GetScopeMode(), s.overlayEditMode)
 }
 
 // setOverlayEditable 开卷区可拖动调整。
@@ -224,15 +245,12 @@ func (s *Service) setOverlayEditable() {
 	s.applyOverlayMouseMode()
 }
 
-// wakeWindow 显示窗口并置顶聚焦。
-func (s *Service) wakeWindow(w application.Window, alwaysOnTop bool) {
+// wakeWindow 显示窗口并聚焦。
+func (s *Service) wakeWindow(w application.Window) {
 	if w == nil {
 		return
 	}
 	application.InvokeSync(func() {
-		if alwaysOnTop {
-			w.SetAlwaysOnTop(true)
-		}
 		w.Show().Focus()
 	})
 }
@@ -240,17 +258,17 @@ func (s *Service) wakeWindow(w application.Window, alwaysOnTop bool) {
 // FocusOverlay 聚焦工作区并进入开卷调整模式。
 func (s *Service) FocusOverlay() {
 	s.setOverlayEditable()
-	s.wakeWindow(s.workspace, true)
+	s.wakeWindow(s.workspace)
 }
 
 // FocusSidebar 聚焦笔记（内嵌时同工作区，弹出时聚焦弹出窗）。
 func (s *Service) FocusSidebar() {
 	if s.ws != nil && s.ws.State().Docked {
-		s.wakeWindow(s.workspace, true)
+		s.wakeWindow(s.workspace)
 		s.emit("focus:note", true)
 		return
 	}
-	s.wakeWindow(s.popout, true)
+	s.wakeWindow(s.popout)
 }
 
 // ShowOverlay 显示工作区。
@@ -282,8 +300,10 @@ func (s *Service) DefaultRegion() model.RegionDO {
 	const toolbarH = 36
 	const border = 3
 	scopeW := defaultScopeWidth
+	catalogW := 0
 	if s.ws != nil {
 		scopeW = s.ws.ScopeWidth()
+		catalogW = s.ws.CatalogWidth()
 	}
 	w := scopeW - border*2
 	h := 400
@@ -297,7 +317,7 @@ func (s *Service) DefaultRegion() model.RegionDO {
 	if h < 40 {
 		h = 40
 	}
-	return model.RegionDO{X: border, Y: toolbarH + border, W: w, H: h}
+	return model.RegionDO{X: border + catalogW, Y: toolbarH + border, W: w, H: h}
 }
 
 // GetAISettings 读取 AI 配置。
@@ -439,6 +459,16 @@ func (s *Service) GetCatalogInsertParent() string {
 // SetCatalogAutoAdd 切换自动/手动入目录。
 func (s *Service) SetCatalogAutoAdd(auto bool) error {
 	return s.store.SetCatalogAutoAdd(auto)
+}
+
+// GetSnapCaptureSettings 读取解读截屏保留设置。
+func (s *Service) GetSnapCaptureSettings() model.SnapCaptureSettingsDO {
+	return model.SnapCaptureSettingsDO{KeepCapture: s.store.GetSnapKeepCapture()}
+}
+
+// SetSnapKeepCapture 切换是否在每页笔记中保留截屏。
+func (s *Service) SetSnapKeepCapture(on bool) error {
+	return s.store.SetSnapKeepCapture(on)
 }
 
 // ListCatalog 列出当前会话目录树。

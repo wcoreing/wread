@@ -358,11 +358,6 @@ export class ReaderSettingsDO {
     "fontFamily": string;
     "paragraphGap": number;
 
-    /**
-     * magazine minimal academic terminal card brief
-     */
-    "layoutTheme": string;
-
     /** Creates a new ReaderSettingsDO instance. */
     constructor($$source: Partial<ReaderSettingsDO> = {}) {
         if (!("fontSize" in $$source)) {
@@ -376,9 +371,6 @@ export class ReaderSettingsDO {
         }
         if (!("paragraphGap" in $$source)) {
             this["paragraphGap"] = 0;
-        }
-        if (!("layoutTheme" in $$source)) {
-            this["layoutTheme"] = "";
         }
 
         Object.assign(this, $$source);
@@ -466,6 +458,30 @@ export class SessionDO {
 }
 
 /**
+ * SnapCaptureSettingsDO 解读截屏保留设置。
+ */
+export class SnapCaptureSettingsDO {
+    "keepCapture": boolean;
+
+    /** Creates a new SnapCaptureSettingsDO instance. */
+    constructor($$source: Partial<SnapCaptureSettingsDO> = {}) {
+        if (!("keepCapture" in $$source)) {
+            this["keepCapture"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SnapCaptureSettingsDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SnapCaptureSettingsDO {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SnapCaptureSettingsDO($$parsedSource as Partial<SnapCaptureSettingsDO>);
+    }
+}
+
+/**
  * SnapDO 单次解读快照。
  */
 export class SnapDO {
@@ -475,6 +491,7 @@ export class SnapDO {
     "ocrText": string;
     "summary": string;
     "concepts": string[];
+    "capturePreview": string;
     "createdAt": number;
 
     /** Creates a new SnapDO instance. */
@@ -496,6 +513,9 @@ export class SnapDO {
         }
         if (!("concepts" in $$source)) {
             this["concepts"] = [];
+        }
+        if (!("capturePreview" in $$source)) {
+            this["capturePreview"] = "";
         }
         if (!("createdAt" in $$source)) {
             this["createdAt"] = 0;

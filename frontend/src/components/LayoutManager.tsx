@@ -1,142 +1,183 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useState } from 'react'
+import { Service } from '../../bindings/wread/internal/app'
 import type { WindowLayoutPresetsApi } from '../hooks/useWindowLayoutPresets'
 import { layoutPresetSummary } from '../lib/layoutPresetSummary'
+import NotePlaceBar, { type NotePlaceId } from './NotePlaceBar'
+import LayoutPresetDiagram from './LayoutPresetDiagram'
+import SnapCaptureSettings from './SnapCaptureSettings'
 
 type Props = {
   presets: WindowLayoutPresetsApi
+  layoutPlace?: NotePlaceId
+  onPickPlace?: (place: NotePlaceId) => void
+  showWakeReader?: boolean
   className?: string
+  /** embedded 嵌入配置 Tab，隐藏页头。 */
+  embedded?: boolean
 }
 
-const STORAGE_KEY = 'wread.layoutSideW'
-const DEFAULT_SIDE_W = 128
-const MIN_SIDE_W = 96
-const MAX_SIDE_W = 280
+/** LayoutManager 窗口布局预设：列表 → 全宽详情（方案 A）。 */
+export default function LayoutManager({
+  presets: p,
+  layoutPlace,
+  onPickPlace,
+  showWakeReader,
+  className = 'interpret-settings',
+  embedded = false,
+}: Props) {
+  const [detailId, setDetailId] = useState<string | null>(null)
 
-/** readSideWidth 读取布局列表宽度。 */
-function readSideWidth() {
-  const saved = Number(localStorage.getItem(STORAGE_KEY))
-  if (!Number.isFinite(saved)) return DEFAULT_SIDE_W
-  return Math.max(MIN_SIDE_W, Math.min(MAX_SIDE_W, Math.round(saved)))
-}
-
-/** LayoutManager 窗口布局预设列表与应用（左右布局，可拖动分栏）。 */
-export default function LayoutManager({ presets: p, className = 'interpret-settings' }: Props) {
-  const [sideW, setSideW] = useState(readSideWidth)
-  const sideWRef = useRef(sideW)
-
-  useEffect(() => {
-    sideWRef.current = sideW
-  }, [sideW])
-
-  /** startSplitDrag 拖动调整布局列表宽度。 */
-  const startSplitDrag = (startX: number) => {
-    const startW = sideWRef.current
-    const onMove = (ev: MouseEvent) => {
-      const next = Math.max(MIN_SIDE_W, Math.min(MAX_SIDE_W, Math.round(startW + ev.clientX - startX)))
-      setSideW(next)
-    }
-    const onUp = () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-      localStorage.setItem(STORAGE_KEY, String(sideWRef.current))
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+  /** openPreset 选中预设并进入详情。 */
+  const openPreset = async (id: string) => {
+    await p.selectPresetForEdit(id)
+    setDetailId(id)
   }
 
-  const editing = p.editingPreset
+  /** backToList 返回预设列表。 */
+  const backToList = () => setDetailId(null)
+
+  /** createAndOpen 保存当前窗口并打开详情。 */
+  const createAndOpen = async () => {
+    const id = await p.createPreset()
+    if (id) setDetailId(id)
+  }
+
+  const editing = detailId ? p.presets.presets.find((item) => item.id === detailId) : undefined
+  const inDetail = detailId !== null && editing !== undefined
 
   return (
-    <div
-      className={`${className} template-manager layout-manager`}
-      style={{ '--template-side-w': `${sideW}px` } as CSSProperties}
-    >
-      <div className="interpret-settings-head template-head-drag">
-        <span>布局管理</span>
-        <button type="button" className="template-reset-btn" onClick={() => p.restoreDefaultLayout().catch(console.error)}>
-          恢复默认
-        </button>
-      </div>
-      {p.status && <div className="interpret-settings-status">{p.status}</div>}
+    <div className={`${className} template-manager layout-manager settings-stack${embedded ? ' settings-tab-pane' : ''}`}>
+      {!inDetail ? (
+        <>
+          {embedded ? (
+            <div className="settings-tab-toolbar settings-tab-toolbar-split">
+              <button type="button" className="note-action-btn" onClick={() => createAndOpen().catch(console.error)}>
+                保存当前窗口
+              </button>
+              <button type="button" className="template-reset-btn" onClick={() => p.restoreDefaultLayout().catch(console.error)}>
+                恢复默认
+              </button>
+            </div>
+          ) : (
+            <div className="interpret-settings-head template-head-drag">
+              <span>布局管理</span>
+              <button type="button" className="template-reset-btn" onClick={() => p.restoreDefaultLayout().catch(console.error)}>
+                恢复默认
+              </button>
+            </div>
+          )}
+          {p.status && <div className="interpret-settings-status">{p.status}</div>}
 
-      <div className="template-split">
-        <aside className="template-side">
-          <div className="template-list">
+          <div className="settings-layout-scroll">
+            {(layoutPlace && onPickPlace) && (
+              <div className="settings-form settings-reading-form">
+                <div className="settings-form-row">
+                  <label className="settings-form-label">笔记位置</label>
+                  <NotePlaceBar
+                    active={layoutPlace}
+                    onPick={onPickPlace}
+                    className="settings-layout-select settings-form-control"
+                  />
+                </div>
+              </div>
+            )}
+
+            <SnapCaptureSettings />
+
+            {showWakeReader && (
+              <button
+                type="button"
+                className="sidebar-wake-btn settings-wake-reader"
+                onClick={() => Service.FocusOverlay().catch(console.error)}
+              >
+                唤起阅读器
+              </button>
+            )}
+
+            <div className="interpret-settings-section settings-layout-presets-title">布局预设</div>
+            <div className="layout-preset-list">
             {p.presets.presets.map((item) => {
               const active = item.id === p.presets.activeId
-              const selected = item.id === p.editId
               return (
-                <div key={item.id} className={`template-list-row ${selected ? 'editing' : ''}`}>
-                  <button
-                    type="button"
-                    className={`template-list-item ${active ? 'active-preset' : ''}`}
-                    onClick={() => p.selectPresetForEdit(item.id).catch(console.error)}
-                  >
-                    <span className="template-list-name">{item.name}</span>
-                    {active && <span className="layout-preset-active-tag">当前</span>}
-                  </button>
-                  <button
-                    type="button"
-                    className="layout-preset-apply-btn"
-                    title="应用此布局"
-                    onClick={() => p.applyPreset(item.id).catch(console.error)}
-                  >
-                    应用
-                  </button>
-                </div>
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`settings-stack-row layout-preset-card${active ? ' active-preset' : ''}`}
+                  onClick={() => openPreset(item.id).catch(console.error)}
+                >
+                  <LayoutPresetDiagram layout={item.layout} className="layout-preset-card-diagram" />
+                  <span className="settings-stack-row-main">
+                    <span className="settings-stack-row-title">{item.name}</span>
+                    <span className="settings-stack-row-desc">{layoutPresetSummary(item.layout)}</span>
+                  </span>
+                  <span className="settings-stack-row-meta">
+                    {active && <span className="template-list-badge">当前</span>}
+                    <span className="settings-stack-chevron" aria-hidden>›</span>
+                  </span>
+                </button>
               )
             })}
+            {p.presets.presets.length === 0 && (
+              <div className="layout-preset-empty">暂无布局预设，可保存当前窗口</div>
+            )}
           </div>
-          <button type="button" className="note-action-btn layout-create-btn" onClick={() => p.createPreset().catch(console.error)}>
-            保存当前窗口
-          </button>
-        </aside>
+          </div>
+        </>
+      ) : (
+        <div className="settings-stack-detail">
+          <div className="settings-stack-detail-head">
+            <button type="button" className="settings-stack-back" onClick={backToList}>
+              ← 返回
+            </button>
+            <div className="settings-stack-detail-actions">
+              <button type="button" className="note-action-btn primary" onClick={() => p.applyPreset(editing!.id).catch(console.error)}>
+                应用
+              </button>
+              {p.canDelete(editing!.id) && (
+                <button
+                  type="button"
+                  className="template-op-btn danger"
+                  onClick={() => {
+                    p.deletePreset(editing!.id)
+                      .then(() => setDetailId(null))
+                      .catch(console.error)
+                  }}
+                >
+                  删除
+                </button>
+              )}
+            </div>
+          </div>
+          {p.status && <div className="interpret-settings-status">{p.status}</div>}
+          {editing!.id === p.presets.activeId && (
+            <div className="settings-stack-active-hint">当前正在使用此布局</div>
+          )}
 
-        <div
-          className="template-splitter"
-          role="separator"
-          aria-orientation="vertical"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            startSplitDrag(e.clientX)
-          }}
-        />
+          <LayoutPresetDiagram layout={editing!.layout} className="layout-preset-detail-diagram" />
 
-        <div className="template-editor layout-preset-editor">
-          {editing ? (
-            <>
-              <label>名称</label>
+          <div className="settings-form">
+            <div className="settings-form-row">
+              <label className="settings-form-label">名称</label>
               <input
+                className="settings-form-control"
                 value={p.editName}
                 onChange={(e) => p.updatePresetName(e.target.value)}
                 onBlur={() => p.savePresetName().catch(console.error)}
                 placeholder="预设名称"
               />
-              <div className="interpret-settings-section">窗口信息</div>
-              <div className="layout-preset-summary">{layoutPresetSummary(editing.layout)}</div>
-              <div className="interpret-settings-actions">
-                <button type="button" className="note-action-btn primary" onClick={() => p.applyActivePreset().catch(console.error)}>
-                  应用
-                </button>
-                <button type="button" className="note-action-btn" onClick={() => p.refreshPresetFromCurrent().catch(console.error)}>
-                  更新为当前窗口
-                </button>
-                {p.canDelete(editing.id) && (
-                  <button
-                    type="button"
-                    className="template-op-btn danger"
-                    onClick={() => p.deletePreset(editing.id).catch(console.error)}
-                  >
-                    删除
-                  </button>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="layout-preset-empty">请选择或新建布局预设</div>
-          )}
+            </div>
+          </div>
+
+          <div className="interpret-settings-section">窗口信息</div>
+          <div className="layout-preset-summary">{layoutPresetSummary(editing!.layout)}</div>
+
+          <div className="interpret-settings-actions">
+            <button type="button" className="note-action-btn" onClick={() => p.refreshPresetFromCurrent().catch(console.error)}>
+              更新为当前窗口
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -32,9 +32,10 @@ type Engine struct {
 	mu       sync.Mutex
 	cancel   context.CancelFunc
 	gen      uint64
-	lastOCR  string
-	lastSnap *model.SnapDO
-	emit     Emitter
+	lastOCR            string
+	lastSnap           *model.SnapDO
+	lastCapturePreview string
+	emit               Emitter
 }
 
 // NewEngine 创建伴读引擎。
@@ -233,9 +234,11 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 		return model.SnapDO{}, err
 	}
 
-	if preview, err := capture.PreviewDataURL(img, 480); err == nil {
+	if preview, err := capture.PreviewDataURL(img, capture.PreviewMaxWidth); err == nil {
+		e.lastCapturePreview = preview
 		e.emit("read:preview", preview)
 	} else {
+		e.lastCapturePreview = ""
 		log.Printf("[wread] preview error: %v", err)
 	}
 
@@ -269,6 +272,10 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 	if dup, err := e.store.FindSnapByHash(sess.ID, hash); err == nil && dup != nil {
 		e.lastOCR = ocrText
 		e.lastSnap = dup
+		if dup.CapturePreview != "" {
+			e.lastCapturePreview = dup.CapturePreview
+			e.emit("read:preview", dup.CapturePreview)
+		}
 		e.emit("read:done", *dup)
 		return *dup, nil
 	}
@@ -309,7 +316,11 @@ func (e *Engine) Interpret(ctx context.Context, region model.RegionDO) (model.Sn
 		return model.SnapDO{}, err
 	}
 
-	snap, err := e.store.InsertSnap(sess.ID, pageTitle, ocrText, summary, concepts, hash)
+	capturePreview := ""
+	if e.store.GetSnapKeepCapture() {
+		capturePreview = e.lastCapturePreview
+	}
+	snap, err := e.store.InsertSnap(sess.ID, pageTitle, ocrText, summary, capturePreview, concepts, hash)
 	if err != nil {
 		e.emit("read:error", err.Error())
 		return model.SnapDO{}, err

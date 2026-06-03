@@ -1,6 +1,5 @@
 import type { ButtonHTMLAttributes, MouseEvent } from 'react'
 import { Window as WailsWindow } from '@wailsio/runtime'
-import { catalogRailLabel, notebookRailLabel } from '../lib/catalogLayout'
 import './edgeRail.css'
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -34,38 +33,6 @@ export function onEdgeRailClick(action: () => void) {
     action()
     e.currentTarget.blur()
   }
-}
-
-type NoteEdgeRailProps = {
-  listOpen: boolean
-  onToggleList: () => void
-  catalogCollapsed: boolean
-  onToggleCatalog: () => void
-}
-
-/** NoteEdgeRail 笔记左内缘：笔记本、目录。 */
-export function NoteEdgeRail({ listOpen, onToggleList, catalogCollapsed, onToggleCatalog }: NoteEdgeRailProps) {
-  return (
-    <aside className="pane-edge-rail pane-edge-rail-note" aria-label="笔记本与目录">
-      <EdgeRailBtn
-        active={listOpen}
-        title={listOpen ? '收起笔记本列表' : '切换笔记本'}
-        onMouseDown={onEdgeRailFocus}
-        onClick={onEdgeRailClick(onToggleList)}
-      >
-        {notebookRailLabel()}
-      </EdgeRailBtn>
-      <EdgeRailBtn
-        active={!catalogCollapsed}
-        title={catalogCollapsed ? '展开目录' : '收起目录'}
-        aria-expanded={!catalogCollapsed}
-        onMouseDown={onEdgeRailFocus}
-        onClick={onEdgeRailClick(onToggleCatalog)}
-      >
-        {catalogRailLabel()}
-      </EdgeRailBtn>
-    </aside>
-  )
 }
 
 type ReaderEdgeRailProps = {

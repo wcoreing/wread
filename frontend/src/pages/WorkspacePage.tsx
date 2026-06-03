@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
 import { Events, Window as WailsWindow } from '@wailsio/runtime'
 import { Service } from '../../bindings/wread/internal/app'
-import AiSettings from '../components/AiSettings'
-import LayoutManager from '../components/LayoutManager'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
+import NoteScopeBar from '../components/NoteScopeBar'
 import NotebookPane from '../components/NotebookPane'
-import TemplateManager from '../components/TemplateManager'
+import SettingsPanel from '../components/SettingsPanel'
 import { useActiveNotebook } from '../hooks/useActiveNotebook'
 import { useNotebookListOverlay } from '../hooks/useNotebookListOverlay'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
@@ -14,8 +13,13 @@ import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
 import { useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
 import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { ReaderEdgeRail } from '../components/PaneEdgeRail'
+import WorkspaceCatalogPane from '../components/WorkspaceCatalogPane'
+import ScopeNoteBody from '../components/ScopeNoteBody'
+import { useScopeMode } from '../hooks/useScopeMode'
+import type { ScopeMode } from '../lib/scopeMode'
+import { readCatalogSide, saveCatalogSide, type CatalogSide } from '../lib/catalogLayout'
 import { readerStyleVars } from '../lib/readerStyle'
-import { sidebarDragLimits, workspaceFrameMinSize } from '../lib/layoutLimits'
+import { sidebarDragLimits, workspaceFrameMinSize, catalogColumnWidth } from '../lib/layoutLimits'
 import '../pages/overlay.css'
 import '../pages/sidebar.css'
 import './workspace.css'
@@ -27,9 +31,16 @@ export default function WorkspacePage() {
   const layoutPresets = useWindowLayoutPresets()
   const { listOpen, setListOpen } = useNotebookListOverlay()
   const [catalogCollapsed, setCatalogCollapsed] = useCatalogCollapsed()
+  const [catalogSide, setCatalogSide] = useState<CatalogSide>(readCatalogSide)
+
+  /** setCatalogPanelSide 切换目录在笔记区内的左右位置。 */
+  const setCatalogPanelSide = (side: CatalogSide) => {
+    setCatalogSide(side)
+    saveCatalogSide(side)
+  }
 
   const [editable, setEditable] = useState(false)
-  const [readingMode, setReadingMode] = useState(false)
+  const { scopeMode, pickScopeMode, notesInScope, frameAdjustable } = useScopeMode()
   const [passAX, setPassAX] = useState(true)
   const [noteMenu, setNoteMenu] = useState<NoteMenu>('note')
 
@@ -38,12 +49,10 @@ export default function WorkspacePage() {
     () => workspaceFrameMinSize(layout.docked, layout.layoutPlace, layout.sidebarW),
     [layout.docked, layout.layoutPlace, layout.sidebarW],
   )
-  const frameDrag = useWorkspaceFrameDrag(readingMode || editable, frameMin)
+  const frameDrag = useWorkspaceFrameDrag(frameAdjustable || editable, frameMin)
 
   useEffect(() => {
-    Service.GetReadingMode().then(setReadingMode).catch(console.error)
     Events.On('overlay:editable', (ev: { data: boolean }) => setEditable(ev.data))
-    Events.On('overlay:readingMode', (ev: { data: boolean }) => setReadingMode(ev.data))
     Events.On('overlay:passAX', (ev: { data: boolean }) => setPassAX(ev.data))
     Events.On('focus:note', () => notePaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
     Events.On('read:status', () => setNoteMenu('note'))
@@ -78,7 +87,8 @@ export default function WorkspacePage() {
     const startW = layout.sidebarW
     const vertical = isVerticalLayout
     const left = layout.layoutPlace === 'left'
-    const { min, max } = sidebarDragLimits(vertical)
+    const catalogW = catalogInReaderZone ? catalogColumnWidth(catalogCollapsed) : 0
+    const { min, max } = sidebarDragLimits(vertical, catalogW)
     let latest = startW
     const onMove = (ev: MouseEvent) => {
       let delta: number
@@ -103,22 +113,20 @@ export default function WorkspacePage() {
   }
 
   const placeClass = layout.layoutPlace === 'popout' ? 'place-right' : `place-${layout.layoutPlace}`
+  const catalogInReaderZone = layout.docked && layout.layoutPlace === 'right'
 
-  const pickReadingMode = async (on: boolean) => {
-    try {
-      await Service.SetReadingMode(on)
-      setReadingMode(on)
-      if (on) setEditable(false)
-    } catch (e: unknown) {
-      console.error(e)
+  useEffect(() => {
+    if (catalogInReaderZone) {
+      return
     }
-  }
+    void Service.SetCatalogWidth(0).catch(console.error)
+  }, [catalogInReaderZone])
 
   /** onModePointerDown 失焦后一次点击即可切换阅读器模式。 */
-  const onModePointerDown = (on: boolean) => (e: ReactMouseEvent<HTMLButtonElement>) => {
+  const onModePointerDown = (mode: ScopeMode) => (e: ReactMouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     void WailsWindow.Focus()
-      .then(() => pickReadingMode(on))
+      .then(() => pickScopeMode(mode))
       .catch(console.error)
   }
 
@@ -145,13 +153,13 @@ export default function WorkspacePage() {
   /** onNoteToolbarMouseDown 笔记顶栏空白区拖动移动窗口。 */
   const onNoteToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .note-layout-select, .note-toolbar-spacer')) {
+    if (t.closest('button, .note-layout-select, .note-theme-select, .note-toolbar-spacer')) {
       return
     }
     frameDrag.startMove(e)
   }
 
-  const showFrameResize = readingMode || editable
+  const showFrameResize = frameAdjustable || editable
 
   /** renderNoteOuterFrame 内嵌时笔记侧窗口外边框（place-right 等为右/左/上/下边）。 */
   const renderNoteOuterFrame = () => {
@@ -206,22 +214,38 @@ export default function WorkspacePage() {
   }
 
   const showReaderEdgeRail = layout.layoutPlace !== 'center'
-  const showNoteEdgeRail = layout.docked && layout.layoutPlace !== 'center' && noteMenu === 'note'
 
-  const scopeModeClass = editable ? 'edit-mode' : readingMode ? 'read-mode' : 'op-mode'
+  useEffect(() => {
+    if (nb.catalogEntryScrollId) {
+      setCatalogCollapsed(false)
+    }
+  }, [nb.catalogEntryScrollId, setCatalogCollapsed])
+
+  const toggleCatalog = () => setCatalogCollapsed(!catalogCollapsed)
+
+  useEffect(() => {
+    if (!catalogInReaderZone) return
+    void Service.SetCatalogWidth(catalogCollapsed ? 0 : catalogColumnWidth(false)).catch(console.error)
+  }, [catalogInReaderZone, catalogCollapsed])
+
+  const scopeModeClass = editable ? 'edit-mode' : `${scopeMode}-mode`
   const overlayTip = editable
     ? '拖此栏或四边调整'
-    : readingMode
+    : scopeMode === 'read'
       ? passAX
         ? '中间穿透翻页 · 边框可拖'
         : '中间穿透翻页 · 请在系统设置开启辅助功能'
-      : '操作模式 · 点击不穿透'
+      : scopeMode === 'note'
+        ? '阅读区显示笔记 · 右侧对照原文'
+        : '操作模式 · 点击不穿透'
 
   const overlayHint = editable
     ? '对准正文 · 点内侧「解读」或 ⌘⇧R'
-    : readingMode
+    : scopeMode === 'read'
       ? '拖顶栏移动 · 拖边框缩放 · 中间穿透翻页'
-      : '切到「阅读」后穿透翻页 · ⌘⇧O 调整框'
+      : scopeMode === 'note'
+        ? '在目录选页 · 右侧看 OCR 原文'
+        : '切到「阅读」后穿透翻页 · ⌘⇧O 调整框'
 
   const notePaneProps = {
     notebookName: nb.notebookName,
@@ -253,13 +277,40 @@ export default function WorkspacePage() {
     activeTemplateId: interpretSettings.promptSettings.activeId,
     onPickTemplate: (id: string) => interpretSettings.pickTemplate(id).catch(console.error),
     catalogAutoAdd: nb.catalogAutoAdd,
-    onCatalogAutoAddChange: (auto: boolean) => nb.setCatalogAutoAddMode(auto).catch(console.error),
-    pendingInChapter: nb.pendingInChapter,
+    pendingCatalogEntry: nb.pendingCatalogEntry,
+    catalogEntryReady: nb.catalogEntryReady,
     onAddToChapter: () => nb.addActiveToChapter().catch(console.error),
+    selectedChapterTitle: nb.selectedChapterTitle,
+    catalogEntryScrollId: nb.catalogEntryScrollId,
+    onCatalogEntryScrollDone: nb.clearCatalogEntryScroll,
     pageTitle: nb.pageTitle,
     concepts: nb.concepts,
     catalogCollapsed,
     onCatalogCollapsedChange: setCatalogCollapsed,
+    catalogExternal: catalogInReaderZone,
+    notesInScope,
+    hideReaderBar: notesInScope,
+    catalogSide,
+    onCatalogSideChange: setCatalogPanelSide,
+    ocrOriginal: nb.ocrOriginal,
+    capturePreview: nb.capturePreview,
+  }
+
+  const catalogPaneProps = {
+    notebookName: notePaneProps.notebookName,
+    onNotebookNameChange: notePaneProps.onNotebookNameChange,
+    catalogNodes: notePaneProps.catalogNodes,
+    selectedChapterId: notePaneProps.selectedChapterId,
+    selectedPageId: notePaneProps.selectedPageId,
+    onSelectChapter: notePaneProps.onSelectChapter,
+    onSelectPage: notePaneProps.onSelectPage,
+    onCreateChapter: notePaneProps.onCreateChapter,
+    onRenameNode: notePaneProps.onRenameNode,
+    onDeleteNode: notePaneProps.onDeleteNode,
+    onBatchDeleteNodes: notePaneProps.onBatchDeleteNodes,
+    onMoveNode: notePaneProps.onMoveNode,
+    scrollToNodeId: nb.catalogEntryScrollId,
+    onScrollToNodeDone: nb.clearCatalogEntryScroll,
   }
 
   return (
@@ -267,27 +318,44 @@ export default function WorkspacePage() {
       className={`workspace ${layout.docked ? 'docked' : 'undocked'} ${placeClass}`}
       style={{ '--sidebar-w': `${layout.sidebarW}px` } as CSSProperties}
     >
-      <section className={`scope-pane reader-pane ${scopeModeClass}`}>
-        <div className="overlay-toolbar scope-toolbar" onMouseDown={onToolbarMouseDown}>
+      {catalogInReaderZone && !catalogCollapsed && (
+        <WorkspaceCatalogPane
+          {...catalogPaneProps}
+        />
+      )}
+      <section
+        className={`scope-pane reader-pane ${scopeModeClass}`}
+        style={notesInScope ? (readerStyleVars(nb.readerSettings) as CSSProperties) : undefined}
+      >
+          <div className="overlay-toolbar scope-toolbar" onMouseDown={onToolbarMouseDown}>
           <span className="overlay-brand">阅读器</span>
           <div className="overlay-mode-radio" role="radiogroup" aria-label="阅读器模式">
             <button
               type="button"
               role="radio"
-              aria-checked={!readingMode}
-              className={!readingMode ? 'active' : ''}
-              onMouseDown={onModePointerDown(false)}
+              aria-checked={scopeMode === 'op'}
+              className={scopeMode === 'op' ? 'active' : ''}
+              onMouseDown={onModePointerDown('op')}
             >
               操作
             </button>
             <button
               type="button"
               role="radio"
-              aria-checked={readingMode}
-              className={readingMode ? 'active' : ''}
-              onMouseDown={onModePointerDown(true)}
+              aria-checked={scopeMode === 'read'}
+              className={scopeMode === 'read' ? 'active' : ''}
+              onMouseDown={onModePointerDown('read')}
             >
               阅读
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={scopeMode === 'note'}
+              className={scopeMode === 'note' ? 'active' : ''}
+              onMouseDown={onModePointerDown('note')}
+            >
+              笔记
             </button>
           </div>
           <span className="overlay-tip">{overlayTip}</span>
@@ -313,7 +381,7 @@ export default function WorkspacePage() {
           )}
         </div>
 
-        {(readingMode || editable) && (
+        {(frameAdjustable || editable) && (
           <>
             <div className="overlay-edge overlay-edge-top" onMouseDown={(e) => frameDrag.start('n', e)} />
             <div className="overlay-edge overlay-edge-bottom" onMouseDown={(e) => frameDrag.start('s', e)} />
@@ -326,9 +394,23 @@ export default function WorkspacePage() {
           </>
         )}
 
-        <div className="overlay-frame">
-          <span className="overlay-hint">{overlayHint}</span>
-        </div>
+        {notesInScope ? (
+          <ScopeNoteBody
+            content={nb.interpretBody}
+            emptyHint={nb.emptyHint}
+            streaming={nb.interpreting && Boolean(nb.streaming)}
+            pageTitle={nb.pageTitle}
+            notebookName={nb.notebookName}
+            concepts={nb.concepts}
+            readerSettings={nb.readerSettings}
+            onReaderSettingsChange={nb.updateReaderSettings}
+          />
+        ) : (
+          <>
+            {editable && <div className="overlay-frame" />}
+            <span className="overlay-hint">{overlayHint}</span>
+          </>
+        )}
 
         {showReaderEdgeRail && (
           <ReaderEdgeRail interpreting={nb.interpreting} onInterpret={() => void interpret()} />
@@ -354,34 +436,45 @@ export default function WorkspacePage() {
             <NoteToolbar
               className="sidebar-toolbar note-toolbar"
               version={nb.appInfo?.version}
-              layoutPlace={layout.layoutPlace}
               activeMenu={noteMenu}
               onPickMenu={setNoteMenu}
-              onPickPlace={(place) => pickNotePlace(place).catch(console.error)}
               onMouseDown={onNoteToolbarMouseDown}
             />
-            {noteMenu === 'templates' && (
-              <TemplateManager settings={interpretSettings} className="sidebar-body interpret-settings" />
-            )}
-            {noteMenu === 'layout' && (
-              <LayoutManager presets={layoutPresets} className="sidebar-body interpret-settings" />
-            )}
-            {noteMenu === 'ai' && (
-              <AiSettings settings={interpretSettings} className="sidebar-body interpret-settings" />
+            {noteMenu === 'settings' && (
+              <SettingsPanel
+                settings={interpretSettings}
+                layoutPresets={layoutPresets}
+                layoutPlace={layout.layoutPlace}
+                onPickPlace={(place) => pickNotePlace(place).catch(console.error)}
+                showWakeReader={layout.layoutPlace === 'popout'}
+                className="sidebar-body interpret-settings"
+              />
             )}
             {noteMenu === 'note' && (
-              <NotebookPane
-                showEdgeRail={showNoteEdgeRail}
-                onToggleListOpen={() => setListOpen(!listOpen)}
-                notebooks={nb.notebooks}
-                activeNotebookId={nb.activeNotebookId}
-                listOpen={listOpen}
-                onOpenNotebook={(id) => nb.openNotebook(id).catch(console.error)}
-                onCreateNotebook={() => nb.createNotebook().catch(console.error)}
-                onDeleteNotebook={(id) => nb.deleteNotebook(id).catch(console.error)}
-                onBatchDeleteNotebooks={(ids) => nb.deleteNotebooks(ids).catch(console.error)}
-                {...notePaneProps}
-              />
+              <>
+                <NoteScopeBar
+                  listOpen={listOpen}
+                  onToggleList={() => setListOpen(!listOpen)}
+                  catalogCollapsed={catalogCollapsed}
+                  onToggleCatalog={toggleCatalog}
+                  showEntryMode={!notesInScope}
+                  catalogAutoAdd={nb.catalogAutoAdd}
+                  onCatalogAutoAddChange={(auto) => nb.setCatalogAutoAddMode(auto).catch(console.error)}
+                  pendingCatalogEntry={nb.pendingCatalogEntry}
+                  catalogEntryReady={nb.catalogEntryReady}
+                  onAddToChapter={() => nb.addActiveToChapter().catch(console.error)}
+                />
+                <NotebookPane
+                  notebooks={nb.notebooks}
+                  activeNotebookId={nb.activeNotebookId}
+                  listOpen={listOpen}
+                  onOpenNotebook={(id) => nb.openNotebook(id).catch(console.error)}
+                  onCreateNotebook={() => nb.createNotebook().catch(console.error)}
+                  onDeleteNotebook={(id) => nb.deleteNotebook(id).catch(console.error)}
+                  onBatchDeleteNotebooks={(ids) => nb.deleteNotebooks(ids).catch(console.error)}
+                  {...notePaneProps}
+                />
+              </>
             )}
           </aside>
         </>

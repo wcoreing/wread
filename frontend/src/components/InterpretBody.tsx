@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { parseInterpretSections } from '../lib/interpretSections'
+import { useSystemTheme } from '../hooks/useSystemTheme'
 import {
+  layoutThemeFromSystemTheme,
   mastheadMode,
-  normalizeLayoutTheme,
   useSectionCards,
 } from '../lib/interpretThemes'
 import { buildInterpretMarkdownComponents } from './interpretMarkdown'
@@ -16,7 +17,6 @@ type Props = {
   content: string
   emptyHint: string
   streaming?: boolean
-  layoutTheme?: string
   pageTitle?: string
   notebookName?: string
   concepts?: string[]
@@ -65,12 +65,12 @@ export default function InterpretBody({
   content,
   emptyHint,
   streaming = false,
-  layoutTheme: layoutThemeRaw,
   pageTitle = '',
   notebookName = '',
   concepts = [],
 }: Props) {
-  const layoutTheme = normalizeLayoutTheme(layoutThemeRaw)
+  const { themeId } = useSystemTheme()
+  const layoutTheme = layoutThemeFromSystemTheme(themeId)
   const tags = concepts.filter((c) => c.trim())
   const mermaidReady = !streaming
   const scrollRef = useRef<HTMLElement>(null)
