@@ -189,6 +189,14 @@ func (s *Service) SetCatalogWidth(width int) {
 	s.ws.SetCatalogWidth(width)
 }
 
+// SetScopePanelVisible 同步阅读区显隐，供穿透带几何使用。
+func (s *Service) SetScopePanelVisible(visible bool) {
+	if s.ws == nil {
+		return
+	}
+	s.ws.SetScopePanelVisible(visible)
+}
+
 // SyncPopoutBounds 将弹出笔记窗 bounds 写入持久化。
 func (s *Service) SyncPopoutBounds() {
 	if s.ws == nil {

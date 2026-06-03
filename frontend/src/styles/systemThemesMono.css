@@ -638,21 +638,6 @@ html.system-theme-black .theme-card.active .theme-card-label {
 }
 
 /* ── 阅读器区 ── */
-:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .catalog-pane-shell {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: none !important;
-}
-
-html.system-theme-black .catalog-pane-shell {
-  background: linear-gradient(180deg, rgba(6, 6, 6, 0.96) 0%, rgba(0, 0, 0, 0.99) 100%) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: none !important;
-  box-shadow: none !important;
-}
-
 html.system-theme-black .catalog-panel {
   background: rgba(255, 255, 255, 0.015) !important;
   border-color: rgba(207, 196, 174, 0.08) !important;

@@ -14,10 +14,8 @@ declare module "@wailsio/runtime" {
         interface CustomEvents {
             "catalog:changed": model$0.CatalogNodeDO;
             "focus:note": boolean;
-            "layout:catalogToggle": boolean;
             "layout:docked": boolean;
             "layout:notePlace": string;
-            "layout:notebookListToggle": boolean;
             "layout:sidebarW": number;
             "notebook:opened": model$0.SessionDO;
             "overlay:editable": boolean;

@@ -33,8 +33,6 @@ func init() {
 	application.RegisterEvent[int]("layout:sidebarW")
 	application.RegisterEvent[string]("layout:notePlace")
 	application.RegisterEvent[bool]("focus:note")
-	application.RegisterEvent[bool]("layout:notebookListToggle")
-	application.RegisterEvent[bool]("layout:catalogToggle")
 	application.RegisterEvent[model.SessionDO]("notebook:opened")
 	application.RegisterEvent[model.ReaderSettingsDO]("reader:settings")
 	application.RegisterEvent[model.CatalogNodeDO]("catalog:changed")

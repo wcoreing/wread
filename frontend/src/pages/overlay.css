@@ -72,30 +72,6 @@ html, body, #root {
   display: none;
 }
 
-.scope-note-shell {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 5;
-  background: var(--sys-bg-gradient);
-}
-
-.scope-note-bar {
-  flex-shrink: 0;
-  margin: 4px 10px 0;
-  --wails-draggable: no-drag;
-}
-
-.scope-note-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 8px 16px 16px;
-  box-sizing: border-box;
-}
-
 .scope-pane.note-mode {
   background: var(--sys-bg-gradient);
 }

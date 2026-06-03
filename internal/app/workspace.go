@@ -27,10 +27,11 @@ const (
 type Workspace struct {
 	svc       *Service
 	state     model.WorkspaceStateDO
-	syncing   bool
-	frameLive bool
-	catalogW  int
-	lastW     int
+	syncing            bool
+	frameLive          bool
+	catalogW           int
+	scopePanelVisible  bool
+	lastW              int
 	lastH     int
 	saveMu    sync.Mutex
 	saveTimer *time.Timer
@@ -39,7 +40,7 @@ type Workspace struct {
 // NewWorkspace 创建工作区控制器。
 func NewWorkspace(svc *Service, st model.WorkspaceStateDO) *Workspace {
 	st = normalizeWorkspace(st)
-	return &Workspace{svc: svc, state: st}
+	return &Workspace{svc: svc, state: st, scopePanelVisible: true}
 }
 
 // State 返回当前持久化状态。
@@ -238,6 +239,48 @@ func (w *Workspace) SetCatalogWidth(width int) {
 			})
 			w.lastW = b.Width + delta
 		}
+	}
+	w.syncPassThroughLayout()
+}
+
+// SetScopePanelVisible 同步阅读区显隐；隐藏时收拢窗口宽度并扩大穿透笔记区。
+func (w *Workspace) SetScopePanelVisible(visible bool) {
+	if w.scopePanelVisible == visible {
+		return
+	}
+	wasVisible := w.scopePanelVisible
+	w.scopePanelVisible = visible
+	if w.svc.workspace != nil && w.state.Docked && !w.isVertical() {
+		b := w.svc.workspace.Bounds()
+		if !visible && wasVisible {
+			scopeW := w.readerWidthFromBounds(b)
+			if scopeW > 0 {
+				w.state.ScopeW = scopeW
+				newW := b.Width - scopeW
+				minW := w.catalogColumnW() + minSidebarWidth
+				if newW < minW {
+					newW = minW
+				}
+				w.withSync(func() {
+					w.svc.workspace.SetBounds(application.Rect{
+						X: b.X, Y: b.Y, Width: newW, Height: b.Height,
+					})
+				})
+				w.lastW = newW
+			}
+		} else if visible && !wasVisible {
+			scopeW := w.state.ScopeW
+			if scopeW < minScopeWidth {
+				scopeW = minScopeWidth
+			}
+			w.withSync(func() {
+				w.svc.workspace.SetBounds(application.Rect{
+					X: b.X, Y: b.Y, Width: b.Width + scopeW, Height: b.Height,
+				})
+			})
+			w.lastW = b.Width + scopeW
+		}
+		w.save()
 	}
 	w.syncPassThroughLayout()
 }
@@ -540,10 +583,20 @@ func (w *Workspace) syncPassThroughLayout() {
 	noteSz := 0
 	catalogW := w.catalogColumnW()
 	place := w.effectivePlace()
+	scopeW := w.ScopeWidth()
 	if w.state.Docked {
-		noteSz = w.state.SidebarW
+		if w.scopePanelVisible {
+			noteSz = w.state.SidebarW
+		} else {
+			scopeW = 0
+			b := w.svc.workspace.Bounds()
+			noteSz = b.Width - catalogW
+			if noteSz < 0 {
+				noteSz = 0
+			}
+		}
 	}
-	overlay.SetLayout(w.ScopeWidth(), noteSz, catalogW, place)
+	overlay.SetLayout(scopeW, noteSz, catalogW, place)
 }
 
 func (w *Workspace) effectivePlace() string {

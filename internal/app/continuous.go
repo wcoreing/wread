@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	continuousTurnDelay     = 400 * time.Millisecond
-	continuousSettleDelay   = 2000 * time.Millisecond
+	continuousTurnDelay      = 400 * time.Millisecond
+	continuousSettleDelay    = 2000 * time.Millisecond
 	continuousDupSettleDelay = 2500 * time.Millisecond
-	continuousMaxDupRetries = 4
+	continuousMaxDupRetries  = 4
 )
 
 // continuousRead 连续伴读会话状态（运行时，非持久化）。
@@ -128,8 +128,10 @@ func (s *Service) continuousTurnAndNext(gen uint64, settleDelay time.Duration) {
 		return
 	}
 	if s.store.GetScopeMode() != "read" {
-		s.stopContinuous("连续伴读已停止：请切回阅读模式")
-		return
+		if err := s.SetScopeMode("read"); err != nil {
+			s.stopContinuous("连续伴读已停止：请切回阅读模式")
+			return
+		}
 	}
 
 	s.emit("read:status", "自动翻页…")

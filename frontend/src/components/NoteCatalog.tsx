@@ -43,8 +43,6 @@ type Props = {
   panelStyle?: CSSProperties
   fontSize?: number
   onFontSizeChange?: (size: number) => void
-  resizeEdge?: 'left' | 'right'
-  onResizeStart?: (startX: number, containerW: number) => void
   scrollToNodeId?: string
   onScrollToNodeDone?: () => void
   onOrganizeApplied?: () => void
@@ -438,8 +436,6 @@ export default function NoteCatalog({
   panelStyle,
   fontSize,
   onFontSizeChange,
-  resizeEdge,
-  onResizeStart,
   scrollToNodeId = '',
   onScrollToNodeDone,
   onOrganizeApplied,
@@ -561,7 +557,6 @@ export default function NoteCatalog({
   const selectedPageCount = pageIdsFromChecked(nodes, checkedIds).length
   const canStartOrganize = allPageIds(nodes).length >= 2
   const createParentId = rootSelected ? '' : selectedChapterId
-  const resizeSide = resizeEdge ?? catalogSide
 
   const ctxItems = (() => {
     if (!ctxMenu) return []
@@ -762,18 +757,6 @@ export default function NoteCatalog({
           </CatalogNotebookRoot>
         </div>
       </div>
-      {onResizeStart && (
-        <div
-          className={`catalog-panel-resize catalog-panel-resize-${resizeSide}`}
-          title="拖动调整目录宽度"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            const split = (e.currentTarget.closest('.note-split') as HTMLElement | null)?.clientWidth
-            onResizeStart(e.clientX, split || window.innerWidth)
-          }}
-        />
-      )}
     </div>
   )
 }

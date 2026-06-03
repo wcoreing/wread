@@ -492,6 +492,13 @@ export function SetScopeMode(mode: string): $CancellablePromise<void> {
 }
 
 /**
+ * SetScopePanelVisible 同步阅读区显隐，供穿透带几何使用。
+ */
+export function SetScopePanelVisible(visible: boolean): $CancellablePromise<void> {
+    return $Call.ByID(1773177731, visible);
+}
+
+/**
  * SetSidebarWidth 设置内嵌笔记栏宽度。
  */
 export function SetSidebarWidth(width: number): $CancellablePromise<void> {
