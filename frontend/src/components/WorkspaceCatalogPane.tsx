@@ -9,6 +9,8 @@ type Props = {
   notebookName: string
   onNotebookNameChange: (name: string) => void
   catalogNodes: CatalogNodeDO[]
+  rootSelected: boolean
+  onSelectRoot: () => void
   selectedChapterId: string
   selectedPageId: string
   onSelectChapter: (node: CatalogNodeDO) => void
@@ -29,6 +31,8 @@ export default function WorkspaceCatalogPane({
   notebookName,
   onNotebookNameChange,
   catalogNodes,
+  rootSelected,
+  onSelectRoot,
   selectedChapterId,
   selectedPageId,
   onSelectChapter,
@@ -69,6 +73,8 @@ export default function WorkspaceCatalogPane({
           notebookName={notebookName}
           onNotebookNameChange={onNotebookNameChange}
           nodes={catalogNodes}
+          rootSelected={rootSelected}
+          onSelectRoot={onSelectRoot}
           selectedChapterId={selectedChapterId}
           selectedPageId={selectedPageId}
           onSelectChapter={onSelectChapter}

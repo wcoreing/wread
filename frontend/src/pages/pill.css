@@ -23,7 +23,7 @@ body,
   border: 1px solid rgba(var(--sys-accent-rgb), 0.38);
   border-radius: 13px;
   padding: 0;
-  cursor: grab;
+  cursor: pointer;
   background: var(--sys-accent-gradient);
   color: var(--sys-text-on-accent);
   transition: transform 0.12s ease, filter 0.12s ease;
@@ -35,7 +35,6 @@ body,
 }
 
 .pill-btn:active {
-  cursor: grabbing;
   transform: scale(0.96);
   filter: brightness(0.94);
 }

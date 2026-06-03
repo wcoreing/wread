@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Service } from '../../bindings/wread/internal/app'
 import type { CatalogNodeDO } from '../../bindings/wread/internal/model'
 import CatalogContextMenu from './CatalogContextMenu'
@@ -26,6 +26,8 @@ type Props = {
   notebookName: string
   onNotebookNameChange: (name: string) => void
   nodes: CatalogNodeDO[]
+  rootSelected: boolean
+  onSelectRoot: () => void
   selectedChapterId: string
   selectedPageId: string
   onSelectChapter: (node: CatalogNodeDO) => void
@@ -81,6 +83,121 @@ type NodeProps = {
   onRowDragOver: (e: React.DragEvent, node: CatalogNodeDO) => void
   onRowDrop: (e: React.DragEvent, node: CatalogNodeDO) => void
   openChapterIds: Set<string>
+}
+
+/** CatalogNotebookRoot 目录树根节点（笔记本标题）。 */
+function CatalogNotebookRoot({
+  notebookName,
+  onNotebookNameChange,
+  open,
+  onToggleOpen,
+  pendingRename,
+  onConsumePendingRename,
+  onContextMenu,
+  active,
+  onSelectRoot,
+  children,
+}: {
+  notebookName: string
+  onNotebookNameChange: (name: string) => void
+  open: boolean
+  onToggleOpen: () => void
+  pendingRename: boolean
+  onConsumePendingRename: () => void
+  onContextMenu: (e: React.MouseEvent) => void
+  active: boolean
+  onSelectRoot: () => void
+  children: ReactNode
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(notebookName)
+
+  useEffect(() => {
+    if (!pendingRename) return
+    setDraft(notebookName)
+    setEditing(true)
+    onConsumePendingRename()
+  }, [pendingRename, notebookName, onConsumePendingRename])
+
+  useEffect(() => {
+    if (!editing) setDraft(notebookName)
+  }, [notebookName, editing])
+
+  /** commitRename 提交笔记本标题。 */
+  const commitRename = () => {
+    const title = draft.trim()
+    setEditing(false)
+    if (title && title !== notebookName) onNotebookNameChange(title)
+    else setDraft(notebookName)
+  }
+
+  /** onRootClick 选中根目录。 */
+  const onRootClick = (e: React.MouseEvent) => {
+    if (editing) return
+    const el = e.target as HTMLElement
+    if (el.closest('.catalog-toggle, .catalog-edit')) return
+    onSelectRoot()
+  }
+
+  return (
+    <div className="catalog-branch is-notebook-root">
+      <div
+        className={`catalog-row notebook-root-row chapter-row${active ? ' active' : ''}`}
+        style={{ paddingLeft: '8px' }}
+        onClick={onRootClick}
+        onContextMenu={onContextMenu}
+      >
+        <button
+          type="button"
+          className="catalog-toggle"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleOpen()
+          }}
+          aria-label={open ? '收起' : '展开'}
+        >
+          {open ? '▾' : '▸'}
+        </button>
+        {editing ? (
+          <input
+            className="catalog-edit"
+            value={draft}
+            autoFocus
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename()
+              if (e.key === 'Escape') {
+                setDraft(notebookName)
+                setEditing(false)
+              }
+            }}
+          />
+        ) : (
+          <div
+            role="button"
+            tabIndex={0}
+            className="catalog-label"
+            title={notebookName || '未命名笔记本'}
+            onDoubleClick={() => {
+              setDraft(notebookName)
+              setEditing(true)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setDraft(notebookName)
+                setEditing(true)
+              }
+            }}
+          >
+            <span className="catalog-label-text">{notebookName || '未命名笔记本'}</span>
+          </div>
+        )}
+      </div>
+      {open && children}
+    </div>
+  )
 }
 
 /** pageLabelText 笔记页完整标题文案。 */
@@ -154,6 +271,14 @@ function CatalogTreeNodeRow({
     else onSelectPage(node)
   }
 
+  /** onRowClick 整行可点；拖柄、删除、展开、勾选、编辑区域除外。 */
+  const onRowClick = (e: React.MouseEvent) => {
+    if (editing) return
+    const el = e.target as HTMLElement
+    if (el.closest('.catalog-drag-handle, .catalog-del, .catalog-toggle, .catalog-check, .catalog-edit')) return
+    handleSelect()
+  }
+
   let pageCounter = 0
 
   return (
@@ -162,6 +287,7 @@ function CatalogTreeNodeRow({
         className={`catalog-row ${active && !batchMode ? 'active' : ''} ${checked ? 'checked' : ''} ${isDragging ? 'dragging' : ''} ${dropOn} ${chapter ? 'chapter-row' : 'page-row'}`}
         style={{ paddingLeft: `${8 + depth * 14}px` }}
         data-catalog-id={node.id}
+        onClick={onRowClick}
         onDragOver={(e) => onRowDragOver(e, node)}
         onDrop={(e) => onRowDrop(e, node)}
       >
@@ -224,7 +350,6 @@ function CatalogTreeNodeRow({
               tabIndex={0}
               className="catalog-label"
               title={fullTitle}
-              onClick={handleSelect}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
@@ -298,6 +423,8 @@ export default function NoteCatalog({
   notebookName,
   onNotebookNameChange,
   nodes,
+  rootSelected,
+  onSelectRoot,
   selectedChapterId,
   selectedPageId,
   onSelectChapter,
@@ -327,6 +454,7 @@ export default function NoteCatalog({
   const checkMode = batchMode || organizeMode
   const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set())
   const [openChapterIds, setOpenChapterIds] = useState<Set<string>>(() => new Set())
+  const [rootOpen, setRootOpen] = useState(true)
   const listRef = useRef<HTMLDivElement>(null)
   const [confirm, setConfirm] = useState<ConfirmState>(null)
   const [dragId, setDragId] = useState('')
@@ -334,7 +462,6 @@ export default function NoteCatalog({
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; target: ContextTarget } | null>(null)
   const [pendingRenameId, setPendingRenameId] = useState('')
   const nodesRef = useRef(nodes)
-  const notebookInputRef = useRef<HTMLInputElement>(null)
   nodesRef.current = nodes
 
   const confirmCopy = confirm
@@ -344,6 +471,7 @@ export default function NoteCatalog({
   /** scrollToEntryNode 录入成功后展开章节并滚到目录底部。 */
   useEffect(() => {
     if (!scrollToNodeId) return
+    setRootOpen(true)
     const target = nodes.find((n) => n.id === scrollToNodeId)
     if (target?.kind === 'page' && target.parentId) {
       setOpenChapterIds((prev) => {
@@ -372,15 +500,6 @@ export default function NoteCatalog({
     }, 80)
     return () => window.clearTimeout(timer)
   }, [scrollToNodeId, nodes, openChapterIds, onScrollToNodeDone])
-
-  useEffect(() => {
-    if (pendingRenameId !== 'notebook') return
-    const input = notebookInputRef.current
-    if (!input) return
-    input.focus()
-    input.select()
-    setPendingRenameId('')
-  }, [pendingRenameId])
 
   /** openContextMenu 打开右键菜单。 */
   const openContextMenu = (e: React.MouseEvent, target: ContextTarget) => {
@@ -443,6 +562,7 @@ export default function NoteCatalog({
   const checkedCount = checkedIds.size
   const selectedPageCount = pageIdsFromChecked(nodes, checkedIds).length
   const canStartOrganize = allPageIds(nodes).length >= 2
+  const createParentId = rootSelected ? '' : selectedChapterId
   const resizeSide = resizeEdge ?? catalogSide
 
   const ctxItems = (() => {
@@ -481,18 +601,6 @@ export default function NoteCatalog({
         {ctxMenu && (
           <CatalogContextMenu x={ctxMenu.x} y={ctxMenu.y} items={ctxItems} onClose={() => setCtxMenu(null)} />
         )}
-        <div
-          className="catalog-notebook-name"
-          onContextMenu={(e) => openContextMenu(e, { kind: 'notebook' })}
-        >
-          <input
-            ref={notebookInputRef}
-            value={notebookName}
-            onChange={(e) => onNotebookNameChange(e.target.value)}
-            placeholder="笔记本名称"
-            title={notebookName}
-          />
-        </div>
         <div className="catalog-head">
           <span className="catalog-head-title">
             {organizeMode ? `AI 分类 · ${selectedPageCount} 页` : batchMode ? `已选 ${checkedCount}` : '目录'}
@@ -575,68 +683,85 @@ export default function NoteCatalog({
                     {catalogSide === 'left' ? '居右' : '居左'}
                   </button>
                 )}
-                <button type="button" className="catalog-new-btn" onClick={() => onCreateChapter(selectedChapterId)} title="新建章节">
-                  + 章
+                <button
+                  type="button"
+                  className="catalog-new-btn"
+                  onClick={() => onCreateChapter(createParentId)}
+                  title="在选中目录下新建子目录"
+                >
+                  + 目录
                 </button>
               </>
             )}
           </div>
         </div>
         <div ref={listRef} className="catalog-list" onDragLeave={() => setDropHint(null)}>
-          {tree.length === 0 && <p className="catalog-empty">点「+ 章」创建章节</p>}
-          {tree.map((node) => (
-            <CatalogTreeNodeRow
-              key={node.id}
-              node={node}
-              depth={0}
-              pageIndex={0}
-              batchMode={checkMode}
-              checkedIds={checkedIds}
-              dragId={dragId}
-              dropHint={dropHint}
-              pendingRenameId={pendingRenameId}
-              onConsumePendingRename={() => setPendingRenameId('')}
-              onToggleCheck={toggleNodeCheck}
-              selectedChapterId={selectedChapterId}
-              selectedPageId={selectedPageId}
-              onSelectChapter={onSelectChapter}
-              onSelectPage={onSelectPage}
-              onRename={onRename}
-              onRequestDelete={(n) => setConfirm({ kind: 'single', node: n })}
-              onContextMenu={(e, n) => openContextMenu(e, { kind: 'node', node: n })}
-              onDragStart={setDragId}
-              onDragEnd={() => {
-                setDragId('')
-                setDropHint(null)
-              }}
-              onRowDragOver={(e, target) => {
-                e.preventDefault()
-                e.dataTransfer.dropEffect = 'move'
-                const fromId = dragId || readCatalogDragPayload(e.dataTransfer)
-                const drag = nodesRef.current.find((n) => n.id === fromId)
-                if (!drag || drag.id === target.id) {
+          <CatalogNotebookRoot
+            notebookName={notebookName}
+            onNotebookNameChange={onNotebookNameChange}
+            open={rootOpen}
+            onToggleOpen={() => setRootOpen((v) => !v)}
+            pendingRename={pendingRenameId === 'notebook'}
+            onConsumePendingRename={() => setPendingRenameId('')}
+            onContextMenu={(e) => openContextMenu(e, { kind: 'notebook' })}
+            active={rootSelected && !checkMode}
+            onSelectRoot={onSelectRoot}
+          >
+            {tree.length === 0 && <p className="catalog-empty">点「+ 目录」创建目录</p>}
+            {tree.map((node) => (
+              <CatalogTreeNodeRow
+                key={node.id}
+                node={node}
+                depth={1}
+                pageIndex={0}
+                batchMode={checkMode}
+                checkedIds={checkedIds}
+                dragId={dragId}
+                dropHint={dropHint}
+                pendingRenameId={pendingRenameId}
+                onConsumePendingRename={() => setPendingRenameId('')}
+                onToggleCheck={toggleNodeCheck}
+                selectedChapterId={selectedChapterId}
+                selectedPageId={selectedPageId}
+                onSelectChapter={onSelectChapter}
+                onSelectPage={onSelectPage}
+                onRename={onRename}
+                onRequestDelete={(n) => setConfirm({ kind: 'single', node: n })}
+                onContextMenu={(e, n) => openContextMenu(e, { kind: 'node', node: n })}
+                onDragStart={setDragId}
+                onDragEnd={() => {
+                  setDragId('')
                   setDropHint(null)
-                  return
-                }
-                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                const place = resolveDropPlace(drag, target, e.clientY - rect.top, rect.height)
-                setDropHint({ targetId: target.id, place })
-              }}
-              onRowDrop={(e, target) => {
-                e.preventDefault()
-                const fromId = dragId || readCatalogDragPayload(e.dataTransfer)
-                setDragId('')
-                setDropHint(null)
-                const drag = nodesRef.current.find((n) => n.id === fromId)
-                if (!drag) return
-                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                const place = resolveDropPlace(drag, target, e.clientY - rect.top, rect.height)
-                const move = computeCatalogMove(nodesRef.current, fromId, target.id, place)
-                if (move) onMove(fromId, move.parentId, move.index)
-              }}
-              openChapterIds={openChapterIds}
-            />
-          ))}
+                }}
+                onRowDragOver={(e, target) => {
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                  const fromId = dragId || readCatalogDragPayload(e.dataTransfer)
+                  const drag = nodesRef.current.find((n) => n.id === fromId)
+                  if (!drag || drag.id === target.id) {
+                    setDropHint(null)
+                    return
+                  }
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                  const place = resolveDropPlace(drag, target, e.clientY - rect.top, rect.height)
+                  setDropHint({ targetId: target.id, place })
+                }}
+                onRowDrop={(e, target) => {
+                  e.preventDefault()
+                  const fromId = dragId || readCatalogDragPayload(e.dataTransfer)
+                  setDragId('')
+                  setDropHint(null)
+                  const drag = nodesRef.current.find((n) => n.id === fromId)
+                  if (!drag) return
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                  const place = resolveDropPlace(drag, target, e.clientY - rect.top, rect.height)
+                  const move = computeCatalogMove(nodesRef.current, fromId, target.id, place)
+                  if (move) onMove(fromId, move.parentId, move.index)
+                }}
+                openChapterIds={openChapterIds}
+              />
+            ))}
+          </CatalogNotebookRoot>
         </div>
       </div>
       {onResizeStart && (

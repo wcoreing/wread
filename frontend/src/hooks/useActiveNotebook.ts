@@ -46,6 +46,7 @@ export function useActiveNotebook() {
   const [catalogAutoAdd, setCatalogAutoAdd] = useState(true)
   const [selectedChapterId, setSelectedChapterId] = useState('')
   const [selectedPageId, setSelectedPageId] = useState('')
+  const [rootSelected, setRootSelected] = useState(true)
   const [activeSnapId, setActiveSnapId] = useState('')
   const [pageTitle, setPageTitle] = useState('')
   const [concepts, setConcepts] = useState<string[]>([])
@@ -61,18 +62,16 @@ export function useActiveNotebook() {
   const saveFontTimer = useRef<number>()
   const saveNameTimer = useRef<number>()
 
-  /** syncSelectedChapter 恢复或默认选中归入章节。 */
+  /** syncSelectedChapter 恢复或默认选中归入目录。 */
   const syncSelectedChapter = async (nodes: CatalogNodeDO[]) => {
     const parentId = await Service.GetCatalogInsertParent()
     if (parentId && findCatalogNode(nodes, parentId)) {
       setSelectedChapterId(parentId)
+      setRootSelected(false)
       return
     }
-    const chapters = nodes.filter((n) => n.kind === 'chapter')
-    if (chapters.length === 1) {
-      setSelectedChapterId(chapters[0].id)
-      await Service.SetCatalogInsertParent(chapters[0].id)
-    }
+    setSelectedChapterId('')
+    setRootSelected(true)
   }
 
   /** reloadCatalog 刷新当前笔记本目录。 */
@@ -114,6 +113,7 @@ export function useActiveNotebook() {
     setStatus(cleared.status)
     setSelectedChapterId(cleared.selectedChapterId)
     setSelectedPageId(cleared.selectedPageId)
+    setRootSelected(true)
     setActiveSnapId(cleared.activeSnapId)
     setPageTitle(cleared.pageTitle)
     setConcepts(cleared.concepts)
@@ -171,8 +171,17 @@ export function useActiveNotebook() {
     }, 300)
   }
 
+  /** selectRoot 选中笔记本根目录，作为新建子目录的父级。 */
+  const selectRoot = async () => {
+    setRootSelected(true)
+    setSelectedChapterId('')
+    setSelectedPageId('')
+    await Service.SetCatalogInsertParent('')
+  }
+
   /** selectChapter 选中章节，作为解读归入目标。 */
   const selectChapter = async (node: CatalogNodeDO) => {
+    setRootSelected(false)
     setSelectedChapterId(node.id)
     setSelectedPageId('')
     await Service.SetCatalogInsertParent(node.id)
@@ -180,6 +189,7 @@ export function useActiveNotebook() {
 
   /** selectPage 选中章节下的解读页并加载正文。 */
   const selectPage = async (node: CatalogNodeDO) => {
+    setRootSelected(false)
     const chapterId = resolveChapterId(catalogNodes, node.id)
     setSelectedPageId(node.id)
     if (chapterId) {
@@ -247,6 +257,7 @@ export function useActiveNotebook() {
   const applyAfterCatalogRemoval = async (removedIds: Set<string>, clearedSnapIds: Set<string>) => {
     if (selectedChapterId && removedIds.has(selectedChapterId)) {
       setSelectedChapterId('')
+      setRootSelected(true)
       await Service.SetCatalogInsertParent('')
     }
     if (selectedPageId && removedIds.has(selectedPageId)) {
@@ -369,6 +380,7 @@ export function useActiveNotebook() {
     const offCatalog = Events.On('catalog:changed', (ev: { data: CatalogNodeDO }) => {
       reloadCatalog()
       if (ev.data?.id) {
+        setRootSelected(false)
         if (ev.data.kind === 'page') {
           setSelectedPageId(ev.data.id)
           setSelectedChapterId(ev.data.parentId)
@@ -404,6 +416,7 @@ export function useActiveNotebook() {
     if (!activeSnapId || catalogNodes.length === 0) return
     const page = catalogNodes.find((n) => n.kind === 'page' && n.snapId === activeSnapId)
     if (page) {
+      setRootSelected(false)
       setSelectedPageId(page.id)
       setSelectedChapterId(page.parentId)
     }
@@ -468,6 +481,7 @@ export function useActiveNotebook() {
     updateReaderSettings,
     catalogNodes,
     catalogAutoAdd,
+    rootSelected,
     selectedChapterId,
     selectedChapterTitle,
     selectedPageId,
@@ -475,6 +489,7 @@ export function useActiveNotebook() {
     pendingInChapter,
     pendingCatalogEntry,
     catalogEntryReady,
+    selectRoot,
     selectChapter,
     selectPage,
     createChapter,

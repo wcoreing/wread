@@ -877,6 +877,19 @@ button:disabled {
   color: var(--sys-text-emphasis);
 }
 
+.catalog-row.notebook-root-row .catalog-label {
+  font-weight: 700;
+}
+
+.catalog-row.notebook-root-row .catalog-label-text {
+  -webkit-line-clamp: 2;
+}
+
+.catalog-row.notebook-root-row.active {
+  background: rgba(var(--sys-accent-strong-rgb), 0.22);
+  box-shadow: inset 3px 0 0 var(--sys-accent);
+}
+
 .catalog-row.page-row .catalog-label {
   display: flex;
   gap: 6px;
@@ -1264,33 +1277,6 @@ button:disabled {
   flex-direction: row-reverse;
 }
 
-.catalog-notebook-name {
-  flex-shrink: 0;
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(var(--sys-accent-rgb), 0.08);
-}
-
-.catalog-notebook-name input {
-  width: 100%;
-  min-height: 26px;
-  box-sizing: border-box;
-  border-radius: 6px;
-  border: 1px solid rgba(var(--sys-accent-rgb), 0.18);
-  background: var(--sys-fill-soft);
-  color: var(--sys-text-emphasis);
-  padding: 4px 8px;
-  font-size: var(--catalog-font-size, 13px);
-  line-height: 1.225;
-  font-family: var(--interpret-font-family, inherit);
-  font-weight: 600;
-  --wails-draggable: no-drag;
-}
-
-.catalog-notebook-name input:focus {
-  outline: none;
-  border-color: rgba(var(--sys-accent-rgb), 0.45);
-}
-
 .catalog-head-title {
   min-width: 0;
 }
@@ -1310,11 +1296,12 @@ button:disabled {
 
 .catalog-row {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 1px;
   min-height: 14px;
   padding: 1px 4px 1px 0;
   position: relative;
+  cursor: pointer;
 }
 
 .catalog-row.dragging {
@@ -1365,6 +1352,7 @@ button:disabled {
   color: var(--sys-text-secondary);
   font-size: 10px;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .catalog-toggle.placeholder {
@@ -1374,6 +1362,7 @@ button:disabled {
 .catalog-label {
   flex: 1;
   min-width: 0;
+  align-self: stretch;
   text-align: left;
   padding: 1px 2px;
   border: none;
@@ -1384,15 +1373,21 @@ button:disabled {
   font-family: var(--interpret-font-family, inherit);
   cursor: pointer;
   --wails-draggable: no-drag;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .catalog-drag-handle {
   flex-shrink: 0;
-  width: 10px;
-  height: 16px;
-  margin-top: 1px;
-  cursor: grab;
-  opacity: 0.32;
+  width: 0;
+  height: auto;
+  align-self: stretch;
+  min-height: 16px;
+  margin: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  cursor: default;
   background:
     radial-gradient(circle, currentColor 1px, transparent 1px) 0 3px / 4px 4px no-repeat,
     radial-gradient(circle, currentColor 1px, transparent 1px) 4px 3px / 4px 4px no-repeat,
@@ -1401,10 +1396,20 @@ button:disabled {
   color: var(--sys-text-tertiary);
   --wails-draggable: no-drag;
   user-select: none;
+  -webkit-user-drag: element;
 }
 
-.catalog-row:hover .catalog-drag-handle {
+.catalog-row:hover .catalog-drag-handle,
+.catalog-row.dragging .catalog-drag-handle {
+  width: 10px;
+  margin-top: 1px;
   opacity: 0.58;
+  pointer-events: auto;
+}
+
+.catalog-row:hover .catalog-drag-handle:hover,
+.catalog-row.dragging .catalog-drag-handle {
+  cursor: grab;
 }
 
 .catalog-drag-handle:active {

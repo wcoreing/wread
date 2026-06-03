@@ -76,6 +76,8 @@ export default function SidebarPage() {
     notebookName: nb.notebookName,
     onNotebookNameChange: nb.updateNotebookName,
     catalogNodes: nb.catalogNodes,
+    rootSelected: nb.rootSelected,
+    onSelectRoot: () => nb.selectRoot().catch(console.error),
     selectedChapterId: nb.selectedChapterId,
     selectedPageId: nb.selectedPageId,
     onSelectChapter: (node: Parameters<typeof nb.selectChapter>[0]) => nb.selectChapter(node).catch(console.error),

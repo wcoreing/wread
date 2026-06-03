@@ -609,14 +609,27 @@ html.system-theme-black .notebook-list {
   border-right-color: rgba(207, 196, 174, 0.08) !important;
 }
 
-html.system-theme-black .catalog-row.active,
-html.system-theme-black .catalog-row.chapter-row.active,
-html.system-theme-black .catalog-row.page-row.active {
-  background: rgba(207, 196, 174, 0.06) !important;
+html.system-theme-black .catalog-row.chapter-row.active {
+  background: rgba(207, 196, 174, 0.08) !important;
+  box-shadow: inset 2px 0 0 rgba(207, 196, 174, 0.38) !important;
 }
 
-html.system-theme-black .catalog-row.chapter-row.active {
-  box-shadow: inset 2px 0 0 rgba(207, 196, 174, 0.38) !important;
+html.system-theme-black .catalog-row.page-row.active {
+  background: rgba(207, 196, 174, 0.14) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(207, 196, 174, 0.72),
+    inset 0 0 0 1px rgba(207, 196, 174, 0.1) !important;
+}
+
+html.system-theme-black .catalog-row.page-row.active .page-no {
+  color: var(--sys-text-accent-bright) !important;
+  font-weight: 600;
+}
+
+html.system-theme-black .catalog-row.page-row.active .catalog-label,
+html.system-theme-black .catalog-row.page-row.active .page-title {
+  color: var(--sys-text-emphasis) !important;
+  font-weight: 500;
 }
 
 html.system-theme-black .notebook-list-item.active {
