@@ -73,6 +73,14 @@ html.system-theme-rice {
   --sys-ambient-conic: conic-gradient(from 200deg at 65% 25%, rgba(250, 235, 215, 0.5), rgba(231, 214, 186, 0.35), rgba(214, 203, 184, 0.4), rgba(250, 235, 215, 0.5));
   --sys-hover-menu: linear-gradient(135deg, rgba(250, 235, 215, 0.65), rgba(231, 214, 186, 0.5), rgba(254, 243, 199, 0.45));
   --sys-glass-border: rgba(180, 83, 9, 0.14);
+  --sys-popover-bg: rgba(255, 252, 247, 0.94);
+  --sys-popover-shadow: var(--sys-glass-shadow), 0 12px 36px rgba(180, 83, 9, 0.12);
+  --sys-scrim: color-mix(in srgb, #292524 38%, transparent);
+  --sys-danger-border: color-mix(in srgb, #dc2626 38%, transparent);
+  --sys-danger-border-hover: color-mix(in srgb, #dc2626 52%, transparent);
+  --sys-danger-text: #b91c1c;
+  --sys-danger-text-hover: #991b1b;
+  --sys-danger-fill-hover: color-mix(in srgb, #dc2626 10%, var(--sys-bg-solid));
 }
 
 /* ── 雪白 SNOW ── */
@@ -134,6 +142,14 @@ html.system-theme-snow {
   --sys-ambient-conic: conic-gradient(from 230deg at 72% 18%, rgba(224, 242, 254, 0.48), rgba(186, 230, 253, 0.38), rgba(219, 234, 254, 0.42), rgba(224, 242, 254, 0.48));
   --sys-hover-menu: linear-gradient(135deg, rgba(224, 242, 254, 0.65), rgba(186, 230, 253, 0.5), rgba(219, 234, 254, 0.42));
   --sys-glass-border: rgba(14, 165, 233, 0.14);
+  --sys-popover-bg: rgba(255, 255, 255, 0.96);
+  --sys-popover-shadow: var(--sys-glass-shadow), 0 12px 36px rgba(14, 165, 233, 0.12);
+  --sys-scrim: color-mix(in srgb, #0f172a 34%, transparent);
+  --sys-danger-border: color-mix(in srgb, #dc2626 38%, transparent);
+  --sys-danger-border-hover: color-mix(in srgb, #dc2626 52%, transparent);
+  --sys-danger-text: #b91c1c;
+  --sys-danger-text-hover: #991b1b;
+  --sys-danger-fill-hover: color-mix(in srgb, #dc2626 10%, var(--sys-bg-solid));
 }
 
 /* ── 灰白 GRAY：零饱和 · 灰阶精准层次 ── */
@@ -207,6 +223,14 @@ html.system-theme-gray {
   );
   --sys-hover-menu: linear-gradient(135deg, rgba(245, 245, 245, 0.9), rgba(229, 229, 229, 0.72), rgba(212, 212, 212, 0.55));
   --sys-glass-border: rgba(38, 38, 38, 0.1);
+  --sys-popover-bg: rgba(252, 252, 252, 0.96);
+  --sys-popover-shadow: var(--sys-glass-shadow), 0 12px 36px rgba(38, 38, 38, 0.1);
+  --sys-scrim: color-mix(in srgb, #171717 32%, transparent);
+  --sys-danger-border: color-mix(in srgb, #525252 40%, transparent);
+  --sys-danger-border-hover: color-mix(in srgb, #404040 55%, transparent);
+  --sys-danger-text: #404040;
+  --sys-danger-text-hover: #171717;
+  --sys-danger-fill-hover: color-mix(in srgb, #737373 12%, var(--sys-bg-solid));
 }
 
 /* ── 黑色 BLACK ── */
@@ -282,6 +306,16 @@ html.system-theme-black {
     rgba(207, 196, 174, 0.06)
   );
   --sys-hover-menu: linear-gradient(135deg, rgba(207, 196, 174, 0.08), rgba(255, 255, 255, 0.03));
+  --sys-popover-bg: rgba(8, 8, 8, 0.94);
+  --sys-popover-shadow:
+    inset 0 1px 0 rgba(207, 196, 174, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+  --sys-scrim: color-mix(in srgb, #000000 62%, transparent);
+  --sys-danger-border: color-mix(in srgb, #e07070 42%, transparent);
+  --sys-danger-border-hover: color-mix(in srgb, #e07070 58%, transparent);
+  --sys-danger-text: #e07070;
+  --sys-danger-text-hover: #f0a0a0;
+  --sys-danger-fill-hover: color-mix(in srgb, #e07070 14%, var(--sys-bg-solid));
 }
 
 /* ── 结构层：渐变描边框 ── */
@@ -511,6 +545,27 @@ html.system-theme-black .sidebar-menu-btn:not(.active):hover {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
 }
 
+/* ── 浮层弹出：菜单项 hover ── */
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .menu-dropdown-item:hover:not(:disabled),
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .choice-select-menu button.active,
+:is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .choice-select-menu button:hover {
+  background: var(--sys-hover-menu) !important;
+  color: var(--sys-text-emphasis) !important;
+}
+
+html.system-theme-black .menu-dropdown-item:hover:not(:disabled),
+html.system-theme-black .choice-select-menu button.active,
+html.system-theme-black .choice-select-menu button:hover {
+  background: var(--sys-hover-menu) !important;
+  color: var(--sys-text-accent-bright) !important;
+}
+
+.notebook-manage-popover .notebook-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 /* ── 浮起面板层 ── */
 :is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .sidebar-body,
 :is(html.system-theme-rice, html.system-theme-snow, html.system-theme-gray) .note-body,
@@ -605,7 +660,7 @@ html.system-theme-black .catalog-panel {
 }
 
 html.system-theme-black .notebook-list {
-  background: linear-gradient(180deg, #050505 0%, #000000 100%) !important;
+  background: color-mix(in srgb, var(--sys-bg-solid) 94%, var(--sys-accent) 3%) !important;
   border-right-color: rgba(207, 196, 174, 0.08) !important;
 }
 

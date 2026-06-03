@@ -9,14 +9,14 @@ export const notebookListDefaultW = 300
 export const notebookListMinW = 220
 export const notebookListMaxW = 520
 
-/** readNotebookListOpen 笔记本列表是否展开（默认收起；不再读 legacy shelfOpen 避免侧栏常亮）。 */
+/** readNotebookListOpen 笔记本列表是否展开（默认展开）。 */
 export function readNotebookListOpen(): boolean {
   const v = localStorage.getItem(NOTEBOOK_LIST_OPEN_KEY)
   if (v !== null) return v === '1'
   if (localStorage.getItem(LEGACY_SHELF_OPEN_KEY) === '1') {
-    saveNotebookListOpen(false)
+    saveNotebookListOpen(true)
   }
-  return false
+  return true
 }
 
 /** saveNotebookListOpen 保存笔记本列表浮层展开状态。 */

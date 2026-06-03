@@ -321,6 +321,120 @@
   min-width: 52px;
 }
 
+/* 顶栏菜单：视图 */
+.view-menu {
+  position: relative;
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+}
+
+.menu-bar-item {
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sys-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.menu-bar-item:hover,
+.view-menu.open .menu-bar-item {
+  background: rgba(var(--sys-accent-rgb), 0.14);
+  color: var(--sys-text-emphasis);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  min-width: 196px;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.menu-dropdown-label {
+  padding: 4px 10px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sys-text-tertiary);
+}
+
+.menu-dropdown-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(var(--sys-accent-rgb), 0.14);
+}
+
+.menu-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sys-text-primary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-dropdown-item:hover:not(:disabled) {
+  background: var(--sys-hover-menu, rgba(var(--sys-accent-strong-rgb), 0.18));
+  color: var(--sys-text-accent-bright);
+}
+
+.menu-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.menu-check-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sys-text-accent-bright);
+}
+
+.menu-item-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-action-item {
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+}
+
+.menu-dropdown-empty,
+.menu-dropdown-status {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--sys-text-tertiary);
+}
+
+.view-menu.compact .menu-bar-item {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  height: auto;
+  min-height: 48px;
+  padding: 8px 4px;
+  font-size: 11px;
+}
+
 .settings-wake-reader {
   width: 100%;
   margin-bottom: 12px;

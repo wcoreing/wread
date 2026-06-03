@@ -159,9 +159,89 @@ static BOOL wreadPointInPassthroughBand(NSWindow *window, NSPoint mouse) {
 	return band.size.width > 0 && band.size.height > 0 && wreadPointInRect(mouse, band);
 }
 
-// wreadShouldIgnoreMouse 是否对该点开启 ignores（拖拽分割条/边框时不穿透）。
+// wreadPointInWindowChrome 窗口四边/四角缩放热区（Shell 布局外框拖柄）。
+static BOOL wreadPointInWindowChrome(NSWindow *window, NSPoint mouse) {
+	if (window == NULL) {
+		return NO;
+	}
+	NSRect win = wreadWindowFrame(window);
+	CGFloat grab = 12.0;
+	if (mouse.x <= win.origin.x + grab) {
+		return YES;
+	}
+	if (mouse.x >= NSMaxX(win) - grab) {
+		return YES;
+	}
+	if (mouse.y <= win.origin.y + grab) {
+		return YES;
+	}
+	if (mouse.y >= NSMaxY(win) - grab) {
+		return YES;
+	}
+	return NO;
+}
+
+// wreadPointInCatalogColumn 左侧管理区（目录/笔记本列）永不穿透。
+static BOOL wreadPointInCatalogColumn(NSWindow *window, NSPoint mouse) {
+	if (window == NULL || g_catalogWidth <= 0.0) {
+		return NO;
+	}
+	if (wreadPlaceIs("top") || wreadPlaceIs("bottom")) {
+		return NO;
+	}
+	NSRect win = wreadWindowFrame(window);
+	if (wreadPlaceIs("left")) {
+		return NO;
+	}
+	return mouse.x >= win.origin.x && mouse.x < win.origin.x + g_catalogWidth;
+}
+
+// wreadPointInNoteColumn 右侧笔记业务区永不穿透。
+static BOOL wreadPointInNoteColumn(NSWindow *window, NSPoint mouse) {
+	if (window == NULL || g_noteSize <= 0.0) {
+		return NO;
+	}
+	NSRect win = wreadWindowFrame(window);
+	if (wreadPlaceIs("left")) {
+		return mouse.x >= win.origin.x && mouse.x < win.origin.x + g_noteSize;
+	}
+	if (wreadPlaceIs("top")) {
+		return mouse.y >= win.origin.y && mouse.y < win.origin.y + g_noteSize;
+	}
+	if (wreadPlaceIs("bottom")) {
+		return mouse.y > NSMaxY(win) - g_noteSize;
+	}
+	return mouse.x > NSMaxX(win) - g_noteSize;
+}
+
+// wreadPointInScopeNoteSplitter 阅读区与笔记区分割条热区。
+static BOOL wreadPointInScopeNoteSplitter(NSWindow *window, NSPoint mouse) {
+	if (window == NULL || g_noteSize <= 0.0 || g_scopeWidth <= 0.0) {
+		return NO;
+	}
+	if (wreadPlaceIs("top") || wreadPlaceIs("bottom") || wreadPlaceIs("left")) {
+		return NO;
+	}
+	NSRect win = wreadWindowFrame(window);
+	CGFloat splitX = win.origin.x + g_catalogWidth + g_scopeWidth;
+	CGFloat grab = 10.0;
+	return mouse.x >= splitX - grab && mouse.x <= splitX + grab;
+}
+
+// wreadPointInInteractiveChrome 管理区/笔记区/分割条/外框 — 必须接收 WebView 鼠标。
+static BOOL wreadPointInInteractiveChrome(NSWindow *window, NSPoint mouse) {
+	return wreadPointInWindowChrome(window, mouse) ||
+	       wreadPointInCatalogColumn(window, mouse) ||
+	       wreadPointInNoteColumn(window, mouse) ||
+	       wreadPointInScopeNoteSplitter(window, mouse);
+}
+
+// wreadShouldIgnoreMouse 是否对该点开启 ignores（仅阅读穿透带中心区域）。
 static BOOL wreadShouldIgnoreMouse(NSWindow *window, NSPoint mouse) {
 	if (g_mouseDragging || g_frameDragging) {
+		return NO;
+	}
+	if (wreadPointInInteractiveChrome(window, mouse)) {
 		return NO;
 	}
 	return wreadPointInPassthroughBand(window, mouse);
@@ -414,7 +494,8 @@ static void wreadInstallMouseMonitor(void) {
 		NSWindow *window = g_window != NULL ? (__bridge NSWindow *)g_window : NULL;
 		if (g_readMode && window != NULL && [event type] == NSEventTypeLeftMouseDown) {
 			NSPoint mouse = [NSEvent mouseLocation];
-			if (wreadPointInPassthroughBand(window, mouse)) {
+			if (wreadPointInPassthroughBand(window, mouse) &&
+			    !wreadPointInInteractiveChrome(window, mouse)) {
 				wreadOnPassthroughBandClick(window, mouse, event, "local");
 				wreadTrackMouseButton(event);
 				wreadUpdateIgnoresFromMouse();

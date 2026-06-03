@@ -1,22 +1,36 @@
 import { type MouseEvent as ReactMouseEvent } from 'react'
+import ViewMenu from './ViewMenu'
+import type { PanelId, PanelVisibility } from '../lib/panelVisibility'
+import type { WindowLayoutPresetsApi } from '../hooks/useWindowLayoutPresets'
 import '../pages/overlay.css'
 
 export type NoteMenu = 'note' | 'settings'
+
+type ViewMenuProps = {
+  panels: PanelVisibility
+  onSetPanel: (id: PanelId, on: boolean) => void
+  layoutPresets?: WindowLayoutPresetsApi
+  hidePanels?: PanelId[]
+  hasScope?: boolean
+  onRestoreWindow?: () => void
+}
 
 type Props = {
   version?: string
   activeMenu: NoteMenu
   onPickMenu: (menu: NoteMenu) => void
+  viewMenu?: ViewMenuProps
   className?: string
   onMouseDown?: (e: ReactMouseEvent<HTMLDivElement>) => void
   onMinimizeToPill?: () => void
 }
 
-/** NoteToolbar 笔记顶栏：左侧 wread，右侧笔记与配置。 */
+/** NoteToolbar 顶栏：品牌 / 视图 / 笔记·配置 / 收起。 */
 export default function NoteToolbar({
   version,
   activeMenu,
   onPickMenu,
+  viewMenu,
   className = 'sidebar-toolbar note-toolbar',
   onMouseDown,
   onMinimizeToPill,
@@ -27,6 +41,16 @@ export default function NoteToolbar({
         wread
         {version && <span className="sidebar-version">v{version}</span>}
       </span>
+      {viewMenu && (
+        <ViewMenu
+          panels={viewMenu.panels}
+          onSetPanel={viewMenu.onSetPanel}
+          layoutPresets={viewMenu.layoutPresets}
+          hidePanels={viewMenu.hidePanels}
+          hasScope={viewMenu.hasScope}
+          onRestoreWindow={viewMenu.onRestoreWindow}
+        />
+      )}
       <span className="note-toolbar-spacer" />
       <div className="note-toolbar-nav overlay-mode-radio" role="tablist" aria-label="笔记视图">
         <button

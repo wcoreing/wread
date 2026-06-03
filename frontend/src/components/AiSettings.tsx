@@ -1,16 +1,25 @@
 import type { useInterpretSettings } from '../hooks/useInterpretSettings'
+import CatalogEntrySettings from './CatalogEntrySettings'
 
 type Settings = ReturnType<typeof useInterpretSettings>
 
 type Props = {
   settings: Settings
+  catalogAutoAdd?: boolean
+  onCatalogAutoAddChange?: (auto: boolean) => void
   className?: string
   /** embedded 嵌入配置 Tab，隐藏页头。 */
   embedded?: boolean
 }
 
-/** AiSettings AI 连接配置页。 */
-export default function AiSettings({ settings, className = 'interpret-settings', embedded = false }: Props) {
+/** AiSettings AI 连接与解读相关配置。 */
+export default function AiSettings({
+  settings,
+  catalogAutoAdd,
+  onCatalogAutoAddChange,
+  className = 'interpret-settings',
+  embedded = false,
+}: Props) {
   const s = settings
 
   return (
@@ -60,6 +69,10 @@ export default function AiSettings({ settings, className = 'interpret-settings',
           </button>
         </div>
       </div>
+
+      {onCatalogAutoAddChange && catalogAutoAdd !== undefined && (
+        <CatalogEntrySettings autoAdd={catalogAutoAdd} onChange={onCatalogAutoAddChange} />
+      )}
     </div>
   )
 }

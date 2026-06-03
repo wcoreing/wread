@@ -1,34 +1,11 @@
 import { useRef } from 'react'
-import NoteCatalog from './NoteCatalog'
-import NotebookList from './NotebookList'
 import InterpretBody from './InterpretBody'
 import NotePageBar from './NotePageBar'
 import NoteSourcePanel from './NoteSourcePanel'
-import type { CatalogNodeDO, ReaderSettingsDO, SessionDO } from '../../bindings/wread/internal/model'
-import {
-  type CatalogSide,
-} from '../lib/catalogLayout'
-import { useCatalogFontSize } from '../hooks/useCatalogFontSize'
-import { useCatalogPanelWidth } from '../hooks/useCatalogPanelWidth'
-import { useNotebookListWidth } from '../hooks/useNotebookListWidth'
+import type { ReaderSettingsDO } from '../../bindings/wread/internal/model'
+import { useSourcePanelWidth } from '../hooks/useSourcePanelWidth'
 
 type Props = {
-  notebookName: string
-  onNotebookNameChange: (name: string) => void
-  catalogNodes: CatalogNodeDO[]
-  rootSelected: boolean
-  onSelectRoot: () => void
-  selectedChapterId: string
-  selectedPageId: string
-  onSelectChapter: (node: CatalogNodeDO) => void
-  onSelectPage: (node: CatalogNodeDO) => void
-  onCreateChapter: (parentId: string) => void
-  onRenameNode: (node: CatalogNodeDO, title: string) => void
-  onDeleteNode: (node: CatalogNodeDO) => void
-  onBatchDeleteNodes: (ids: string[]) => void
-  onMoveNode: (nodeId: string, parentId: string, index: number) => void
-  onOrganizeApplied?: () => void
-  onOrganizeError?: (msg: string) => void
   readerSettings: ReaderSettingsDO
   onReaderSettingsChange: (next: ReaderSettingsDO) => void
   status: string
@@ -45,47 +22,18 @@ type Props = {
   catalogEntryReady?: boolean
   onAddToChapter?: () => void
   selectedChapterTitle?: string
-  catalogEntryScrollId?: string
-  onCatalogEntryScrollDone?: () => void
   pageTitle: string
   concepts: string[]
-  catalogCollapsed: boolean
-  onCatalogCollapsedChange: (collapsed: boolean) => void
-  notebooks: SessionDO[]
-  activeNotebookId: string
-  listOpen: boolean
-  onOpenNotebook: (id: string) => void
-  onCreateNotebook: () => void
-  onDeleteNotebook: (id: string) => void
-  onBatchDeleteNotebooks: (ids: string[]) => void
-  catalogExternal?: boolean
-  notesInScope?: boolean
-  hideReaderBar?: boolean
-  catalogSide: CatalogSide
-  onCatalogSideChange: (side: CatalogSide) => void
+  notebookName: string
+  sourceCollapsed: boolean
+  wreadVisible?: boolean
   ocrOriginal?: string
   capturePreview?: string
   className?: string
 }
 
-/** NotePaneBody 笔记本视图：目录 + 解读正文。 */
+/** NotePaneBody wread 解读 + 原文对照（导航列已外置至工作区左侧）。 */
 export default function NotePaneBody({
-  notebookName,
-  onNotebookNameChange,
-  catalogNodes,
-  rootSelected,
-  onSelectRoot,
-  selectedChapterId,
-  selectedPageId,
-  onSelectChapter,
-  onSelectPage,
-  onCreateChapter,
-  onRenameNode,
-  onDeleteNode,
-  onBatchDeleteNodes,
-  onMoveNode,
-  onOrganizeApplied,
-  onOrganizeError,
   readerSettings,
   onReaderSettingsChange,
   status,
@@ -102,100 +50,28 @@ export default function NotePaneBody({
   catalogEntryReady = false,
   onAddToChapter,
   selectedChapterTitle = '',
-  catalogEntryScrollId = '',
-  onCatalogEntryScrollDone,
   pageTitle,
   concepts,
-  catalogCollapsed,
-  onCatalogCollapsedChange,
-  notebooks,
-  activeNotebookId,
-  listOpen,
-  onOpenNotebook,
-  onCreateNotebook,
-  onDeleteNotebook,
-  onBatchDeleteNotebooks,
-  catalogExternal = false,
-  notesInScope = false,
-  hideReaderBar = false,
-  catalogSide,
-  onCatalogSideChange,
+  notebookName,
+  sourceCollapsed,
+  wreadVisible = true,
   ocrOriginal = '',
   capturePreview = '',
   className = 'sidebar-body',
 }: Props) {
-  const splitRef = useRef<HTMLDivElement>(null)
-  const { panelStyle: catalogWidthStyle, startWidthDrag } = useCatalogPanelWidth(catalogSide)
-  const { fontSize, panelStyle: catalogFontStyle, changeFontSize } = useCatalogFontSize()
-  const catalogPanelStyle = { ...catalogWidthStyle, ...catalogFontStyle }
-  const { panelStyle: notebookPanelStyle, startWidthDrag: startNotebookWidthDrag } = useNotebookListWidth()
+  const workspaceRef = useRef<HTMLDivElement>(null)
+  const { panelStyle: sourcePanelStyle, startWidthDrag: startSourceWidthDrag } = useSourcePanelWidth()
+  const containerW = () => workspaceRef.current?.clientWidth || window.innerWidth
 
   return (
     <div className={`${className} notebook-pane-shell`}>
       <div
-        ref={splitRef}
-        className={`note-split${listOpen ? '' : ' notebook-collapsed'}${catalogExternal || catalogCollapsed ? ' catalog-collapsed' : ''}${!catalogExternal && catalogSide === 'right' ? ' catalog-right' : ''}`}
+        ref={workspaceRef}
+        className={`note-workspace note-content-workspace${sourceCollapsed ? ' source-collapsed' : ''}${!wreadVisible ? ' wread-hidden' : ''}`}
       >
-        {listOpen && (
-          <div className="notebook-panel-wrap">
-            <div className="notebook-panel" style={notebookPanelStyle}>
-              <NotebookList
-                notebooks={notebooks}
-                activeNotebookId={activeNotebookId}
-                onOpen={onOpenNotebook}
-                onCreate={onCreateNotebook}
-                onDelete={onDeleteNotebook}
-                onBatchDelete={onBatchDeleteNotebooks}
-              />
-            </div>
-            <div
-              className="notebook-panel-resize"
-              title="拖动调整笔记本列表宽度"
-              onMouseDown={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                startNotebookWidthDrag(e.clientX, splitRef.current?.clientWidth || window.innerWidth)
-              }}
-            />
-          </div>
-        )}
-
-        {!catalogExternal && !catalogCollapsed && (
-          <NoteCatalog
-            notebookName={notebookName}
-            onNotebookNameChange={onNotebookNameChange}
-            nodes={catalogNodes}
-            rootSelected={rootSelected}
-            onSelectRoot={onSelectRoot}
-            selectedChapterId={selectedChapterId}
-            selectedPageId={selectedPageId}
-            onSelectChapter={onSelectChapter}
-            onSelectPage={onSelectPage}
-            onCreateChapter={onCreateChapter}
-            onRename={onRenameNode}
-            onDelete={onDeleteNode}
-            onBatchDelete={onBatchDeleteNodes}
-            onMove={onMoveNode}
-            catalogSide={catalogSide}
-            onToggleCatalogSide={() => onCatalogSideChange(catalogSide === 'left' ? 'right' : 'left')}
-            panelStyle={catalogPanelStyle}
-            fontSize={fontSize}
-            onFontSizeChange={changeFontSize}
-            onResizeStart={(x) => startWidthDrag(x, splitRef.current?.clientWidth || window.innerWidth)}
-            scrollToNodeId={catalogEntryScrollId}
-            onScrollToNodeDone={onCatalogEntryScrollDone}
-            onOrganizeApplied={onOrganizeApplied}
-            onOrganizeError={onOrganizeError}
-          />
-        )}
-
-        <div className="note-page">
-          {!hideReaderBar && (
-            <NotePageBar
-              settings={readerSettings}
-              onChange={onReaderSettingsChange}
-            />
-          )}
+        {wreadVisible && (
+        <main className="note-wread-column">
+          <NotePageBar settings={readerSettings} onChange={onReaderSettingsChange} />
           {!catalogAutoAdd && pendingCatalogEntry && onAddToChapter && (
             <div className="note-entry-banner">
               <span className="note-entry-banner-text">
@@ -213,23 +89,15 @@ export default function NotePaneBody({
             </div>
           )}
           {status && <div className={`status-line ${interpreting ? 'busy' : 'error'}`}>{status}</div>}
-          <div className={`panel current-panel${notesInScope ? ' source-mode' : ''}`}>
-            {notesInScope ? (
-              <NoteSourcePanel
-                ocrOriginal={ocrOriginal}
-                capturePreview={capturePreview}
-                pageTitle={pageTitle}
-              />
-            ) : (
-              <InterpretBody
-                content={interpretBody}
-                emptyHint={emptyHint}
-                streaming={interpreting && isStreaming}
-                pageTitle={pageTitle}
-                notebookName={notebookName}
-                concepts={concepts}
-              />
-            )}
+          <div className="panel current-panel">
+            <InterpretBody
+              content={interpretBody}
+              emptyHint={emptyHint}
+              streaming={interpreting && isStreaming}
+              pageTitle={pageTitle}
+              notebookName={notebookName}
+              concepts={concepts}
+            />
             <div className="followup">
               <input
                 value={question}
@@ -238,10 +106,32 @@ export default function NotePaneBody({
                 disabled={!current && !isStreaming}
                 onKeyDown={(e) => e.key === 'Enter' && onFollowUp()}
               />
-              <button type="button" onClick={onFollowUp} disabled={!current && !isStreaming}>追问</button>
+              <button type="button" onClick={onFollowUp} disabled={!current && !isStreaming}>
+                追问
+              </button>
             </div>
           </div>
-        </div>
+        </main>
+        )}
+
+        {!sourceCollapsed && (
+          <aside className="note-source-column" style={sourcePanelStyle}>
+            <NoteSourcePanel
+              ocrOriginal={ocrOriginal}
+              capturePreview={capturePreview}
+              pageTitle={pageTitle}
+            />
+            <div
+              className="source-panel-resize"
+              title="拖动调整原文区宽度"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                startSourceWidthDrag(e.clientX, containerW())
+              }}
+            />
+          </aside>
+        )}
       </div>
     </div>
   )

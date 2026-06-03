@@ -25,7 +25,6 @@ export function useScopeMode() {
   return {
     scopeMode,
     pickScopeMode,
-    notesInScope: scopeMode === 'note',
     frameAdjustable: scopeMode !== 'op',
   }
 }

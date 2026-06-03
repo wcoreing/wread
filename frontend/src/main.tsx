@@ -5,6 +5,7 @@ import App from './App'
 import { bootstrapSystemTheme } from './hooks/useSystemTheme'
 import './styles/systemThemes.css'
 import './styles/systemThemesMono.css'
+import './styles/popover.css'
 import './styles/toolbar.css'
 import './styles/scrollbars.css'
 

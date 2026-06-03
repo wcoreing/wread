@@ -3,10 +3,10 @@ import { Events } from '@wailsio/runtime'
 
 const CATALOG_COLLAPSED_KEY = 'wread.catalogCollapsed'
 
-/** readCatalogCollapsed 目录是否收起（默认收起）。 */
+/** readCatalogCollapsed 目录是否收起（默认展开）。 */
 function readCatalogCollapsed(): boolean {
   const v = localStorage.getItem(CATALOG_COLLAPSED_KEY)
-  if (v === null) return true
+  if (v === null) return false
   return v === '1'
 }
 

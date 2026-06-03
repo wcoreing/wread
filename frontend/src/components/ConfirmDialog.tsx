@@ -25,7 +25,7 @@ export default function ConfirmDialog({
   return (
     <div className="confirm-backdrop" role="presentation" onClick={onCancel}>
       <div
-        className="confirm-dialog"
+        className="confirm-dialog sys-popover-surface"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"

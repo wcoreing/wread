@@ -303,15 +303,13 @@ function CatalogTreeNodeRow({
             }}
             onClick={(e) => e.stopPropagation()}
           />
-        ) : chapter && hasChildren ? (
-          <button type="button" className="catalog-toggle" onClick={() => setOpen((v) => !v)} aria-label={open ? '收起' : '展开'}>
-            {open ? '▾' : '▸'}
-          </button>
         ) : null}
-        {batchMode && chapter && hasChildren && (
+        {chapter && hasChildren ? (
           <button type="button" className="catalog-toggle" onClick={() => setOpen((v) => !v)} aria-label={open ? '收起' : '展开'}>
             {open ? '▾' : '▸'}
           </button>
+        ) : (
+          <span className="catalog-toggle placeholder" aria-hidden="true" />
         )}
         {editing ? (
           <input

@@ -19,6 +19,7 @@ html, body, #root {
   border: none;
   border-radius: 10px;
   box-shadow: var(--sys-frame-glow);
+  position: relative;
 }
 
 .workspace.undocked .scope-pane .overlay-toolbar {
@@ -177,9 +178,354 @@ html, body, #root {
   position: relative;
 }
 
-.workspace.place-right.docked .note-pane,
-.workspace.place-left.docked .note-pane {
-  width: var(--sidebar-w, 380px);
+.workspace.docked.place-right .note-pane,
+.workspace.docked.place-left .note-pane {
+  flex: 0 0 var(--sidebar-w, 480px);
+  width: var(--sidebar-w, 480px);
+  min-width: 420px;
+  max-width: 58%;
+}
+
+.workspace.shell-layout {
+  flex-direction: row !important;
+}
+
+.workspace.shell-layout.has-manager .manager-pane {
+  flex: 0 0 auto;
+  max-width: 58%;
+  min-width: 220px;
+}
+
+.workspace.shell-layout.docked .scope-pane {
+  flex: 1 1 0;
+  min-width: 240px;
+  width: auto;
+}
+
+.workspace.shell-layout.docked .note-pane,
+.workspace.shell-layout.docked .focus-canvas-note {
+  flex: 0 0 var(--sidebar-w, 480px) !important;
+  width: var(--sidebar-w, 480px) !important;
+  min-width: 420px;
+  max-width: 58%;
+}
+
+.workspace.shell-layout.note-hidden .scope-pane {
+  flex: 1;
+}
+
+.workspace.shell-layout.scope-hidden .note-pane,
+.workspace.shell-layout.scope-hidden .focus-canvas-note {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.manager-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--sys-bg-gradient);
+  color: var(--sys-text-primary);
+  border-right: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  z-index: 4;
+  overflow: hidden;
+  --wails-draggable: no-drag;
+}
+
+.manager-toolbar {
+  flex-shrink: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(var(--sys-accent-rgb), 0.2);
+}
+
+.workspace.docked.shell-layout .manager-toolbar {
+  border-radius: 10px 0 0 0;
+}
+
+.panel-restore-rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: auto;
+  min-width: auto;
+  height: 100%;
+  padding: 4px 2px;
+  background: var(--sys-bg-gradient);
+  border-right: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  z-index: 5;
+  --wails-draggable: no-drag;
+}
+
+.panel-restore-rail .view-menu.compact .menu-dropdown {
+  left: calc(100% + 4px);
+  top: 0;
+}
+
+.choice-select {
+  position: relative;
+  min-width: 0;
+  --wails-draggable: no-drag;
+}
+
+.choice-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  border-radius: 8px;
+  background: var(--sys-fill-muted);
+  color: var(--sys-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.choice-select-trigger:hover:not(:disabled) {
+  border-color: rgba(var(--sys-accent-rgb), 0.35);
+}
+
+.choice-select.open .choice-select-trigger {
+  border-color: rgba(var(--sys-accent-strong-rgb), 0.5);
+  box-shadow: 0 0 0 2px rgba(var(--sys-accent-rgb), 0.12);
+}
+
+.choice-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.choice-select-chevron {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--sys-text-tertiary);
+  flex-shrink: 0;
+}
+
+.choice-select-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.choice-select-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-select-menu button.active,
+.choice-select-menu button:hover {
+  background: var(--sys-hover-menu, rgba(var(--sys-accent-strong-rgb), 0.2));
+  color: var(--sys-text-accent-bright);
+}
+
+.toggle-switch {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+}
+
+.toggle-switch.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toggle-switch-track {
+  display: block;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(var(--sys-accent-rgb), 0.18);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.toggle-switch.on .toggle-switch-track {
+  background: rgba(var(--sys-accent-strong-rgb), 0.55);
+  border-color: rgba(var(--sys-accent-rgb), 0.35);
+}
+
+.toggle-switch-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.toggle-switch.on .toggle-switch-thumb {
+  transform: translateX(14px);
+}
+
+.workspace.shell-layout.manager-hidden .scope-pane {
+  border-radius: 10px 0 0 10px;
+}
+
+.workspace.shell-layout .note-pane.note-only-right {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  width: auto;
+}
+
+.note-workspace.wread-hidden.source-collapsed {
+  display: none;
+}
+
+.note-workspace.wread-hidden:not(.source-collapsed) .note-source-column {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.note-workspace.source-collapsed:not(.wread-hidden) .note-wread-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.manager-note-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.manager-note-body .note-nav-bar {
+  flex-shrink: 0;
+}
+
+.manager-note-body .workspace-nav-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.manager-settings {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.manager-pane-footer {
+  flex-shrink: 0;
+  padding: 6px 8px 8px;
+  border-top: 1px solid rgba(var(--sys-accent-rgb), 0.08);
+}
+
+.manager-restore-btn {
+  width: 100%;
+  height: 26px;
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  border-radius: 6px;
+  background: rgba(var(--sys-surface-rgb), 0.5);
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.manager-restore-btn:hover {
+  color: var(--sys-text-primary);
+  border-color: rgba(var(--sys-accent-rgb), 0.4);
+}
+
+.scope-toolbar-lite .overlay-brand {
+  min-width: 0;
+}
+
+.focus-canvas-note {
+  border-left: 1px solid rgba(var(--sys-accent-rgb), 0.08);
+}
+
+.workspace-nav-pane {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-width: 58%;
+  background: var(--sys-bg-gradient);
+  color: var(--sys-text-primary);
+  border-right: 1px solid rgba(var(--sys-accent-rgb), 0.12);
+  z-index: 3;
+  overflow: hidden;
+  --wails-draggable: no-drag;
+}
+
+.workspace.has-workspace-nav .workspace-nav-pane .note-nav-bar {
+  flex-shrink: 0;
+}
+
+.workspace-nav-pane .workspace-nav-body {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  border-right: none;
+}
+
+.workspace.has-workspace-nav .scope-pane {
+  flex: 1;
+  min-width: 240px;
+}
+
+.note-inline-nav-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 45%;
+  border-bottom: 1px solid rgba(var(--sys-accent-rgb), 0.1);
+  overflow: hidden;
+  --wails-draggable: no-drag;
+}
+
+.note-inline-nav-wrap .note-nav-column {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  border-right: none;
+}
+
+.note-inline-nav-wrap .note-inline-nav {
+  flex: 1;
+  min-height: 0;
+}
+
+.note-content-workspace {
+  flex: 1;
+  min-height: 0;
 }
 
 .workspace.place-center.docked .note-pane {
@@ -240,11 +586,46 @@ html, body, #root {
 .workspace.note-only {
   width: 100vw;
   height: 100vh;
+  flex-direction: column;
   border: 1px solid rgba(var(--sys-accent-rgb), 0.55);
   border-radius: 10px;
   box-shadow: var(--sys-frame-glow);
   box-sizing: border-box;
   position: relative;
+}
+
+.workspace.note-only .note-only-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.workspace.note-only .note-only-shell.manager-only .manager-pane {
+  max-width: none;
+  flex: 1;
+  border-radius: 0 0 10px 10px;
+}
+
+.workspace.note-only .manager-pane {
+  max-width: 52%;
+  border-radius: 0 0 0 10px;
+}
+
+.workspace.note-only .note-only-content {
+  flex: 1;
+  min-width: 0;
+  width: auto !important;
+  height: auto !important;
+  display: flex;
+  flex-direction: column;
+  border-left: none;
+}
+
+.workspace.note-only .note-only-content .notebook-pane-body {
+  flex: 1;
+  min-height: 0;
 }
 
 .workspace.note-only .overlay-edge,
@@ -257,25 +638,14 @@ html, body, #root {
 }
 
 .workspace.note-only .overlay-edge-top {
-  top: var(--toolbar-h, 38px);
+  top: 8px;
   left: 8px;
   right: 8px;
 }
 
 .workspace.note-only .overlay-corner-nw,
 .workspace.note-only .overlay-corner-ne {
-  top: var(--toolbar-h, 38px);
-}
-
-.workspace.note-only .note-pane {
-  width: 100% !important;
-  height: 100%;
-  flex: 1;
-  min-width: 0;
-}
-
-.workspace.note-only .note-toolbar {
-  border-radius: 10px 10px 0 0;
+  top: 8px;
 }
 
 .note-body {
@@ -285,14 +655,42 @@ html, body, #root {
 
 .workspace-splitter {
   flex-shrink: 0;
+  flex-grow: 0;
   background: transparent;
   position: relative;
-  z-index: 10;
+  z-index: 35;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: stretch;
   --wails-draggable: no-drag;
+}
+
+.workspace.shell-layout .scope-note-splitter {
+  width: 6px;
+  margin: 0 -2px;
+  cursor: col-resize;
+  background: transparent;
+}
+
+.workspace.shell-layout .scope-note-splitter::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  bottom: 12%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: rgba(var(--sys-accent-rgb), 0.18);
+  transition: background 0.15s ease, width 0.15s ease;
+  pointer-events: none;
+}
+
+.workspace.shell-layout .scope-note-splitter:hover::before,
+.workspace.shell-layout .scope-note-splitter.dragging::before {
+  width: 3px;
+  background: rgba(var(--sys-accent-rgb), 0.55);
 }
 
 .workspace-splitter-drag {
@@ -370,9 +768,10 @@ html, body, #root {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -3px;
-  width: 7px;
+  left: -6px;
+  width: 14px;
   cursor: col-resize;
+  pointer-events: auto;
   --wails-draggable: no-drag;
 }
 
@@ -400,4 +799,77 @@ html, body, #root {
   height: 7px;
   cursor: row-resize;
   --wails-draggable: no-drag;
+}
+
+/* Shell 整窗外边框拖柄（覆盖左管理区 + 右业务区） */
+.workspace.shell-layout.docked .workspace-frame-edge {
+  position: absolute;
+  z-index: 30;
+  pointer-events: auto;
+  --wails-draggable: no-drag;
+}
+
+.workspace.shell-layout.docked .workspace-frame-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: ns-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: ns-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  cursor: ew-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  cursor: ew-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-corner {
+  position: absolute;
+  z-index: 31;
+  width: 18px;
+  height: 18px;
+  pointer-events: auto;
+  --wails-draggable: no-drag;
+}
+
+.workspace.shell-layout.docked .workspace-frame-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.workspace.shell-layout.docked .workspace-frame-se {
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
 }

@@ -1,4 +1,4 @@
-import { catalogPanelDefaultW, readCatalogPanelWidth } from './catalogLayout'
+import { readCatalogPanelWidth } from './catalogLayout'
 
 /** 开卷区最小尺寸（与 backend minScopeWidth 一致）。 */
 export const minScopeSize = 240
@@ -20,6 +20,7 @@ export function workspaceFrameMinSize(
   docked: boolean,
   place: string,
   sidebarW: number,
+  managerW = 0,
 ): FrameMinSize {
   if (!docked) {
     return { minW: undockedMinW, minH: undockedMinH }
@@ -29,9 +30,9 @@ export function workspaceFrameMinSize(
     return { minW: minScopeSize, minH: minScopeSize + noteH + toolbarH }
   }
   if (place === 'center') {
-    return { minW: minScopeSize + minSidebarWidth, minH: undockedMinH }
+    return { minW: minScopeSize + minSidebarWidth + managerW, minH: undockedMinH }
   }
-  return { minW: minScopeSize + sidebarW + catalogPanelDefaultW + 1, minH: undockedMinH }
+  return { minW: minScopeSize + sidebarW + managerW + 1, minH: undockedMinH }
 }
 
 /** catalogColumnWidth 内嵌 place-right 时目录栏占用宽度（收起为 0）。 */

@@ -1,3 +1,5 @@
+import ChoiceSelect from './ChoiceSelect'
+
 export type NotePlaceId = 'right' | 'left' | 'top' | 'bottom' | 'center' | 'popout'
 
 const PLACE_OPTIONS: { place: NotePlaceId; label: string }[] = [
@@ -18,16 +20,13 @@ type Props = {
 /** NotePlaceBar 笔记停靠位置选择。 */
 export default function NotePlaceBar({ active, onPick, className = 'note-layout-select' }: Props) {
   return (
-    <select
+    <ChoiceSelect
       className={className}
       value={active}
       title="笔记位置"
-      onChange={(e) => onPick(e.target.value as NotePlaceId)}
-    >
-      {PLACE_OPTIONS.map((opt) => (
-        <option key={opt.place} value={opt.place}>{opt.label}</option>
-      ))}
-    </select>
+      options={PLACE_OPTIONS.map((opt) => ({ value: opt.place, label: opt.label }))}
+      onChange={onPick}
+    />
   )
 }
 

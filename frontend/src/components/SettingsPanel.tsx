@@ -16,6 +16,8 @@ type Props = {
   layoutPresets: WindowLayoutPresetsApi
   layoutPlace: NotePlaceId
   onPickPlace: (place: NotePlaceId) => void
+  catalogAutoAdd?: boolean
+  onCatalogAutoAddChange?: (auto: boolean) => void
   showWakeReader?: boolean
   className?: string
 }
@@ -26,6 +28,8 @@ export default function SettingsPanel({
   layoutPresets,
   layoutPlace,
   onPickPlace,
+  catalogAutoAdd,
+  onCatalogAutoAddChange,
   showWakeReader,
   className = 'sidebar-body',
 }: Props) {
@@ -72,7 +76,14 @@ export default function SettingsPanel({
         </button>
       </div>
       <div className="settings-tab-body">
-        {tab === 'ai' && <AiSettings settings={settings} embedded />}
+        {tab === 'ai' && (
+          <AiSettings
+            settings={settings}
+            catalogAutoAdd={catalogAutoAdd}
+            onCatalogAutoAddChange={onCatalogAutoAddChange}
+            embedded
+          />
+        )}
         {tab === 'templates' && <TemplateManager settings={settings} embedded />}
         {tab === 'appearance' && <ThemeManager embedded />}
         {tab === 'layout' && (

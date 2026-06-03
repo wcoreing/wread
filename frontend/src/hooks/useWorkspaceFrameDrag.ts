@@ -67,20 +67,14 @@ function calcMoveRect(start: FrameRect, dx: number, dy: number): FrameRect {
   return { x: start.x + dx, y: start.y + dy, w: start.w, h: start.h }
 }
 
-/** applyWindowBounds 经 Wails Runtime 改窗口 frame，拖拽热路径不走 Go Service。 */
-async function applyWindowBounds(rect: FrameRect, mode: DragMode): Promise<void> {
-  const x = Math.round(rect.x)
-  const y = Math.round(rect.y)
-  const w = Math.round(rect.w)
-  const h = Math.round(rect.h)
-  const posChanged = mode === 'move' || mode.includes('n') || mode.includes('w')
-  const sizeChanged = mode !== 'move'
-  if (posChanged) {
-    await WailsWindow.SetPosition(x, y)
-  }
-  if (sizeChanged) {
-    await WailsWindow.SetSize(w, h)
-  }
+/** applyWindowBounds 经 Go SetBounds 原子改窗，避免 macOS 分步 SetPosition/SetSize 失效。 */
+async function applyWindowBounds(rect: FrameRect) {
+  await Service.ResizeWorkspace(
+    Math.round(rect.x),
+    Math.round(rect.y),
+    Math.round(rect.w),
+    Math.round(rect.h),
+  )
 }
 
 /** useWorkspaceFrameDrag 顶栏移动 + 边框缩放；Runtime 改窗，松手后 Go 持久化。 */
@@ -137,7 +131,7 @@ export function useWorkspaceFrameDrag(resizeEnabled: boolean, limits?: FrameMinS
             mode === 'move'
               ? calcMoveRect(startFrame, dx, dy)
               : calcFrameRect(mode, startFrame, dx, dy, minRef.current)
-          void applyWindowBounds(rect, mode).catch(console.error)
+          void applyWindowBounds(rect).catch(console.error)
         })
       })
     }

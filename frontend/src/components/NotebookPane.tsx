@@ -1,39 +1,18 @@
 import type { ComponentProps } from 'react'
 import NotePaneBody from './NotePaneBody'
-import type { SessionDO } from '../../bindings/wread/internal/model'
 
 type NoteBodyProps = ComponentProps<typeof NotePaneBody>
 
 type Props = {
-  notebooks: SessionDO[]
-  activeNotebookId: string
-  listOpen: boolean
-  onOpenNotebook: (id: string) => void
-  onCreateNotebook: () => void
-  onDeleteNotebook: (id: string) => void
-  onBatchDeleteNotebooks: (ids: string[]) => void
+  sourceCollapsed: boolean
+  wreadVisible?: boolean
   className?: string
-} & Omit<
-  NoteBodyProps,
-  | 'className'
-  | 'notebooks'
-  | 'activeNotebookId'
-  | 'listOpen'
-  | 'onOpenNotebook'
-  | 'onCreateNotebook'
-  | 'onDeleteNotebook'
-  | 'onBatchDeleteNotebooks'
->
+} & Omit<NoteBodyProps, 'className' | 'sourceCollapsed' | 'wreadVisible'>
 
-/** NotebookPane 笔记区：笔记本侧栏 + 目录 + 解读正文。 */
+/** NotebookPane 笔记内容区：wread 解读 + 原文对照。 */
 export default function NotebookPane({
-  notebooks,
-  activeNotebookId,
-  listOpen,
-  onOpenNotebook,
-  onCreateNotebook,
-  onDeleteNotebook,
-  onBatchDeleteNotebooks,
+  sourceCollapsed,
+  wreadVisible = true,
   className = 'notebook-pane-body',
   ...noteProps
 }: Props) {
@@ -41,13 +20,8 @@ export default function NotebookPane({
     <NotePaneBody
       {...noteProps}
       className={className}
-      notebooks={notebooks}
-      activeNotebookId={activeNotebookId}
-      listOpen={listOpen}
-      onOpenNotebook={onOpenNotebook}
-      onCreateNotebook={onCreateNotebook}
-      onDeleteNotebook={onDeleteNotebook}
-      onBatchDeleteNotebooks={onBatchDeleteNotebooks}
+      sourceCollapsed={sourceCollapsed}
+      wreadVisible={wreadVisible}
     />
   )
 }

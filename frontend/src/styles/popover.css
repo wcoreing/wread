@@ -1,0 +1,93 @@
+/* 浮层 / 确认框 — 全局共用，随 systemThemesMono 主题 token 变色 */
+
+.sys-popover-surface,
+.menu-dropdown,
+.choice-select-menu,
+.notebook-manage-popover,
+.catalog-ctx-menu,
+.confirm-dialog {
+  border: 1px solid var(--sys-glass-border, rgba(var(--sys-accent-rgb), 0.22));
+  background: var(--sys-popover-bg, color-mix(in srgb, var(--sys-bg-solid) 92%, var(--sys-accent) 4%));
+  box-shadow: var(--sys-popover-shadow, 0 12px 32px rgba(0, 0, 0, 0.18));
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
+}
+
+/* ── 确认框 ── */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sys-scrim, rgba(0, 0, 0, 0.45));
+  backdrop-filter: blur(3px) saturate(1.1);
+  -webkit-backdrop-filter: blur(3px) saturate(1.1);
+  --wails-draggable: no-drag;
+}
+
+.confirm-dialog {
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border-radius: 10px;
+}
+
+.confirm-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sys-text-emphasis);
+}
+
+.confirm-message {
+  margin: 0 0 16px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--sys-text-secondary);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-btn {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.25);
+  background: transparent;
+  color: var(--sys-text-emphasis);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.confirm-btn.cancel:hover {
+  background: var(--sys-fill-strong);
+  border-color: rgba(var(--sys-accent-rgb), 0.35);
+}
+
+.confirm-btn.ok:not(.danger) {
+  border-color: color-mix(in srgb, var(--sys-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--sys-bg-solid) 72%, var(--sys-accent) 28%);
+  color: var(--sys-text-emphasis);
+}
+
+.confirm-btn.ok:not(.danger):hover {
+  background: color-mix(in srgb, var(--sys-bg-solid) 58%, var(--sys-accent) 42%);
+}
+
+.confirm-btn.ok.danger {
+  border-color: var(--sys-danger-border, rgba(var(--sys-accent-rgb), 0.3));
+  background: transparent;
+  color: var(--sys-danger-text, var(--sys-text-danger-soft));
+}
+
+.confirm-btn.ok.danger:hover {
+  background: var(--sys-danger-fill-hover, var(--sys-fill-strong));
+  border-color: var(--sys-danger-border-hover, var(--sys-danger-border));
+  color: var(--sys-danger-text-hover, var(--sys-text-danger));
+}
