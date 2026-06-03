@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, MouseEvent } from 'react'
 import { Window as WailsWindow } from '@wailsio/runtime'
+import ToggleSwitch from './ToggleSwitch'
 import './edgeRail.css'
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -72,20 +73,23 @@ export function ContinuousControls({
   onContinuousReadChange,
   onStopContinuous,
 }: ContinuousControlsProps) {
+  const title = continuousRead
+    ? '连续伴读已开启：解读后自动翻页继续'
+    : '开启连续伴读：需阅读模式穿透翻页'
+
   return (
     <div className="overlay-continuous-group">
-      {continuousRunning ? (
+      <span className="overlay-continuous-label">连续</span>
+      <ToggleSwitch
+        className="overlay-continuous-toggle"
+        checked={continuousRead}
+        label="连续伴读"
+        title={title}
+        onChange={onContinuousReadChange}
+      />
+      {continuousRunning && (
         <button type="button" className="overlay-continuous-stop-btn" onClick={onStopContinuous}>
-          停止连续
-        </button>
-      ) : (
-        <button
-          type="button"
-          className={`overlay-continuous-btn${continuousRead ? ' active' : ''}`}
-          title={continuousRead ? '连续伴读已开启：解读后自动翻页继续' : '开启连续伴读：需阅读模式穿透翻页'}
-          onClick={() => onContinuousReadChange(!continuousRead)}
-        >
-          连续
+          停止
         </button>
       )}
     </div>

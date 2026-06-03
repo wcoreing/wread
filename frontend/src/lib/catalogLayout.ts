@@ -4,11 +4,11 @@ const CATALOG_SIDE_KEY = 'wread.catalogSide'
 const CATALOG_PANEL_W_KEY = 'wread.catalogPanelW'
 const CATALOG_FONT_SIZE_KEY = 'wread.catalogFontSize'
 
-/** 目录侧栏默认宽度（px）。 */
-export const catalogPanelDefaultW = 280
+/** 管理区（笔记本+目录）默认宽度（px）。 */
+export const catalogPanelDefaultW = 320
 
-/** 目录侧栏最小/最大宽度（px）。 */
-export const catalogPanelMinW = 200
+/** 管理区最小/最大宽度（px）。 */
+export const catalogPanelMinW = 220
 export const catalogPanelMaxW = 480
 
 /** readCatalogPanelWidth 读取目录侧栏宽度。 */
@@ -44,9 +44,9 @@ export function saveCatalogFontSize(size: number) {
   localStorage.setItem(CATALOG_FONT_SIZE_KEY, String(s))
 }
 
-/** clampCatalogPanelWidth 按笔记区宽度限制目录侧栏。 */
+/** clampCatalogPanelWidth 按窗口宽度限制管理区宽度。 */
 export function clampCatalogPanelWidth(width: number, containerW: number): number {
-  const maxByContainer = Math.max(catalogPanelMinW, Math.floor(containerW * 0.55))
+  const maxByContainer = Math.max(catalogPanelMinW, Math.floor(containerW * 0.58))
   const max = Math.min(catalogPanelMaxW, maxByContainer)
   return Math.max(catalogPanelMinW, Math.min(max, Math.round(width)))
 }

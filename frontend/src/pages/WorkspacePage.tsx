@@ -9,7 +9,7 @@ import { useSyncScopePanelVisible } from '../hooks/useSyncScopePanelVisible'
 import { useActiveNotebook } from '../hooks/useActiveNotebook'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
-import { useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
+import { handleManagerToolbarMouseDown, useWorkspaceFrameDrag, type FrameEdge } from '../hooks/useWorkspaceFrameDrag'
 import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { ContinuousControls, InterpretToolbarBtn, ReaderEdgeRail } from '../components/PaneEdgeRail'
 import { usePillRestore } from '../hooks/usePillRestore'
@@ -167,19 +167,15 @@ export default function WorkspacePage() {
     void Service.RestoreDefaultWindowLayout().catch(console.error)
   }
 
-  /** onManagerMouseDown 管理区顶栏空白拖动窗口。 */
+  /** onManagerMouseDown 管理区顶栏：品牌区拖动/缩放，空白区移动窗口。 */
   const onManagerMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
-    const t = e.target as HTMLElement
-    if (t.closest('button, .note-toolbar-nav, .note-toolbar-spacer, .note-pill-btn, .view-menu, .menu-dropdown, .choice-select')) {
-      return
-    }
-    frameDragShell.startMove(e)
+    handleManagerToolbarMouseDown(e, frameDragShell, layout.layoutPlace)
   }
 
   /** onScopeToolbarMouseDown 阅读区顶栏空白拖动窗口。 */
   const onScopeToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .overlay-mode-radio, .overlay-interpret-group, .overlay-continuous-group, .overlay-continuous-btn, .overlay-continuous-stop-btn')) {
+    if (t.closest('button, .overlay-mode-radio, .overlay-interpret-group, .overlay-continuous-group, .toggle-switch, .overlay-continuous-stop-btn')) {
       return
     }
     const drag = shellLayout ? frameDragShell : frameDragScope

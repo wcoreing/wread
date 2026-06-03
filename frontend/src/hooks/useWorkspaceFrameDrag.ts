@@ -1,6 +1,7 @@
 import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react'
 import { Window as WailsWindow } from '@wailsio/runtime'
 import { Service } from '../../bindings/wread/internal/app'
+import type { NotePlaceId } from '../components/NotePlaceBar'
 
 /** 窗口边框缩放方向（n/s/e/w 及四角组合）。 */
 export type FrameEdge = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
@@ -171,4 +172,72 @@ export function useWorkspaceFrameDrag(resizeEnabled: boolean, limits?: FrameMinS
   )
 
   return { start, startMove }
+}
+
+type ToolbarDragMode = FrameEdge | 'move'
+
+/** resolveManagerToolbarDrag 管理顶栏按下位置判定移动或窗口缩放边。 */
+export function resolveManagerToolbarDrag(
+  layoutPlace: NotePlaceId,
+  rect: DOMRect,
+  clientX: number,
+  clientY: number,
+  edge = 10,
+): ToolbarDragMode {
+  const x = clientX - rect.left
+  const y = clientY - rect.top
+  const atTop = y <= edge
+  const atBottom = y >= rect.height - edge
+  const atLeft = x <= edge
+  const atRight = x >= rect.width - edge
+
+  switch (layoutPlace) {
+    case 'left':
+      if (atTop && atRight) return 'ne'
+      if (atTop) return 'n'
+      if (atRight) return 'e'
+      break
+    case 'top':
+      if (atTop && atLeft) return 'nw'
+      if (atTop && atRight) return 'ne'
+      if (atTop) return 'n'
+      if (atLeft) return 'w'
+      if (atRight) return 'e'
+      break
+    case 'bottom':
+      if (atBottom && atLeft) return 'sw'
+      if (atBottom && atRight) return 'se'
+      if (atBottom) return 's'
+      if (atLeft) return 'w'
+      if (atRight) return 'e'
+      break
+    default:
+      if (atTop && atLeft) return 'nw'
+      if (atTop) return 'n'
+      if (atLeft) return 'w'
+  }
+  return 'move'
+}
+
+/** handleManagerToolbarMouseDown 品牌/顶栏空白拖动窗口或缩放。 */
+export function handleManagerToolbarMouseDown(
+  e: ReactMouseEvent<HTMLDivElement>,
+  frameDrag: Pick<ReturnType<typeof useWorkspaceFrameDrag>, 'start' | 'startMove'>,
+  layoutPlace: NotePlaceId = 'right',
+) {
+  const t = e.target as HTMLElement
+  if (t.closest('button, .note-toolbar-actions, .view-menu, .menu-dropdown, .choice-select')) {
+    return
+  }
+  const mode = resolveManagerToolbarDrag(
+    layoutPlace,
+    e.currentTarget.getBoundingClientRect(),
+    e.clientX,
+    e.clientY,
+  )
+  if (mode === 'move') {
+    frameDrag.startMove(e)
+  } else {
+    frameDrag.start(mode, e)
+  }
 }

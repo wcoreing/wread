@@ -956,6 +956,9 @@ button:disabled {
 
 .note-nav-column.note-nav-single {
   position: relative;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
   flex-direction: column;
   --wails-draggable: no-drag;
 }
@@ -979,35 +982,10 @@ button:disabled {
   min-height: 0;
   height: auto;
   width: 100%;
+  min-width: 0;
   border: none;
   border-radius: 0;
   border-top: 1px solid rgba(var(--sys-accent-rgb), 0.08);
-}
-
-.note-nav-resize {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6px;
-  height: 100%;
-  cursor: col-resize;
-  z-index: 3;
-}
-
-.note-nav-resize::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 2px;
-  width: 2px;
-  border-radius: 1px;
-  background: rgba(var(--sys-accent-rgb), 0.12);
-  transition: background 0.15s ease;
-}
-
-.note-nav-resize:hover::after {
-  background: rgba(var(--sys-accent-strong-rgb), 0.45);
 }
 
 .notebook-switcher {

@@ -7,7 +7,7 @@ import { useActiveNotebook } from '../hooks/useActiveNotebook'
 import { useInterpretSettings } from '../hooks/useInterpretSettings'
 import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useSyncNavCatalogWidth } from '../hooks/useSyncNavCatalogWidth'
-import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
+import { handleManagerToolbarMouseDown, useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
 import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { usePillRestore } from '../hooks/usePillRestore'
 import { usePanelVisibility } from '../hooks/usePanelVisibility'
@@ -43,11 +43,7 @@ export default function SidebarPage() {
   }
 
   const onManagerMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
-    const t = e.target as HTMLElement
-    if (t.closest('button, .note-toolbar-nav, .note-toolbar-spacer, .note-pill-btn, .view-menu, .menu-dropdown, .choice-select')) {
-      return
-    }
-    frameDrag.startMove(e)
+    handleManagerToolbarMouseDown(e, frameDrag, layout.layoutPlace)
   }
 
   const notePaneProps = {

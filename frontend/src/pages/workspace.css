@@ -115,7 +115,8 @@ html, body, #root {
 }
 
 .workspace.shell-layout.has-manager .manager-pane {
-  flex: 0 0 auto;
+  flex: 0 0 var(--manager-w, 320px);
+  width: var(--manager-w, 320px);
   max-width: 58%;
   min-width: 220px;
 }
@@ -157,7 +158,38 @@ html, body, #root {
   border-right: 1px solid rgba(var(--sys-accent-rgb), 0.14);
   z-index: 4;
   overflow: hidden;
+  position: relative;
   --wails-draggable: no-drag;
+}
+
+.manager-pane-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 12;
+  --wails-draggable: no-drag;
+}
+
+.manager-pane-resize::after {
+  content: '';
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  right: 2px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(var(--sys-accent-rgb), 0.14);
+  transition: background 0.15s ease, width 0.15s ease;
+  pointer-events: none;
+}
+
+.manager-pane-resize:hover::after,
+.manager-pane-resize.dragging::after {
+  width: 3px;
+  background: rgba(var(--sys-accent-rgb), 0.55);
 }
 
 .manager-toolbar {
@@ -289,15 +321,24 @@ html, body, #root {
   width: 32px;
   height: 18px;
   border-radius: 999px;
-  background: rgba(var(--sys-accent-rgb), 0.18);
-  border: 1px solid rgba(var(--sys-accent-rgb), 0.14);
+  background: rgba(var(--sys-accent-rgb), 0.34);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.3);
   position: relative;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle-switch:hover:not(.disabled) .toggle-switch-track {
+  background: rgba(var(--sys-accent-rgb), 0.42);
+  border-color: rgba(var(--sys-accent-rgb), 0.38);
 }
 
 .toggle-switch.on .toggle-switch-track {
-  background: rgba(var(--sys-accent-strong-rgb), 0.55);
-  border-color: rgba(var(--sys-accent-rgb), 0.35);
+  background: var(--sys-accent-strong, var(--sys-accent));
+  border-color: rgba(var(--sys-accent-strong-rgb, var(--sys-accent-rgb)), 0.72);
+}
+
+.toggle-switch.on:hover:not(.disabled) .toggle-switch-track {
+  filter: brightness(0.92);
 }
 
 .toggle-switch-thumb {
@@ -307,13 +348,14 @@ html, body, #root {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: #f8f8f8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
   transition: transform 0.15s ease;
 }
 
 .toggle-switch.on .toggle-switch-thumb {
   transform: translateX(14px);
+  background: #fff;
 }
 
 .workspace.shell-layout.manager-hidden .scope-pane {
@@ -480,7 +522,9 @@ html, body, #root {
 }
 
 .workspace.note-only .manager-pane {
-  max-width: 52%;
+  flex: 0 0 var(--manager-w, 320px);
+  width: var(--manager-w, 320px);
+  max-width: 58%;
   border-radius: 0 0 0 10px;
 }
 

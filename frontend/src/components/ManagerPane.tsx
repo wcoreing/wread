@@ -7,6 +7,7 @@ import type { PanelId, PanelVisibility } from '../lib/panelVisibility'
 import type { NotePlaceId } from './NotePlaceBar'
 import type { useInterpretSettings } from '../hooks/useInterpretSettings'
 import type { WindowLayoutPresetsApi } from '../hooks/useWindowLayoutPresets'
+import { useCatalogPanelWidth } from '../hooks/useCatalogPanelWidth'
 
 type NavColumnProps = ComponentProps<typeof NoteNavColumn>
 
@@ -58,6 +59,8 @@ export default function ManagerPane({
   className = '',
 }: Props) {
   const rootRef = useRef<HTMLElement>(null)
+  const resizeRef = useRef<HTMLDivElement>(null)
+  const { panelStyle, startWidthDrag } = useCatalogPanelWidth('left')
 
   useEffect(() => {
     if (!onWidthChange) return
@@ -68,10 +71,25 @@ export default function ManagerPane({
     ro.observe(el)
     report()
     return () => ro.disconnect()
-  }, [onWidthChange, activeMenu])
+  }, [onWidthChange, activeMenu, panelStyle])
+
+  /** onResizeMouseDown 拖动管理区右缘调整宽度。 */
+  const onResizeMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const shell = e.currentTarget.closest('.workspace') as HTMLElement | null
+    resizeRef.current?.classList.add('dragging')
+    startWidthDrag(e.clientX, shell?.clientWidth ?? window.innerWidth, () => {
+      resizeRef.current?.classList.remove('dragging')
+    })
+  }
 
   return (
-    <aside ref={rootRef} className={`manager-pane workspace-nav-pane ${className}`.trim()}>
+    <aside
+      ref={rootRef}
+      className={`manager-pane workspace-nav-pane ${className}`.trim()}
+      style={panelStyle}
+    >
       <NoteToolbar
         className="sidebar-toolbar note-toolbar manager-toolbar"
         version={version}
@@ -105,6 +123,12 @@ export default function ManagerPane({
           className="sidebar-body interpret-settings manager-settings"
         />
       )}
+      <div
+        ref={resizeRef}
+        className="manager-pane-resize"
+        title="拖动调整管理区宽度"
+        onMouseDown={onResizeMouseDown}
+      />
     </aside>
   )
 }

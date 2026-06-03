@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import NoteCatalog from './NoteCatalog'
 import NotebookSwitcher from './NotebookSwitcher'
 import type { CatalogNodeDO, SessionDO } from '../../bindings/wread/internal/model'
 import { useCatalogFontSize } from '../hooks/useCatalogFontSize'
-import { useCatalogPanelWidth } from '../hooks/useCatalogPanelWidth'
 
 type Props = {
   notebookName: string
@@ -30,8 +29,6 @@ type Props = {
   onCreateNotebook: () => void
   onDeleteNotebook: (id: string) => void
   onBatchDeleteNotebooks: (ids: string[]) => void
-  /** onWidthChange 导航列总宽变化时回调（供穿透带同步）。 */
-  onWidthChange?: (width: number) => void
   className?: string
 }
 
@@ -61,38 +58,15 @@ export default function NoteNavColumn({
   onCreateNotebook,
   onDeleteNotebook,
   onBatchDeleteNotebooks,
-  onWidthChange,
   className = '',
 }: Props) {
   const columnRef = useRef<HTMLElement>(null)
-  const { panelStyle: catalogWidthStyle, panelW: catalogW, startWidthDrag } = useCatalogPanelWidth('left')
   const { fontSize, panelStyle: catalogFontStyle, changeFontSize } = useCatalogFontSize()
-  const catalogPanelStyle = { ...catalogFontStyle }
-
-  const containerW = () => columnRef.current?.parentElement?.clientWidth || window.innerWidth
-
-  useEffect(() => {
-    if (!onWidthChange) return
-    onWidthChange(catalogW)
-  }, [catalogW, onWidthChange])
-
-  useEffect(() => {
-    if (!onWidthChange) return
-    const el = columnRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => {
-      onWidthChange(Math.round(el.getBoundingClientRect().width))
-    })
-    ro.observe(el)
-    onWidthChange(Math.round(el.getBoundingClientRect().width))
-    return () => ro.disconnect()
-  }, [onWidthChange])
 
   return (
     <aside
       ref={columnRef}
       className={`workspace-nav-body note-nav-column note-nav-single ${className}`.trim()}
-      style={catalogWidthStyle}
     >
       <NotebookSwitcher
         notebooks={notebooks}
@@ -121,7 +95,7 @@ export default function NoteNavColumn({
           catalogSide="left"
           onToggleCatalogSide={() => {}}
           hideSideToggle
-          panelStyle={catalogPanelStyle}
+          panelStyle={catalogFontStyle}
           fontSize={fontSize}
           onFontSizeChange={changeFontSize}
           scrollToNodeId={catalogEntryScrollId}
@@ -130,15 +104,6 @@ export default function NoteNavColumn({
           onOrganizeError={onOrganizeError}
         />
       </div>
-      <div
-        className="note-nav-resize"
-        title="拖动调整导航区宽度"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          startWidthDrag(e.clientX, containerW())
-        }}
-      />
     </aside>
   )
 }

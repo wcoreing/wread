@@ -6,7 +6,7 @@ import {
 } from '../lib/catalogLayout'
 import type { CatalogSide } from '../lib/catalogLayout'
 
-/** useCatalogPanelWidth 目录侧栏宽度（拖内缘调整，持久化）。 */
+/** useCatalogPanelWidth 管理区宽度（拖右缘调整，持久化）。 */
 export function useCatalogPanelWidth(catalogSide: CatalogSide) {
   const [panelW, setPanelW] = useState(readCatalogPanelWidth)
   const panelWRef = useRef(panelW)
@@ -15,11 +15,11 @@ export function useCatalogPanelWidth(catalogSide: CatalogSide) {
     panelWRef.current = panelW
   }, [panelW])
 
-  const panelStyle = { '--catalog-panel-w': `${panelW}px` } as CSSProperties
+  const panelStyle = { '--manager-w': `${panelW}px` } as CSSProperties
 
-  /** startWidthDrag 拖动目录与正文分界调整宽度。 */
+  /** startWidthDrag 拖动管理区右缘调整宽度。 */
   const startWidthDrag = useCallback(
-    (startX: number, containerW: number) => {
+    (startX: number, containerW: number, onDragEnd?: () => void) => {
       const startW = panelWRef.current
       const onMove = (ev: MouseEvent) => {
         const delta = catalogSide === 'left' ? ev.clientX - startX : startX - ev.clientX
@@ -30,6 +30,7 @@ export function useCatalogPanelWidth(catalogSide: CatalogSide) {
         window.removeEventListener('mousemove', onMove)
         window.removeEventListener('mouseup', onUp)
         saveCatalogPanelWidth(panelWRef.current)
+        onDragEnd?.()
       }
       window.addEventListener('mousemove', onMove)
       window.addEventListener('mouseup', onUp)
