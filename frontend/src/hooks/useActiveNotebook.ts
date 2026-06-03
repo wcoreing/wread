@@ -435,6 +435,12 @@ export function useActiveNotebook() {
     }
   }
 
+  /** catalogOrganizeError AI 分类失败时展示状态。 */
+  const catalogOrganizeError = (msg: string) => setStatus(msg)
+
+  /** catalogOrganizeApplied AI 分章成功后清除状态（目录由 catalog:changed 刷新）。 */
+  const catalogOrganizeApplied = () => setStatus('')
+
   const hasSources = Boolean(capturePreview || ocrOriginal)
   const interpretBody = streaming || current
   const emptyHint = '在阅读器点「解读」开始'
@@ -480,6 +486,8 @@ export function useActiveNotebook() {
     deleteCatalogNode,
     deleteCatalogNodes,
     moveCatalogNode,
+    catalogOrganizeError,
+    catalogOrganizeApplied,
     current,
     ocrOriginal,
     capturePreview,

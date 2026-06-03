@@ -116,6 +116,7 @@ html, body, #root {
   min-width: 0;
   border-right: none;
   border-radius: 0;
+  overflow: hidden;
 }
 
 .catalog-pane-resize {

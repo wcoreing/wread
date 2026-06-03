@@ -65,3 +65,32 @@ export function findChapterTitle(nodes: CatalogNodeDO[], chapterId: string): str
 export function formatPageLabel(pageIndex: number, title: string): string {
   return `第${pageIndex}页  ${title || '未命名'}`
 }
+
+/** collectScopePageIds 收集分章范围内的 page 节点 ID（与后端 DFS 顺序一致）。 */
+export function collectScopePageIds(nodes: CatalogNodeDO[], scopeParentId: string): string[] {
+  const byParent = new Map<string, CatalogNodeDO[]>()
+  for (const n of nodes) {
+    const list = byParent.get(n.parentId) ?? []
+    list.push(n)
+    byParent.set(n.parentId, list)
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))
+  }
+  const pages: string[] = []
+  const walk = (nodeId: string) => {
+    const n = findCatalogNode(nodes, nodeId)
+    if (!n) return
+    if (n.kind === kindPage) {
+      pages.push(n.id)
+      return
+    }
+    for (const child of byParent.get(n.id) ?? []) {
+      walk(child.id)
+    }
+  }
+  for (const n of byParent.get(scopeParentId) ?? []) {
+    walk(n.id)
+  }
+  return pages
+}

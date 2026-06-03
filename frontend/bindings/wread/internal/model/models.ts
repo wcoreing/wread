@@ -254,6 +254,34 @@ export class LayoutSettingsDO {
 }
 
 /**
+ * PillPositionDO 悬浮 Pill 屏幕坐标（DIP）。
+ */
+export class PillPositionDO {
+    "x": number;
+    "y": number;
+
+    /** Creates a new PillPositionDO instance. */
+    constructor($$source: Partial<PillPositionDO> = {}) {
+        if (!("x" in $$source)) {
+            this["x"] = 0;
+        }
+        if (!("y" in $$source)) {
+            this["y"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PillPositionDO instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PillPositionDO {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PillPositionDO($$parsedSource as Partial<PillPositionDO>);
+    }
+}
+
+/**
  * PromptSettingsDO 提示词模板集合与当前选中项。
  */
 export class PromptSettingsDO {

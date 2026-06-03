@@ -38,6 +38,7 @@ func init() {
 	application.RegisterEvent[model.SessionDO]("notebook:opened")
 	application.RegisterEvent[model.ReaderSettingsDO]("reader:settings")
 	application.RegisterEvent[model.CatalogNodeDO]("catalog:changed")
+	application.RegisterEvent[string]("pill:restored")
 }
 
 func main() {
@@ -123,11 +124,52 @@ func main() {
 		},
 	})
 
-	app.SetupWindows(svc, wailsApp, workspace, popout, ws)
+	pillPos := st.GetPillPosition()
+	pillX, pillY := pillPos.X, pillPos.Y
+	if pillX <= 0 && pillY <= 0 {
+		pillX, pillY = wb.X+wb.Width-68, wb.Y+wb.Height-68
+	}
+
+	pill := wailsApp.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name:             "pill",
+		Title:            "Wread",
+		X:                pillX,
+		Y:                pillY,
+		Width:            52,
+		Height:           52,
+		MinWidth:         52,
+		MinHeight:        52,
+		MaxWidth:         52,
+		MaxHeight:        52,
+		Frameless:        true,
+		AlwaysOnTop:      true,
+		Hidden:           true,
+		BackgroundType:   application.BackgroundTypeTransparent,
+		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
+		URL:              "/pill",
+		Mac: application.MacWindow{
+			Backdrop:                application.MacBackdropTransparent,
+			TitleBar:                application.MacTitleBarHidden,
+			InvisibleTitleBarHeight: 0,
+		},
+		Windows: application.WindowsWindow{
+			HiddenOnTaskbar: true,
+		},
+	})
+
+	app.SetupWindows(svc, wailsApp, workspace, popout, pill, ws)
 
 	wailsApp.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		ws.ApplyLayout()
 		svc.EnsureOverlayReadMode()
+		if _, ok := st.GetPillRestoreSnapshot(); ok {
+			svc.RestorePillModeIfNeeded()
+			return
+		}
+		workspace.Show()
+		if !wsState.Docked {
+			popout.Show()
+		}
 	})
 
 	workspace.RegisterHook(events.Common.WindowDidMove, func(*application.WindowEvent) { svc.SyncWorkspaceBounds() })
@@ -145,12 +187,23 @@ func main() {
 		_ = svc.InterpretNow(svc.DefaultRegion())
 	})
 
+	workspace.RegisterKeyBinding("CmdOrCtrl+Shift+M", func(_ application.Window) {
+		_ = svc.MinimizeToPill("note")
+	})
+	popout.RegisterKeyBinding("CmdOrCtrl+Shift+M", func(_ application.Window) {
+		_ = svc.MinimizeToPill("note")
+	})
+
 	workspace.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		workspace.Hide()
 		e.Cancel()
 	})
 	popout.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		popout.Hide()
+		e.Cancel()
+	})
+	pill.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
+		pill.Hide()
 		e.Cancel()
 	})
 
@@ -163,17 +216,14 @@ func main() {
 	menu := wailsApp.NewMenu()
 	menu.Add("显示开卷").OnClick(func(_ *application.Context) { svc.FocusOverlay() })
 	menu.Add("显示笔记").OnClick(func(_ *application.Context) { svc.FocusSidebar() })
+	menu.Add("收起为悬浮").OnClick(func(_ *application.Context) { _ = svc.MinimizeToPill("note") })
+	menu.Add("恢复窗口").OnClick(func(_ *application.Context) { _ = svc.RestoreFromPill() })
 	menu.Add("解读当前页").OnClick(func(_ *application.Context) {
 		_ = svc.InterpretNow(svc.DefaultRegion())
 	})
 	menu.AddSeparator()
 	menu.Add("退出").OnClick(func(_ *application.Context) { wailsApp.Quit() })
 	systemTray.SetMenu(menu)
-
-	workspace.Show()
-	if !wsState.Docked {
-		popout.Show()
-	}
 
 	go ocr.Warmup()
 

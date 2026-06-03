@@ -34,14 +34,14 @@ type SessionDO struct {
 
 // SnapDO 单次解读快照。
 type SnapDO struct {
-	ID              string   `json:"id"`
-	SessionID       string   `json:"sessionId"`
-	Title           string   `json:"title"`
-	OCRText         string   `json:"ocrText"`
-	Summary         string   `json:"summary"`
-	Concepts        []string `json:"concepts"`
-	CapturePreview  string   `json:"capturePreview"`
-	CreatedAt       int64    `json:"createdAt"`
+	ID             string   `json:"id"`
+	SessionID      string   `json:"sessionId"`
+	Title          string   `json:"title"`
+	OCRText        string   `json:"ocrText"`
+	Summary        string   `json:"summary"`
+	Concepts       []string `json:"concepts"`
+	CapturePreview string   `json:"capturePreview"`
+	CreatedAt      int64    `json:"createdAt"`
 }
 
 // SnapCaptureSettingsDO 解读截屏保留设置。
@@ -72,6 +72,35 @@ type CatalogNodeSaveDO struct {
 	Kind     string `json:"kind"`
 	Title    string `json:"title"`
 	SnapID   string `json:"snapId"`
+}
+
+// CatalogOrganizePageDO AI 分章输入：目录页标题与可选摘要。
+type CatalogOrganizePageDO struct {
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	Summary string `json:"summary,omitempty"`
+	Index   int    `json:"index"`
+}
+
+// CatalogOrganizeChapterDO AI 分章方案中的章节节点。
+type CatalogOrganizeChapterDO struct {
+	Title       string                     `json:"title"`
+	PageIDs     []string                   `json:"pageIds"`
+	PageIndexes []int                      `json:"pageIndexes"`
+	Children    []CatalogOrganizeChapterDO `json:"children"`
+}
+
+// CatalogOrganizePlanDO AI 分章方案。
+type CatalogOrganizePlanDO struct {
+	Chapters []CatalogOrganizeChapterDO `json:"chapters"`
+}
+
+// CatalogOrganizePreviewDO AI 分章预览（含范围与原始页列表）。
+type CatalogOrganizePreviewDO struct {
+	ScopeParentID string                  `json:"scopeParentId"`
+	ScopeTitle    string                  `json:"scopeTitle"`
+	Pages         []CatalogOrganizePageDO `json:"pages"`
+	Plan          CatalogOrganizePlanDO   `json:"plan"`
 }
 
 // WorkspaceStateDO 工作区窗口布局（阅读器+笔记单窗）。
@@ -133,6 +162,19 @@ type WindowLayoutPresetSaveDO struct {
 type AppInfoDO struct {
 	Version string `json:"version"`
 	Name    string `json:"name"`
+}
+
+// PillPositionDO 悬浮 Pill 屏幕坐标（DIP）。
+type PillPositionDO struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
+// PillRestoreSnapshotDO 收起前窗口可见性快照，用于单击恢复。
+type PillRestoreSnapshotDO struct {
+	WorkspaceVisible bool   `json:"workspaceVisible"`
+	PopoutVisible    bool   `json:"popoutVisible"`
+	NoteMenu         string `json:"noteMenu"`
 }
 
 // ReaderSettingsDO 侧栏阅读样式。

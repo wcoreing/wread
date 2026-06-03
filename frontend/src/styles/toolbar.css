@@ -424,6 +424,32 @@
   color: var(--sys-text-emphasis);
 }
 
+.note-pill-btn,
+.overlay-pill-btn {
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  border-radius: 999px;
+  padding: 4px 11px;
+  background: var(--sys-fill-subtle);
+  color: var(--sys-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  --wails-draggable: no-drag;
+  flex-shrink: 0;
+  margin-left: 6px;
+  box-shadow:
+    inset 0 1px 0 var(--sys-inset-highlight),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.note-pill-btn:hover,
+.overlay-pill-btn:hover {
+  background: color-mix(in srgb, var(--sys-accent) 12%, var(--sys-fill-subtle));
+  border-color: rgba(var(--sys-accent-rgb), 0.38);
+  color: var(--sys-text-emphasis);
+}
+
 .overlay-interpret-btn {
   border: none;
   border-radius: 999px;

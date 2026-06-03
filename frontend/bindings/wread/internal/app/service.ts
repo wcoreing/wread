@@ -189,11 +189,20 @@ export function GetLayoutSettings(): $CancellablePromise<model$0.LayoutSettingsD
 }
 
 /**
+ * GetPillPosition 读取 Pill 屏幕坐标。
+ */
+export function GetPillPosition(): $CancellablePromise<model$0.PillPositionDO> {
+    return $Call.ByID(3796925949).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
+/**
  * GetPromptSettings 读取解读提示词模板。
  */
 export function GetPromptSettings(): $CancellablePromise<model$0.PromptSettingsDO> {
     return $Call.ByID(2411867014).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType8($result);
     });
 }
 
@@ -202,7 +211,7 @@ export function GetPromptSettings(): $CancellablePromise<model$0.PromptSettingsD
  */
 export function GetReaderSettings(): $CancellablePromise<model$0.ReaderSettingsDO> {
     return $Call.ByID(1389044899).then(($result: any) => {
-        return $$createType8($result);
+        return $$createType9($result);
     });
 }
 
@@ -218,7 +227,7 @@ export function GetScopeMode(): $CancellablePromise<string> {
  */
 export function GetSnapCaptureSettings(): $CancellablePromise<model$0.SnapCaptureSettingsDO> {
     return $Call.ByID(4293895444).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType10($result);
     });
 }
 
@@ -227,7 +236,7 @@ export function GetSnapCaptureSettings(): $CancellablePromise<model$0.SnapCaptur
  */
 export function GetWindowLayoutPresets(): $CancellablePromise<model$0.WindowLayoutPresetsDO> {
     return $Call.ByID(158967705).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType11($result);
     });
 }
 
@@ -253,11 +262,18 @@ export function InterpretNow(region: model$0.RegionDO): $CancellablePromise<void
 }
 
 /**
+ * IsPillMode 当前是否处于 Pill 收起态。
+ */
+export function IsPillMode(): $CancellablePromise<boolean> {
+    return $Call.ByID(1881680999);
+}
+
+/**
  * ListCatalog 列出当前会话目录树。
  */
 export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
     return $Call.ByID(1689678366).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType12($result);
     });
 }
 
@@ -266,7 +282,7 @@ export function ListCatalog(): $CancellablePromise<model$0.CatalogNodeDO[]> {
  */
 export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1945990983).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType13($result);
     });
 }
 
@@ -275,7 +291,7 @@ export function ListNotebooks(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
     return $Call.ByID(1975139466).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType13($result);
     });
 }
 
@@ -284,8 +300,15 @@ export function ListSessions(): $CancellablePromise<model$0.SessionDO[]> {
  */
 export function ListSnaps(): $CancellablePromise<model$0.SnapDO[]> {
     return $Call.ByID(2592071840).then(($result: any) => {
-        return $$createType14($result);
+        return $$createType15($result);
     });
+}
+
+/**
+ * MinimizeToPill 收起主窗/弹出窗，显示悬浮 Pill。
+ */
+export function MinimizeToPill(noteMenu: string): $CancellablePromise<void> {
+    return $Call.ByID(1842347921, noteMenu);
 }
 
 /**
@@ -305,11 +328,18 @@ export function OpenNotebook(id: string): $CancellablePromise<model$0.SessionDO>
 }
 
 /**
+ * OrganizeCatalogPages 对选中的笔记页 AI 分章并直接应用。
+ */
+export function OrganizeCatalogPages(pageIDs: string[]): $CancellablePromise<void> {
+    return $Call.ByID(2675649783, pageIDs);
+}
+
+/**
  * ResetPromptTemplates 恢复默认解读模板。
  */
 export function ResetPromptTemplates(): $CancellablePromise<model$0.PromptSettingsDO> {
     return $Call.ByID(3283912883).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType8($result);
     });
 }
 
@@ -328,6 +358,20 @@ export function RestoreDefaultWindowLayout(): $CancellablePromise<void> {
 }
 
 /**
+ * RestoreFromPill 从 Pill 恢复上次窗口状态。
+ */
+export function RestoreFromPill(): $CancellablePromise<void> {
+    return $Call.ByID(902013212);
+}
+
+/**
+ * RestorePillModeIfNeeded 启动时若上次为 Pill 模式则恢复收起态。
+ */
+export function RestorePillModeIfNeeded(): $CancellablePromise<void> {
+    return $Call.ByID(3326991165);
+}
+
+/**
  * SaveAISettings 保存 AI 配置。
  */
 export function SaveAISettings($in: model$0.AISettingsSaveDO): $CancellablePromise<void> {
@@ -335,11 +379,18 @@ export function SaveAISettings($in: model$0.AISettingsSaveDO): $CancellablePromi
 }
 
 /**
+ * SavePillPosition 持久化 Pill 屏幕坐标。
+ */
+export function SavePillPosition(x: number, y: number): $CancellablePromise<void> {
+    return $Call.ByID(1316066358, x, y);
+}
+
+/**
  * SavePromptTemplate 新建或更新解读模板。
  */
 export function SavePromptTemplate($in: model$0.PromptTemplateSaveDO): $CancellablePromise<model$0.PromptTemplateDO> {
     return $Call.ByID(2547522166, $in).then(($result: any) => {
-        return $$createType15($result);
+        return $$createType16($result);
     });
 }
 
@@ -355,7 +406,7 @@ export function SaveReaderSettings($in: model$0.ReaderSettingsDO): $CancellableP
  */
 export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $CancellablePromise<model$0.WindowLayoutPresetDO> {
     return $Call.ByID(3058634027, $in).then(($result: any) => {
-        return $$createType16($result);
+        return $$createType17($result);
     });
 }
 
@@ -364,7 +415,7 @@ export function SaveWindowLayoutPreset($in: model$0.WindowLayoutPresetSaveDO): $
  */
 export function SelectSnap(snapID: string): $CancellablePromise<model$0.SnapDO> {
     return $Call.ByID(1907960539, snapID).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType14($result);
     });
 }
 
@@ -483,13 +534,14 @@ const $$createType3 = model$0.AISettingsDO.createFrom;
 const $$createType4 = model$0.AppInfoDO.createFrom;
 const $$createType5 = model$0.CatalogSettingsDO.createFrom;
 const $$createType6 = model$0.LayoutSettingsDO.createFrom;
-const $$createType7 = model$0.PromptSettingsDO.createFrom;
-const $$createType8 = model$0.ReaderSettingsDO.createFrom;
-const $$createType9 = model$0.SnapCaptureSettingsDO.createFrom;
-const $$createType10 = model$0.WindowLayoutPresetsDO.createFrom;
-const $$createType11 = $Create.Array($$createType0);
-const $$createType12 = $Create.Array($$createType1);
-const $$createType13 = model$0.SnapDO.createFrom;
-const $$createType14 = $Create.Array($$createType13);
-const $$createType15 = model$0.PromptTemplateDO.createFrom;
-const $$createType16 = model$0.WindowLayoutPresetDO.createFrom;
+const $$createType7 = model$0.PillPositionDO.createFrom;
+const $$createType8 = model$0.PromptSettingsDO.createFrom;
+const $$createType9 = model$0.ReaderSettingsDO.createFrom;
+const $$createType10 = model$0.SnapCaptureSettingsDO.createFrom;
+const $$createType11 = model$0.WindowLayoutPresetsDO.createFrom;
+const $$createType12 = $Create.Array($$createType0);
+const $$createType13 = $Create.Array($$createType1);
+const $$createType14 = model$0.SnapDO.createFrom;
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = model$0.PromptTemplateDO.createFrom;
+const $$createType17 = model$0.WindowLayoutPresetDO.createFrom;

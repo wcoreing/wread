@@ -18,6 +18,8 @@ type Props = {
   onDeleteNode: (node: CatalogNodeDO) => void
   onBatchDeleteNodes: (ids: string[]) => void
   onMoveNode: (nodeId: string, parentId: string, index: number) => void
+  onOrganizeApplied?: () => void
+  onOrganizeError?: (msg: string) => void
   scrollToNodeId?: string
   onScrollToNodeDone?: () => void
 }
@@ -36,6 +38,8 @@ export default function WorkspaceCatalogPane({
   onDeleteNode,
   onBatchDeleteNodes,
   onMoveNode,
+  onOrganizeApplied,
+  onOrganizeError,
   scrollToNodeId = '',
   onScrollToNodeDone,
 }: Props) {
@@ -74,6 +78,8 @@ export default function WorkspaceCatalogPane({
           onDelete={onDeleteNode}
           onBatchDelete={onBatchDeleteNodes}
           onMove={onMoveNode}
+          onOrganizeApplied={onOrganizeApplied}
+          onOrganizeError={onOrganizeError}
           catalogSide="left"
           onToggleCatalogSide={() => {}}
           hideSideToggle

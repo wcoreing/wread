@@ -1,5 +1,5 @@
 import type { CatalogNodeDO } from '../../bindings/wread/internal/model'
-import { isChapter } from './catalogTree'
+import { collectScopePageIds, isChapter } from './catalogTree'
 
 /** collectDescendantIds 收集节点及其子树全部 ID。 */
 export function collectDescendantIds(nodes: CatalogNodeDO[], rootId: string): string[] {
@@ -33,6 +33,44 @@ export function pruneSelectionRoots(nodes: CatalogNodeDO[], selected: Iterable<s
 /** allNodeIds 平铺列表中全部节点 ID。 */
 export function allNodeIds(nodes: CatalogNodeDO[]): string[] {
   return nodes.map((n) => n.id)
+}
+
+/** allPageIds 全部笔记页 ID。 */
+export function allPageIds(nodes: CatalogNodeDO[]): string[] {
+  return nodes.filter((n) => n.kind === 'page').map((n) => n.id)
+}
+
+/** pageIdsFromChecked 从勾选集合提取笔记页 ID（按目录阅读顺序）。 */
+export function pageIdsFromChecked(nodes: CatalogNodeDO[], checked: Iterable<string>): string[] {
+  const set = new Set<string>()
+  for (const id of checked) {
+    const node = nodes.find((n) => n.id === id)
+    if (!node) continue
+    if (node.kind === 'page') {
+      set.add(node.id)
+      continue
+    }
+    if (isChapter(node)) {
+      for (const cid of collectDescendantIds(nodes, node.id)) {
+        const child = nodes.find((n) => n.id === cid)
+        if (child?.kind === 'page') set.add(child.id)
+      }
+    }
+  }
+  return collectScopePageIds(nodes, '').filter((id) => set.has(id))
+}
+
+/** formatBindingError 解析 Wails 绑定错误为可读文案。 */
+export function formatBindingError(err: unknown): string {
+  const raw = String(err)
+  const jsonPart = raw.replace(/^Error:\s*/, '').trim()
+  try {
+    const parsed = JSON.parse(jsonPart) as { message?: string }
+    if (parsed.message) return parsed.message
+  } catch {
+    /* 非 JSON */
+  }
+  return raw.replace(/^Error:\s*/, '')
 }
 
 /** idsCoveredByDeletion 本次删除会波及的节点 ID（含章节子树）。 */

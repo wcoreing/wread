@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Service } from '../../bindings/wread/internal/app'
 import type { CatalogNodeDO } from '../../bindings/wread/internal/model'
 import CatalogContextMenu from './CatalogContextMenu'
 import ConfirmDialog from './ConfirmDialog'
 import {
   allNodeIds,
+  allPageIds,
   collectDescendantIds,
   describeCatalogDelete,
+  formatBindingError,
+  pageIdsFromChecked,
 } from '../lib/catalogSelection'
 import {
   computeCatalogMove,
@@ -41,6 +45,8 @@ type Props = {
   onResizeStart?: (startX: number, containerW: number) => void
   scrollToNodeId?: string
   onScrollToNodeDone?: () => void
+  onOrganizeApplied?: () => void
+  onOrganizeError?: (msg: string) => void
 }
 
 type ConfirmState =
@@ -115,7 +121,7 @@ function CatalogTreeNodeRow({
   const active = chapter ? selectedChapterId === node.id : selectedPageId === node.id
   const checked = checkedIds.has(node.id)
   const isDragging = dragId === node.id
-  const dropOn = dropHint?.targetId === node.id ? `drop-${dropHint.place}` : ''
+  const dropOn = dropHint && dropHint.targetId === node.id ? `drop-${dropHint.place}` : ''
   const fullTitle = chapter ? node.title || '未命名' : pageLabelText(pageIndex, node.title)
 
   useEffect(() => {
@@ -311,9 +317,14 @@ export default function NoteCatalog({
   onResizeStart,
   scrollToNodeId = '',
   onScrollToNodeDone,
+  onOrganizeApplied,
+  onOrganizeError,
 }: Props) {
   const tree = useMemo(() => buildCatalogTree(nodes), [nodes])
   const [batchMode, setBatchMode] = useState(false)
+  const [organizeMode, setOrganizeMode] = useState(false)
+  const [organizing, setOrganizing] = useState(false)
+  const checkMode = batchMode || organizeMode
   const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set())
   const [openChapterIds, setOpenChapterIds] = useState<Set<string>>(() => new Set())
   const listRef = useRef<HTMLDivElement>(null)
@@ -380,11 +391,41 @@ export default function NoteCatalog({
 
   /** toggleBatchMode 进入或退出批量选择。 */
   const toggleBatchMode = () => {
+    setOrganizeMode(false)
     setBatchMode((v) => {
       if (v) setCheckedIds(new Set())
       return !v
     })
   }
+
+  /** toggleOrganizeMode 进入或退出 AI 分类多选。 */
+  const toggleOrganizeMode = () => {
+    setBatchMode(false)
+    setOrganizeMode((v) => {
+      if (v) setCheckedIds(new Set())
+      return !v
+    })
+  }
+
+  /** confirmOrganize 对选中页执行 AI 分章。 */
+  const confirmOrganize = useCallback(async () => {
+    const pageIds = pageIdsFromChecked(nodes, checkedIds)
+    if (pageIds.length < 2) {
+      onOrganizeError?.('至少选择 2 页笔记')
+      return
+    }
+    setOrganizing(true)
+    try {
+      await Service.OrganizeCatalogPages(pageIds)
+      setCheckedIds(new Set())
+      setOrganizeMode(false)
+      onOrganizeApplied?.()
+    } catch (e: unknown) {
+      onOrganizeError?.(formatBindingError(e))
+    } finally {
+      setOrganizing(false)
+    }
+  }, [checkedIds, nodes, onOrganizeApplied, onOrganizeError])
 
   /** toggleNodeCheck 勾选/取消节点（章节含子树）。 */
   const toggleNodeCheck = (node: CatalogNodeDO, on: boolean) => {
@@ -400,6 +441,8 @@ export default function NoteCatalog({
   }
 
   const checkedCount = checkedIds.size
+  const selectedPageCount = pageIdsFromChecked(nodes, checkedIds).length
+  const canStartOrganize = allPageIds(nodes).length >= 2
   const resizeSide = resizeEdge ?? catalogSide
 
   const ctxItems = (() => {
@@ -451,9 +494,31 @@ export default function NoteCatalog({
           />
         </div>
         <div className="catalog-head">
-          <span className="catalog-head-title">{batchMode ? `已选 ${checkedCount}` : '目录'}</span>
+          <span className="catalog-head-title">
+            {organizeMode ? `AI 分类 · ${selectedPageCount} 页` : batchMode ? `已选 ${checkedCount}` : '目录'}
+          </span>
           <div className="catalog-head-actions">
-            {batchMode ? (
+            {organizeMode ? (
+              <>
+                <button type="button" className="catalog-batch-btn" onClick={() => setCheckedIds(new Set(allPageIds(nodes)))} disabled={nodes.length === 0}>
+                  全选页
+                </button>
+                <button type="button" className="catalog-batch-btn" onClick={() => setCheckedIds(new Set())} disabled={selectedPageCount === 0}>
+                  清空
+                </button>
+                <button type="button" className="catalog-batch-btn" onClick={toggleOrganizeMode} disabled={organizing}>
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="catalog-batch-btn primary"
+                  disabled={selectedPageCount < 2 || organizing}
+                  onClick={() => void confirmOrganize()}
+                >
+                  {organizing ? '分类中…' : '确认分类'}
+                </button>
+              </>
+            ) : batchMode ? (
               <>
                 <button type="button" className="catalog-batch-btn" onClick={() => setCheckedIds(new Set(allNodeIds(nodes)))} disabled={nodes.length === 0}>
                   全选
@@ -491,6 +556,15 @@ export default function NoteCatalog({
                 <button type="button" className="catalog-batch-btn" onClick={toggleBatchMode} disabled={nodes.length === 0}>
                   批量
                 </button>
+                <button
+                  type="button"
+                  className="catalog-batch-btn"
+                  onClick={toggleOrganizeMode}
+                  disabled={!canStartOrganize}
+                  title="多选笔记后 AI 自动分章"
+                >
+                  AI 分类
+                </button>
                 {!hideSideToggle && (
                   <button
                     type="button"
@@ -516,7 +590,7 @@ export default function NoteCatalog({
               node={node}
               depth={0}
               pageIndex={0}
-              batchMode={batchMode}
+              batchMode={checkMode}
               checkedIds={checkedIds}
               dragId={dragId}
               dropHint={dropHint}

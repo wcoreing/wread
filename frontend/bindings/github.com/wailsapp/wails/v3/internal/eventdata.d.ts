@@ -22,6 +22,7 @@ declare module "@wailsio/runtime" {
             "notebook:opened": model$0.SessionDO;
             "overlay:editable": boolean;
             "overlay:scopeMode": string;
+            "pill:restored": string;
             "read:delta": string;
             "read:done": model$0.SnapDO;
             "read:error": string;

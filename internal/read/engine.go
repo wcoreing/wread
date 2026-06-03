@@ -26,12 +26,12 @@ type Emitter func(event string, payload any)
 
 // Engine 伴读引擎。
 type Engine struct {
-	store    *store.Store
-	overlay  application.Window
-	sidebar  application.Window
-	mu       sync.Mutex
-	cancel   context.CancelFunc
-	gen      uint64
+	store              *store.Store
+	overlay            application.Window
+	sidebar            application.Window
+	mu                 sync.Mutex
+	cancel             context.CancelFunc
+	gen                uint64
 	lastOCR            string
 	lastSnap           *model.SnapDO
 	lastCapturePreview string

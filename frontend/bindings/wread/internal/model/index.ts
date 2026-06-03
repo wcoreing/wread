@@ -9,6 +9,7 @@ export {
     CatalogNodeSaveDO,
     CatalogSettingsDO,
     LayoutSettingsDO,
+    PillPositionDO,
     PromptSettingsDO,
     PromptTemplateDO,
     PromptTemplateSaveDO,

@@ -1217,6 +1217,7 @@ button:disabled {
 }
 
 .catalog-panel {
+  position: relative;
   width: var(--catalog-panel-w, 280px);
   min-width: 200px;
   display: flex;
@@ -1555,6 +1556,16 @@ button:disabled {
 .catalog-batch-btn.danger:hover:not(:disabled) {
   background: rgba(248, 113, 113, 0.15);
   color: var(--sys-text-danger-muted);
+}
+
+.catalog-batch-btn.primary {
+  border-color: rgba(var(--sys-accent-rgb), 0.55);
+  background: rgba(var(--sys-accent-rgb), 0.22);
+  color: var(--sys-text-primary);
+}
+
+.catalog-batch-btn.primary:hover:not(:disabled) {
+  background: rgba(var(--sys-accent-rgb), 0.35);
 }
 
 .catalog-check {

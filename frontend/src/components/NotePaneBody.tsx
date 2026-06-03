@@ -25,6 +25,8 @@ type Props = {
   onDeleteNode: (node: CatalogNodeDO) => void
   onBatchDeleteNodes: (ids: string[]) => void
   onMoveNode: (nodeId: string, parentId: string, index: number) => void
+  onOrganizeApplied?: () => void
+  onOrganizeError?: (msg: string) => void
   readerSettings: ReaderSettingsDO
   onReaderSettingsChange: (next: ReaderSettingsDO) => void
   status: string
@@ -78,6 +80,8 @@ export default function NotePaneBody({
   onDeleteNode,
   onBatchDeleteNodes,
   onMoveNode,
+  onOrganizeApplied,
+  onOrganizeError,
   readerSettings,
   onReaderSettingsChange,
   status,
@@ -174,6 +178,8 @@ export default function NotePaneBody({
             onResizeStart={(x) => startWidthDrag(x, splitRef.current?.clientWidth || window.innerWidth)}
             scrollToNodeId={catalogEntryScrollId}
             onScrollToNodeDone={onCatalogEntryScrollDone}
+            onOrganizeApplied={onOrganizeApplied}
+            onOrganizeError={onOrganizeError}
           />
         )}
 

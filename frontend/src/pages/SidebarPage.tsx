@@ -1,4 +1,5 @@
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { Service } from '../../bindings/wread/internal/app'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
 import NoteScopeBar from '../components/NoteScopeBar'
 import NotebookPane from '../components/NotebookPane'
@@ -10,6 +11,7 @@ import { useNoteLayout } from '../hooks/useNoteLayout'
 import { useCatalogCollapsed } from '../hooks/useCatalogCollapsed'
 import { useWorkspaceFrameDrag } from '../hooks/useWorkspaceFrameDrag'
 import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
+import { usePillRestore } from '../hooks/usePillRestore'
 import { useScopeMode } from '../hooks/useScopeMode'
 import { readCatalogSide, saveCatalogSide, type CatalogSide } from '../lib/catalogLayout'
 import { readerStyleVars } from '../lib/readerStyle'
@@ -29,6 +31,13 @@ export default function SidebarPage() {
   const frameDrag = useWorkspaceFrameDrag(true)
   const layoutPresets = useWindowLayoutPresets()
   const { notesInScope } = useScopeMode()
+
+  /** minimizeToPill 收起为悬浮图标并保存当前 Tab。 */
+  const minimizeToPill = useCallback(() => {
+    void Service.MinimizeToPill(noteMenu).catch(console.error)
+  }, [noteMenu])
+
+  usePillRestore(setNoteMenu)
 
   useEffect(() => {
     if (noteMenu !== 'note') setListOpen(false)
@@ -51,7 +60,7 @@ export default function SidebarPage() {
   /** onNoteToolbarMouseDown 顶栏空白区拖动移动独立笔记窗。 */
   const onNoteToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .note-layout-select, .note-theme-select, .note-toolbar-spacer')) {
+    if (t.closest('button, .note-layout-select, .note-theme-select, .note-toolbar-spacer, .note-pill-btn')) {
       return
     }
     frameDrag.startMove(e)
@@ -78,6 +87,8 @@ export default function SidebarPage() {
     onBatchDeleteNodes: (ids: string[]) => nb.deleteCatalogNodes(ids).catch(console.error),
     onMoveNode: (nodeId: string, parentId: string, index: number) =>
       nb.moveCatalogNode(nodeId, parentId, index).catch(console.error),
+    onOrganizeApplied: nb.catalogOrganizeApplied,
+    onOrganizeError: nb.catalogOrganizeError,
     readerSettings: nb.readerSettings,
     onReaderSettingsChange: nb.updateReaderSettings,
     status: nb.status,
@@ -128,6 +139,7 @@ export default function SidebarPage() {
           activeMenu={noteMenu}
           onPickMenu={setNoteMenu}
           onMouseDown={onNoteToolbarMouseDown}
+          onMinimizeToPill={minimizeToPill}
         />
         {noteMenu === 'settings' && (
           <SettingsPanel

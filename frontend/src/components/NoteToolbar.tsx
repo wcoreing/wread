@@ -9,6 +9,7 @@ type Props = {
   onPickMenu: (menu: NoteMenu) => void
   className?: string
   onMouseDown?: (e: ReactMouseEvent<HTMLDivElement>) => void
+  onMinimizeToPill?: () => void
 }
 
 /** NoteToolbar 笔记顶栏：左侧 wread，右侧笔记与配置。 */
@@ -18,6 +19,7 @@ export default function NoteToolbar({
   onPickMenu,
   className = 'sidebar-toolbar note-toolbar',
   onMouseDown,
+  onMinimizeToPill,
 }: Props) {
   return (
     <div className={className} onMouseDown={onMouseDown}>
@@ -48,6 +50,17 @@ export default function NoteToolbar({
           配置
         </button>
       </div>
+      {onMinimizeToPill && (
+        <button
+          type="button"
+          className="note-pill-btn"
+          title="收起为悬浮图标（⌘⇧M）"
+          aria-label="收起为悬浮图标"
+          onClick={onMinimizeToPill}
+        >
+          收起
+        </button>
+      )}
     </div>
   )
 }

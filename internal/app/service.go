@@ -16,6 +16,8 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+var errPillUnavailable = errors.New("pill 窗口未就绪")
+
 // Service Wails 绑定服务。
 type Service struct {
 	store           *store.Store
@@ -23,9 +25,11 @@ type Service struct {
 	app             *application.App
 	workspace       application.Window
 	popout          application.Window
+	pill            application.Window
 	ws              *Workspace
 	version         string
 	overlayEditMode bool
+	pillSnapshot    model.PillRestoreSnapshotDO
 }
 
 // NewService 创建 Service。
@@ -34,10 +38,11 @@ func NewService(version string, st *store.Store, engine *read.Engine) *Service {
 }
 
 // attach 注入 app 与窗口引用（仅 main 调用，不暴露给前端）。
-func (s *Service) attach(app *application.App, workspace, popout application.Window, ws *Workspace) {
+func (s *Service) attach(app *application.App, workspace, popout, pill application.Window, ws *Workspace) {
 	s.app = app
 	s.workspace = workspace
 	s.popout = popout
+	s.pill = pill
 	s.ws = ws
 	s.engine.SetOverlay(workspace)
 	s.engine.SetSidebar(popout)
@@ -257,12 +262,18 @@ func (s *Service) wakeWindow(w application.Window) {
 
 // FocusOverlay 聚焦工作区并进入开卷调整模式。
 func (s *Service) FocusOverlay() {
+	if s.IsPillMode() {
+		_ = s.RestoreFromPill()
+	}
 	s.setOverlayEditable()
 	s.wakeWindow(s.workspace)
 }
 
 // FocusSidebar 聚焦笔记（内嵌时同工作区，弹出时聚焦弹出窗）。
 func (s *Service) FocusSidebar() {
+	if s.IsPillMode() {
+		_ = s.RestoreFromPill()
+	}
 	if s.ws != nil && s.ws.State().Docked {
 		s.wakeWindow(s.workspace)
 		s.emit("focus:note", true)
@@ -537,6 +548,119 @@ func (s *Service) MoveCatalogNode(nodeID, parentID string, index int) error {
 		return err
 	}
 	s.emit("catalog:changed", model.CatalogNodeDO{})
+	return nil
+}
+
+// OrganizeCatalogPages 对选中的笔记页 AI 分章并直接应用。
+func (s *Service) OrganizeCatalogPages(pageIDs []string) error {
+	pageIDs = dedupeStrings(pageIDs)
+	if len(pageIDs) < 2 {
+		return fmt.Errorf("至少选择 2 页笔记")
+	}
+	sess, err := s.store.EnsureActiveSession()
+	if err != nil {
+		return err
+	}
+	pages, err := s.store.CollectPagesByIDs(sess.ID, pageIDs)
+	if err != nil {
+		return err
+	}
+	inputs := make([]model.CatalogOrganizePageDO, 0, len(pages))
+	for i, p := range pages {
+		item := model.CatalogOrganizePageDO{
+			ID:    p.ID,
+			Title: p.Title,
+			Index: i + 1,
+		}
+		if p.SnapID != "" {
+			if snap, err := s.store.GetSnap(p.SnapID); err == nil {
+				item.Summary = strings.TrimSpace(snap.Summary)
+			}
+		}
+		inputs = append(inputs, item)
+	}
+	scopeTitle := s.store.GetActiveNotebookName()
+	if scopeTitle == "" {
+		scopeTitle = "未命名笔记本"
+	}
+	base, key, modelName := s.store.AIConfig()
+	provider := agent.NewProvider(base, key, modelName)
+	plan, err := provider.OrganizeCatalog(context.Background(), scopeTitle, inputs)
+	if err != nil {
+		return err
+	}
+	plan, err = store.BindOrganizePlanPages(inputs, plan)
+	if err != nil {
+		return err
+	}
+	scopeIDs := make([]string, len(pages))
+	for i, p := range pages {
+		scopeIDs[i] = p.ID
+	}
+	if err := validateOrganizePlanPublic(scopeIDs, plan); err != nil {
+		return err
+	}
+	if err := s.store.ApplyCatalogOrganizePages(sess.ID, scopeIDs, plan); err != nil {
+		return err
+	}
+	s.emit("catalog:changed", model.CatalogNodeDO{})
+	return nil
+}
+
+func dedupeStrings(in []string) []string {
+	seen := map[string]struct{}{}
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		if _, ok := seen[s]; ok {
+			continue
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	return out
+}
+
+func validateOrganizePlanPublic(scopePageIDs []string, plan model.CatalogOrganizePlanDO) error {
+	want := map[string]struct{}{}
+	for _, id := range scopePageIDs {
+		want[id] = struct{}{}
+	}
+	got := map[string]struct{}{}
+	var walk func([]model.CatalogOrganizeChapterDO) error
+	walk = func(chapters []model.CatalogOrganizeChapterDO) error {
+		for _, ch := range chapters {
+			if strings.TrimSpace(ch.Title) == "" {
+				return fmt.Errorf("章节标题不能为空")
+			}
+			for _, pageID := range ch.PageIDs {
+				pageID = strings.TrimSpace(pageID)
+				if pageID == "" {
+					continue
+				}
+				if _, dup := got[pageID]; dup {
+					return fmt.Errorf("页面被重复分配")
+				}
+				got[pageID] = struct{}{}
+				if _, ok := want[pageID]; !ok {
+					return fmt.Errorf("页面不在当前分章范围")
+				}
+			}
+			if err := walk(ch.Children); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err := walk(plan.Chapters); err != nil {
+		return err
+	}
+	if len(got) != len(want) {
+		return fmt.Errorf("AI 方案未覆盖全部 %d 页笔记", len(want))
+	}
 	return nil
 }
 

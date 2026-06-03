@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
 import { Events, Window as WailsWindow } from '@wailsio/runtime'
 import { Service } from '../../bindings/wread/internal/app'
 import NoteToolbar, { type NoteMenu } from '../components/NoteToolbar'
@@ -15,6 +15,7 @@ import { useWindowLayoutPresets } from '../hooks/useWindowLayoutPresets'
 import { ReaderEdgeRail } from '../components/PaneEdgeRail'
 import WorkspaceCatalogPane from '../components/WorkspaceCatalogPane'
 import ScopeNoteBody from '../components/ScopeNoteBody'
+import { usePillRestore } from '../hooks/usePillRestore'
 import { useScopeMode } from '../hooks/useScopeMode'
 import type { ScopeMode } from '../lib/scopeMode'
 import { readCatalogSide, saveCatalogSide, type CatalogSide } from '../lib/catalogLayout'
@@ -50,6 +51,13 @@ export default function WorkspacePage() {
     [layout.docked, layout.layoutPlace, layout.sidebarW],
   )
   const frameDrag = useWorkspaceFrameDrag(frameAdjustable || editable, frameMin)
+
+  /** minimizeToPill 收起为悬浮图标并保存当前 Tab。 */
+  const minimizeToPill = useCallback(() => {
+    void Service.MinimizeToPill(noteMenu).catch(console.error)
+  }, [noteMenu])
+
+  usePillRestore(setNoteMenu)
 
   useEffect(() => {
     Events.On('overlay:editable', (ev: { data: boolean }) => setEditable(ev.data))
@@ -144,7 +152,7 @@ export default function WorkspacePage() {
   /** onToolbarMouseDown 顶栏空白区拖动移动窗口（不走 wails:drag）。 */
   const onToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .overlay-mode-radio, .overlay-restore-btn, .overlay-interpret-group')) {
+    if (t.closest('button, .overlay-mode-radio, .overlay-restore-btn, .overlay-interpret-group, .overlay-pill-btn')) {
       return
     }
     frameDrag.startMove(e)
@@ -153,7 +161,7 @@ export default function WorkspacePage() {
   /** onNoteToolbarMouseDown 笔记顶栏空白区拖动移动窗口。 */
   const onNoteToolbarMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement
-    if (t.closest('button, .note-layout-select, .note-theme-select, .note-toolbar-spacer')) {
+    if (t.closest('button, .note-layout-select, .note-theme-select, .note-toolbar-spacer, .note-pill-btn')) {
       return
     }
     frameDrag.startMove(e)
@@ -262,6 +270,8 @@ export default function WorkspacePage() {
     onBatchDeleteNodes: (ids: string[]) => nb.deleteCatalogNodes(ids).catch(console.error),
     onMoveNode: (nodeId: string, parentId: string, index: number) =>
       nb.moveCatalogNode(nodeId, parentId, index).catch(console.error),
+    onOrganizeApplied: nb.catalogOrganizeApplied,
+    onOrganizeError: nb.catalogOrganizeError,
     readerSettings: nb.readerSettings,
     onReaderSettingsChange: nb.updateReaderSettings,
     status: nb.status,
@@ -309,6 +319,8 @@ export default function WorkspacePage() {
     onDeleteNode: notePaneProps.onDeleteNode,
     onBatchDeleteNodes: notePaneProps.onBatchDeleteNodes,
     onMoveNode: notePaneProps.onMoveNode,
+    onOrganizeApplied: notePaneProps.onOrganizeApplied,
+    onOrganizeError: notePaneProps.onOrganizeError,
     scrollToNodeId: nb.catalogEntryScrollId,
     onScrollToNodeDone: nb.clearCatalogEntryScroll,
   }
@@ -366,6 +378,14 @@ export default function WorkspacePage() {
             onClick={onRestoreWindow}
           >
             恢复窗口
+          </button>
+          <button
+            type="button"
+            className="overlay-pill-btn"
+            title="收起为悬浮图标（⌘⇧M）"
+            onClick={minimizeToPill}
+          >
+            收起
           </button>
           {!showReaderEdgeRail && (
             <div className="overlay-interpret-group">
@@ -439,6 +459,7 @@ export default function WorkspacePage() {
               activeMenu={noteMenu}
               onPickMenu={setNoteMenu}
               onMouseDown={onNoteToolbarMouseDown}
+              onMinimizeToPill={minimizeToPill}
             />
             {noteMenu === 'settings' && (
               <SettingsPanel
